@@ -1,0 +1,138 @@
+function exportToExcel() {
+    // Get the header table and main table
+    const headerTable = document.querySelector('.header-table');
+    const mainTable = document.querySelector('.mainTable');
+
+    // Convert tables to worksheets
+    const headerSheet = XLSX.utils.table_to_sheet(headerTable);
+    const mainSheet = XLSX.utils.table_to_sheet(mainTable);
+
+    // Merge the two worksheets into one
+    const combinedSheet = { ...headerSheet };
+    let rowOffset = XLSX.utils.decode_range(headerSheet['!ref']).e.r + 1;
+
+    Object.keys(mainSheet).forEach((key) => {
+        if (key.startsWith('!')) {
+            if (key === '!ref') {
+                const mainRange = XLSX.utils.decode_range(mainSheet['!ref']);
+                const combinedRange = {
+                    s: { r: 0, c: 0 },
+                    e: {
+                        r: mainRange.e.r + rowOffset,
+                        c: Math.max(mainRange.e.c, XLSX.utils.decode_range(headerSheet['!ref']).e.c),
+                    },
+                };
+                combinedSheet['!ref'] = XLSX.utils.encode_range(combinedRange);
+            }
+        } else {
+            const cell = XLSX.utils.decode_cell(key);
+            cell.r += rowOffset;
+            const newKey = XLSX.utils.encode_cell(cell);
+            combinedSheet[newKey] = mainSheet[key];
+        }
+    });
+
+    // Set column widths
+    combinedSheet['!cols'] = [
+        { wch: 20 }, // Set width for column 1
+        { wch: 40 }, // Set width for column 2
+        { wch: 15 }, // Set width for column 3
+        { wch: 20 }  // Set width for column 4
+    ];
+
+    // Apply styles manually
+    const range = XLSX.utils.decode_range(combinedSheet['!ref']);
+    for (let row = range.s.r; row <= range.e.r; row++) {
+        for (let col = range.s.c; col <= range.e.c; col++) {
+            const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
+            const cell = combinedSheet[cellAddress];
+            if (cell) {
+                cell.s = {
+                    font: {
+                        name: 'Times New Roman', // Font name
+                        sz: 12,        // Font size
+                        bold: row === 0, // Bold header row
+                    },
+                    alignment: {
+                        horizontal: 'center', // Center alignment
+                        vertical: 'center',   // Vertical alignment
+                    },
+                    border: {
+                        top: { style: 'thin', color: { rgb: '000000' } },
+                        bottom: { style: 'thin', color: { rgb: '000000' } },
+                        left: { style: 'thin', color: { rgb: '000000' } },
+                        right: { style: 'thin', color: { rgb: '000000' } },
+                    },
+                };
+            }
+        }
+    }
+
+    // Create workbook and append combined sheet
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, combinedSheet, 'Sheet1');
+
+    // Export the workbook
+    XLSX.writeFile(workbook, 'StyledTable.xlsx');
+}
+
+
+window.jsPDF = window.jspdf.jsPDF;
+
+    function downloadPDF() {
+        var elementHTML = document.querySelector("#contentToConvert");
+        html2canvas(elementHTML).then(canvas => {
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF(); // Create a new jsPDF instance
+            pdf.addImage(imgData, 'PNG', 10, 10, 190, 0); // Add the canvas as an image
+            pdf.save('performa.pdf'); // Save the PDF
+        });
+    }       
+           
+            
+
+window.addEventListener("DOMContentLoaded", function () {
+    const formData = JSON.parse(localStorage.getItem("formData"));
+    const productData = JSON.parse(localStorage.getItem("productData"));
+    var total = 0;
+    if (formData) {
+        document.querySelector(".customerName").textContent = formData.customerName;
+        document.querySelector(".customerAddress").textContent = formData.customerAddress;
+        document.querySelector(".shipmentFrom").textContent = "Karachi, Pakistan"; // Example fixed value
+        document.querySelector(".shipmentDestination").textContent = formData.country;
+        document.querySelector(".date").textContent = formData.orderDate;
+        document.querySelector(".invoiceNumber").textContent = formData.invoiceNum;
+        this.document.querySelector("#shipmentDate").textContent =formData.shipmentDate;
+    }      
+
+        // Populate product details
+    if (productData) {
+        const tableBody = document.querySelector(".mainTable tbody");
+        
+        productData.forEach(product => {
+            const row = document.createElement("tr");
+            const sumValue = (product.unitPrice)*(product.productAmount);
+            total+= sumValue; 
+            row.innerHTML = `
+                <td><strong>${product.productNumber}</strong></td>
+                <td style="text-transform: uppercase;font-weight: bold;"><u>${product.productName}</u> <br> ${product.productDescription}</td>
+                <td>${product.unitPrice}</td>
+                <td><strong>${sumValue}</strong></td>
+              `;
+              tableBody.appendChild(row);
+            });
+          }
+          this.document.querySelector("#totalValue strong").textContent ="Total: " + total+ " $";
+        
+        /*const tableBody = document.querySelector(".mainTable tbody");
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td colspan="1"></td>
+            <td colspan="1"">${formData.productNumber}</td>
+            <td colspan="4" style="text-transform: uppercase;font-weight: bold;">${formData.productName} <br> ${formData.productDescription}</td>
+            <td colspan="1">${formData.unitPrice}$</td>
+            <td colspan="1">${(formData.productAmount)*(formData.unitPrice)}$</td>
+        `;
+        tableBody.appendChild(row);*/
+});
+
