@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Main Page</title>
+    <style>
+        #title{
+            text-align: center;
+        }
+        h1{
+            text-decoration: underline;
+        }
+        body{
+            background-color: gray;
+        }
+        .buttons{
+            margin: auto;
+            width: 20%;
+            border: 3px solid black;
+        }
+    </style>
+</head>
+<body>
+    <div id="title">
+    <h1>MAIN PAGE</h1>
+    </div>
+    <div>
+        <h3 style="text-align: center;">Welcome. This website allows you to generate order documents and calculate order packaging.</h3>
+        <h3 style="text-align: center;">To continue, please select an option: </h3>
+    </div>
+    <div class="buttons">
+        <form>
+        <ul class="buttonList">
+        <li><button type="button" id="newOrder">New order</button></li>
+        <li><button type="button" id="oldOrder">Old Order</button></li>
+        <li><button type="button" id="addArticle">Add article to Database</button></li>
+        <li><button type="button" id="newCustomer">Add Customer</button></li>
+        </ul>
+        </form>
+    </div>
+
+    <script src="main.js"></script>
+</body>
+</html>

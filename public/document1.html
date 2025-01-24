@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="document1.css">
+    <style>
+        body {
+            margin: 20px;
+            font-family: 'Arial', sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #333;
+            color: white;
+            text-transform: uppercase;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        tr:hover {
+            background-color: #ddd;
+        }
+
+        .header-table {
+            border: none;
+        }
+
+        .header-table td {
+            border: none;
+            text-align: left;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .heading {
+            font-family: 'Times New Roman', Times, serif;
+            text-align: center;
+            font-size: 25px !important;
+            font-weight: bolder;
+            color: #333;
+        }
+        .title{
+            font-family: 'Times New Roman', Times, serif;
+            text-align: center;
+            font-size: 50px !important;
+            font-weight: bolder;
+            color: #333;
+        }
+
+        button {
+            background-color: #333;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        button:hover {
+            background-color: #555;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="contentToConvert">
+        <table class="header-table">
+            <colgroup>
+                <col width="25%">
+                <col>
+                <col>
+                <col width="20%">
+                <col width="4%">
+            </colgroup>
+            <tr>
+                <td colspan="1" ><img src="images/cropped-fm-textile-icon.png" crossorigin="anonymous"  style="width: 63px; height: 63px;"></td>
+                <td colspan="3" class="title" style="font-weight: bold; text-decoration: underline;"> F.M TEXTILES (PVT) LTD</td>
+                <td colspan="1"></td>
+            </tr>
+            <tr>
+                <td colspan="1"></td>
+                <td colspan="2" class="heading" style="text-decoration: underline;">PERFORMA INVOICE</td>
+                <td colspan="2"></td>
+            </tr>
+            <tr>
+                <td colspan="5"></td>
+            </tr>
+            <tr>
+                
+                <td colspan="2" style="font-weight: bolder;"><u>Office # 1, Haji Nazir Center, Lal Mill Chowk,<br> Factory Area, Faisalabad, Pakistan</u></td>
+                <td colspan="1"></td>
+                <td colspan="1" style="border: 1.5px dotted black; font-weight: bolder;">CUSTOMER ADDRESS</td>
+            </tr>
+            <tr>
+                
+                <td colspan="2"><strong>Phone</strong>: 0092 41 2638529</td>
+                <td colspan="1"></td>
+                <td colspan="2"></td>
+            </tr>
+            <tr>
+                <td colspan="2"><strong>Fax</strong>: 0092 41 2617467</td>
+                <td colspan="1"></td>
+                <td colspan="1" style="border: dotted black; border-bottom: 0;"><strong>National Tax NO</strong>: 2570651-9</td>
+                <td colspan="1"></td>
+            </tr>
+            <tr>
+                <td colspan="2"><strong>Email</strong>: <a href="mailto:fmtex@fmtextiles.net">fmtex@fmtextiles.net</a></td>
+                <td colspan="1"></td>
+                <td colspan="1" style="border: dotted black; border-top: 0;"><strong>REX NO</strong>: PKREXPK25706519</td>
+                <td colspan="1"></td>
+            </tr>
+            <tr>
+                <td colspan="5"></td>
+            </tr>
+            <tr style="border: 1px solid black; border-bottom: 0; height: 50px;">
+                <td colapan="1"  style="font-weight: bolder;">INVOICE NO</td>
+                <td colspan="1"  class="invoiceNumber" style="text-decoration: underline;">FMT/1703/22</td>
+                <td colspan="1"  style="font-weight: bolder;">DATE</td>
+                <td colspan="2" class="date" style="text-decoration: underline;">28/02/2022</td>
+            </tr>
+        <!--    <tr>
+                <td colspan="1" style="font-weight: bolder;">To,</td>
+                <td colspan="4" class="customerName" style="font-weight: 700 ;">Address/name</td>
+            </tr>
+            <tr>
+                <td colspan="1"></td>
+                <td class="customerAddress" colspan="4"></td>
+            </tr>-->
+            <tr style="height: 50px; border: 1px solid black; border-top: 0;">
+                <td colspan="1" style="font-weight: bolder;">Shipment From: </td>
+                <td colspan="1" class="shipmentFrom" style="text-decoration: underline;">Karachi, Pakistan</td>
+                <td colspan="1" style="font-weight: bolder;">To:</td>
+                <td colspan="2" class="shipmentDestination" style="text-decoration: underline;">Hamberg,Germany</td>
+            </tr>
+        </table>
+
+        <table class="mainTable">
+            <thead>
+                <tr>
+                    <th>Marks & No</th>
+                    <th>Product Description</th>
+                    <th>Unit Price</th>
+                    <th>Total Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Add rows here based on your table data -->
+            </tbody>
+            <tbody>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td id="totalValue"><strong></strong></td>
+                </tr>
+            </tbody>
+        </table>
+        <table>
+            <tr>
+                <td style="font-weight: bolder;">Shipment Date: </td>
+                <td id="shipmentDate"></td>
+            </tr>
+        </table>
+    </div>
+    <div>
+        <button type="button" onclick="downloadPDF()">Download PDF</button>
+        <button type="button" onclick="exportToExcel()">Download Excel</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js "></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="document1.js"></script>
+</body>
+</html>
