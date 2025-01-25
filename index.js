@@ -66,6 +66,7 @@ app.post("/customerForm",(req,res)=>{
 
 app.post("/productForm",(req,res)=>{
     console.log(req.body);
+    const {productName, articleNumber, productCode, prodDesc, productWeight, productSize, cartonLength, cartonHeight, cartonWidth} = req.body;
     if(req){
         res.send(`
             <html>
