@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        td{
+            border: 1px solid black;
+        }
+       
+        td{
+            text-align: center;
+        }
+        table{
+            margin: auto;
+        }
+    </style>
+</head>
+<body>
+    <table id = "customerTable">
+        <colgroup>
+            <col id="IDCol">
+            <col id="nameCol">
+            <col id="phoneCol">
+            <col id="emailCol">
+            <col id="officeCol">
+            <col id="addressCol">
+            <col id="countryCol">
+            <col id="vatCol">
+            <col id="poCol">
+            <col id="websiteCol">
+        </colgroup>
+        <thead style="border: 1px solid black;">
+            <td colspan="1">ID</td>
+            <td colspan="1">NAME</td>
+            <td colspan="1">PHONE No.</td>
+            <td colspan="1">EMAIL</td>
+            <td colspan="1">ADDRESS</td>
+            <td colspan="1">COUNTRY</td>
+            <td colspan="1">VAT NUMBER</td>
+            <td colspan="1">OFFICE NO.</td>
+            <td colspan="1">WEBSITE</td>
+            <td colspan="1">PO BOX</td>
+        </thead>
+        <tbody id="customerTableBody">
+        </tbody>
+    </table>
+
+
+
+    <script src="customerReport.js"></script>
+</body>
+</html>

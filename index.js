@@ -64,6 +64,16 @@ app.post("/customerForm",(req,res)=>{
     });      
 });
 
+app.get("/api/customerReport",(req,res)=>{
+    db.query('SELECT * FROM customer_table',(err,results)=>{
+        if(err){
+            res.status(500).send({error: 'error fetching data'});
+        } else{
+            res.json(results);
+        }
+    });
+});
+
 app.post("/productForm",(req,res)=>{
     console.log(req.body);
     const {productName, articleNumber, productCode, prodDesc, productWeight, productSize, cartonLength, cartonHeight, cartonWidth} = req.body;
