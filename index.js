@@ -77,19 +77,45 @@ app.get("/api/customerReport",(req,res)=>{
 app.post("/productForm",(req,res)=>{
     console.log(req.body);
     const {productName, articleNumber, productCode, prodDesc, productWeight, productSize, cartonLength, cartonHeight, cartonWidth} = req.body;
-    if(req){
-        res.send(`
-            <html>
-                <head><title>Form Submitted</title></head>
-                <body>
-                    <script>
-                        alert("Article Added to Database");
-                        window.location.href = "/"; // Redirect after the alert
-                    </script>
-                </body>
-            </html>
-        `);
-    }
+    const query = 'INSERT INTO product_table (article_number, name, description, hs_code, size, carton_length, carton_width, carton_height, weight) VALUES (?,?,?,?,?,?,?,?,?)';
+    db.query(query, [articleNumber,productName,prodDesc,productCode,productSize,cartonLength,cartonWidth,cartonHeight,productWeight], (err, result) => {
+        if (err) {
+          console.error('Error inserting data:', err);
+          res.status(500).send('Failed to insert data');
+          return;
+        }
+        if(req){
+            res.send(`
+                <html>
+                    <head><title>Form Submitted</title></head>
+                    <body>
+                        <script>
+                            alert("Article Added to Database");
+                            window.location.href = "/"; // Redirect after the alert
+                        </script>
+                    </body>
+                </html>
+            `);
+        }
+        if (err) {
+            console.error('Error inserting data:', err);
+            res.status(500).send('Failed to insert data');
+            return;
+          }
+          console.log('customer added!');
+        //res.status(200).send('Customer added successfully!');
+          res.send(`
+              <html>
+                  <head><title>Form Submitted</title></head>
+                  <body>
+                      <script>
+                          alert("Customer Added to Database");
+                          window.location.href = "/"; // Redirect after the alert
+                      </script>
+                  </body>
+              </html>
+          `);
+      });      
 });
 
 app.listen(port,()=>{
