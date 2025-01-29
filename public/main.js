@@ -1,16 +1,16 @@
 document.getElementById("newOrder").addEventListener("click",function (event){
     event.preventDefault();
-    window.location.href="newOrder.html";
+    window.location.href="pages/newOrder.html";
 });
 document.querySelector("#newCustomer").addEventListener("click",function (event){
     event.preventDefault();
-    window.location.href="customerForm.html";
+    window.location.href="pages/customerForm.html";
 });
 document.querySelector("#addArticle").addEventListener("click",function (event){
     event.preventDefault();
-    window.location.href="productForm.html";
+    window.location.href="pages/productForm.html";
 });
 document.getElementById('view-customers').addEventListener('click', function (event){
     event.preventDefault();
-    window.location.href = "customerReport.html"; // Adjust path as needed
+    window.location.href = "pages/customerReport.html"; // Adjust path as needed
   });
