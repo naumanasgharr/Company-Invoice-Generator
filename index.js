@@ -26,16 +26,23 @@ app.use(express.json());
 const __dir = dirname(fileURLToPath(import.meta.url));
 app.use(express.static(__dir + "/public"));
 
+// MAIN PAGE
+
 app.get("/",(req,res)=>{
     res.sendFile(__dir + "/public/main.html");
     console.log("sent");
 });
 
+// GENERATING PERFORMA INVOICE
+
 app.post("/performaInvoice",(req,res)=>{
     console.log("Request received at performaInvoice");
     console.log(req.body);
+    console.log(typeof req.body);
     res.sendFile(__dir+"/public/pages/document1.html");
 });
+
+// ADDING CUSTOMER TO DB
 
 app.post("/customerForm",(req,res)=>{
     console.log(req.body);
@@ -63,6 +70,8 @@ app.post("/customerForm",(req,res)=>{
     });      
 });
 
+// GENERATING CUSTOMER LIST
+
 app.get("/api/customerReport",(req,res)=>{
     db.query('SELECT * FROM customer_table',(err,results)=>{
         if(err){
@@ -72,6 +81,8 @@ app.get("/api/customerReport",(req,res)=>{
         }
     });
 });
+
+ // INSERTING PRODUCT DATA INTO DB
 
 app.post("/productForm",(req,res)=>{
     console.log(req.body);
@@ -96,7 +107,35 @@ app.post("/productForm",(req,res)=>{
                 </html>
             `);
         }
-      });      
+    });      
+});
+
+// ADDING CUSTOMER ARTICLE NUMBERS INTO DB (customer_article TABLE)
+
+app.post("/articleLink",(req,res)=>{
+    console.log(req.body);
+    const {customerId, articleNumber, productNumber} = req.body;
+    const query = 'INSERT INTO customer_article(customer_id,product_id,article_number) VALUES (?,?,?)';
+    db.query(query, [customerId,productNumber,articleNumber], (err,result)=>{
+        if(err){
+            console.error('Error inserting data:', err);
+            res.status(500).send('Failed to insert data');
+            return;
+        }
+        if(req){
+            res.send(`
+                <html>
+                    <head><title>Form Submitted</title></head>
+                    <body>
+                        <script>
+                            alert("Article linked to Customer");
+                            window.location.href = "/"; // Redirect after the alert
+                        </script>
+                    </body>
+                </html>
+            `);
+        }    
+    });
 });
 
 app.listen(port,()=>{
