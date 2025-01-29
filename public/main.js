@@ -14,3 +14,7 @@ document.getElementById('view-customers').addEventListener('click', function (ev
     event.preventDefault();
     window.location.href = "pages/customerReport.html"; // Adjust path as needed
   });
+  document.getElementById('customerLink').addEventListener('click', function (event){
+    event.preventDefault();
+    window.location.href = "pages/customerLink.html"; // Adjust path as needed
+  });
