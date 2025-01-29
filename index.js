@@ -25,17 +25,16 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.json());
 const __dir = dirname(fileURLToPath(import.meta.url));
 app.use(express.static(__dir + "/public"));
-app.use(express.static(__dir+"/public/images"));
 
 app.get("/",(req,res)=>{
     res.sendFile(__dir + "/public/main.html");
     console.log("sent");
 });
 
-app.post("/mainForm",(req,res)=>{
-    console.log("Request received at /mainForm");
+app.post("/performaInvoice",(req,res)=>{
+    console.log("Request received at performaInvoice");
     console.log(req.body);
-    res.sendFile(__dir+"/public/document1.html");
+    res.sendFile(__dir+"/public/pages/document1.html");
 });
 
 app.post("/customerForm",(req,res)=>{
@@ -97,24 +96,6 @@ app.post("/productForm",(req,res)=>{
                 </html>
             `);
         }
-        if (err) {
-            console.error('Error inserting data:', err);
-            res.status(500).send('Failed to insert data');
-            return;
-          }
-          console.log('customer added!');
-        //res.status(200).send('Customer added successfully!');
-          res.send(`
-              <html>
-                  <head><title>Form Submitted</title></head>
-                  <body>
-                      <script>
-                          alert("Customer Added to Database");
-                          window.location.href = "/"; // Redirect after the alert
-                      </script>
-                  </body>
-              </html>
-          `);
       });      
 });
 
