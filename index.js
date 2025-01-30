@@ -34,10 +34,12 @@ app.get("/",(req,res)=>{
 });
 
 // GENERATING PERFORMA INVOICE
+var performaData = null;
 
 app.post("/performaInvoice",(req,res)=>{
     console.log("Request received at performaInvoice");
     console.log(req.body);
+    performaData = req.body;
     console.log(typeof req.body);
     res.sendFile(__dir+"/public/pages/document1.html");
 });
@@ -136,6 +138,83 @@ app.post("/articleLink",(req,res)=>{
             `);
         }    
     });
+});
+
+// sending data to document1.html
+
+app.get("/api/performa",(req,res)=>{
+    if(!performaData){
+        res.status(404).json({error: 'no data available!'});
+    }
+    const{customerID,productNumber} = performaData;
+    const articleNumbersArray = Array.isArray(productNumber) ? productNumber : [productNumber];
+    console.log(customerID,productNumber);
+    //const product = performaData.product_id;
+    //const customer = performaData.customer_id;
+    const query1 = 'SELECT * FROM customer_table WHERE id = ?';
+    db.query(query1,[customerID],(err1,customerResult)=>{
+        if(err1){
+            console.log('error fetching data');
+            res.status(500).json({error: 'error fetching data'});
+        }
+        console.log(customerResult);
+        const products = [];
+        let completedQuerries = 0;
+        articleNumbersArray.forEach(productNumber => {
+            const query2 = 'SELECT product_id FROM customer_article WHERE customer_id = ? AND article_number = ?';     //(${product.map(() => "?").join(",")})
+            db.query(query2,[customerID,productNumber],(err2,articleResult)=>{
+                if (err2) {
+                    console.error("Error fetching product data:", err2);
+                    return res.status(500).json({ error: "Database error (products)" });
+                }
+                if (articleResult.length === 0) {
+                    console.log(`No product found for article number ${productNumber}`);
+                    return; // Skip if no product is found for this article number
+                }
+                const product_number = articleResult[0].product_id;
+                const query3 = 'SELECT * FROM product_table WHERE article_number = ?';
+                db.query(query3, [product_number], (err3, productResult) => {
+                    if (err3) {
+                        console.error(`Error fetching product data for product number ${product_number}:`, err3);
+                        return res.status(500).json({ error: "Error fetching product data" });
+                    }
+
+                    if (productResult.length === 0) {
+                        console.log(`No product found for product number ${product_number}`);
+                        return; // Skip if no product is found
+                    }
+
+                    // Add the product data to the products array
+                    products.push(productResult[0]);
+
+                    completedQuerries++;
+                    console.log(products);
+
+                    // Once all queries are completed, send the response
+                if (completedQuerries === productNumber.length) {
+                        res.json({
+                            performa: performaData,
+                            customer: customerResult[0],
+                            products: products
+                        });
+                    }
+            });
+        });
+        
+           
+          //  const productNumbers = articleResult.map(row => row.product_number);
+           // console.log(productNumbers);
+         /*   console.log(performaData);
+            console.log(productResult);
+           // console.log(customerResult[0]);
+            res.json({
+                performa: performaData,
+                customers: customerResult[0],
+                products: productResult
+            });*/
+        });
+    });
+
 });
 
 app.listen(port,()=>{
