@@ -140,27 +140,42 @@ app.post("/articleLink",(req,res)=>{
     });
 });
 
-// sending data to document1.html
+// SENDING DATA TO DOCUMENT1.HTML
 
 app.get("/api/performa",(req,res)=>{
+    // form data error check
     if(!performaData){
         res.status(404).json({error: 'no data available!'});
     }
+
+    // extracting customer_id and article_number from form data
     const{customerID,productNumber} = performaData;
-    const articleNumbersArray = Array.isArray(productNumber) ? productNumber : [productNumber];
-    console.log(customerID,productNumber);
-    //const product = performaData.product_id;
-    //const customer = performaData.customer_id;
-    const query1 = 'SELECT * FROM customer_table WHERE id = ?';
+    
+    // checking converting articlenumbers into an array
+    const articleNumbersArray = Array.isArray(productNumber) ? productNumber : [productNumber]; 
+    
+    // logging to see if we are getting the correct data
+    console.log(customerID,productNumber); 
+
+    // SQL query for retrieving customer data related to customerid recieved from form data/ used nested queries (3)
+    const query1 = 'SELECT * FROM customer_table WHERE id = ?'; 
     db.query(query1,[customerID],(err1,customerResult)=>{
         if(err1){
             console.log('error fetching data');
             res.status(500).json({error: 'error fetching data'});
         }
+
+        //logging customer data to check if the result is correct
         console.log(customerResult);
+        
+        //created an empty products array for storing product_ids and a global parameter
         const products = [];
         let completedQuerries = 0;
+        
+        //forEach loop on article_numbers array to get related product_ids one by one, and pushing them into products array
         articleNumbersArray.forEach(productNumber => {
+            
+            //second query for getting product ids
             const query2 = 'SELECT product_id FROM customer_article WHERE customer_id = ? AND article_number = ?';     //(${product.map(() => "?").join(",")})
             db.query(query2,[customerID,productNumber],(err2,articleResult)=>{
                 if (err2) {
@@ -172,6 +187,7 @@ app.get("/api/performa",(req,res)=>{
                     return; // Skip if no product is found for this article number
                 }
                 const product_number = articleResult[0].product_id;
+                // last query for retrieving product data for each product id
                 const query3 = 'SELECT * FROM product_table WHERE article_number = ?';
                 db.query(query3, [product_number], (err3, productResult) => {
                     if (err3) {
@@ -191,27 +207,15 @@ app.get("/api/performa",(req,res)=>{
                     console.log(products);
 
                     // Once all queries are completed, send the response
-                if (completedQuerries === productNumber.length) {
+                    if (completedQuerries === productNumber.length) {
                         res.json({
                             performa: performaData,
                             customer: customerResult[0],
                             products: products
                         });
                     }
+                });
             });
-        });
-        
-           
-          //  const productNumbers = articleResult.map(row => row.product_number);
-           // console.log(productNumbers);
-         /*   console.log(performaData);
-            console.log(productResult);
-           // console.log(customerResult[0]);
-            res.json({
-                performa: performaData,
-                customers: customerResult[0],
-                products: productResult
-            });*/
         });
     });
 
