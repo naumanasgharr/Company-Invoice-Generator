@@ -176,7 +176,7 @@ app.get("/api/performa",(req,res)=>{
         articleNumbersArray.forEach(productNumber => {
             
             //second query for getting product ids
-            const query2 = 'SELECT product_id FROM customer_article WHERE customer_id = ? AND article_number = ?';     //(${product.map(() => "?").join(",")})
+            const query2 = 'SELECT product_id FROM customer_article WHERE customer_id = ? AND article_number = ?';
             db.query(query2,[customerID,productNumber],(err2,articleResult)=>{
                 if (err2) {
                     console.error("Error fetching product data:", err2);
