@@ -91,7 +91,7 @@ window.jsPDF = window.jspdf.jsPDF;
            
             
 
-window.addEventListener("DOMContentLoaded", function () {
+/*window.addEventListener("DOMContentLoaded", function () {
     const formData = JSON.parse(localStorage.getItem("formData"));
     const productData = JSON.parse(localStorage.getItem("productData"));
     var total = 0;
@@ -124,7 +124,7 @@ window.addEventListener("DOMContentLoaded", function () {
           }
           this.document.querySelector("#totalValue strong").textContent ="Total: " + total+ " $";
         
-        /*const tableBody = document.querySelector(".mainTable tbody");
+        const tableBody = document.querySelector(".mainTable tbody");
         const row = document.createElement("tr");
         row.innerHTML = `
             <td colspan="1"></td>
@@ -133,6 +133,12 @@ window.addEventListener("DOMContentLoaded", function () {
             <td colspan="1">${formData.unitPrice}$</td>
             <td colspan="1">${(formData.productAmount)*(formData.unitPrice)}$</td>
         `;
-        tableBody.appendChild(row);*/
-});
+        tableBody.appendChild(row);
+});*/
+
+fetch('http://localhost:3000/api/performa')
+    .then(response => response.json())
+    .then(data=>{
+
+    })
 
