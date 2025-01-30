@@ -136,9 +136,9 @@ window.jsPDF = window.jspdf.jsPDF;
         tableBody.appendChild(row);
 });*/
 
-/*fetch('http://localhost:3000/api/performa')
+fetch('http://localhost:3000/api/performa')
     .then(response => response.json())
     .then(data=>{
 
     })
-*/
+
