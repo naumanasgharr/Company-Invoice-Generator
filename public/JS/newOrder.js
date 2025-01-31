@@ -1,36 +1,16 @@
 document.getElementById("addProductButton").addEventListener("click", addRow);
-var i = 1;
 function addRow(){
   // Select the container for product rows
   const productContainer = document.getElementById("productContainer");
    
   const firstRow = document.querySelector(".productRow");  //clone first row
   var newRow = firstRow.cloneNode(true);
-  /*newRow.setAttribute('data-index',i);
-  newRow.className = `productRow-${i}`;
-  const inputs = newRow.querySelectorAll("input");
-  const labels = newRow.querySelectorAll("label");
-  labels.forEach(label=>label.value = "");
-  labels[0].name = `productNumber-${i}`;
-  labels[1].name = `productAmount-${i}`;
-  labels[2].name = `unitPrice-${i}`;
-  labels[3].name = `currency-${i}`;
-  // Clear the input values in the cloned row
-  inputs.forEach(input => input.value = "");
-
-  inputs[0].name = `productNumber-${i}`;   // Update name attribute of input fields
-  inputs[1].name = `productAmount-${i}`;
-  //inputs[2] = "productDesc" + i;
-  inputs[2].name = `unitPrice-${i}`;
-  //inputs[3].name = `currency-${i}`;
-  newRow.querySelector("select").name = `currency-${i}`;*/
   const removeButton = document.createElement("button"); //remove button
   removeButton.textContent = "Remove";
   removeButton.id = 'removeButton';
   removeButton.type = "button";
   removeButton.addEventListener("click", function () {
     productContainer.removeChild(newRow);
-    i--;
   });
   newRow.appendChild(removeButton);
   

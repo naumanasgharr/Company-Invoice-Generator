@@ -40,7 +40,12 @@ app.post("/performaInvoice",(req,res)=>{
     console.log("Request received at performaInvoice");
     console.log(req.body);
     performaData = req.body;
-    console.log(typeof req.body);
+   // const {orderDate, invoiceNum, customerID, productNumber,productAmount, unitPrice, currency, loadingPort, shippingPort, shipmentDate} = req.body;
+   // const variables = {orderDate, invoiceNum, customerID, productNumber,productAmount, unitPrice, currency, loadingPort, shippingPort, shipmentDate};
+   // Object.keys(variables).forEach(key => {
+   //     variables[key] = Array.isArray(variables[key]) ? variables[key] : [variables[key]];
+   // });
+    const query = 'INSERT INTO order_table (order_date, invoice_number, customer_id, article_id, ) VALUES (?,?,?,?,?,?,?,?,?,?)';
     res.sendFile(__dir+"/public/pages/document1.html");
 });
 
@@ -218,6 +223,17 @@ app.get("/api/performa",(req,res)=>{
         });
     });
 
+});
+
+// sending data to productList
+app.get('/api/productList',(req,res)=>{
+    db.query('SELECT * FROM product_table',(err,results)=>{
+        if(err){
+            res.status(500).send({error: 'error fetching data'});
+        } else{
+            res.json(results);
+        }
+    });
 });
 
 app.listen(port,()=>{
