@@ -1,4 +1,57 @@
-function exportToExcel() {
+fetch('http://localhost:3000/api/performa')
+    .then(response => response.json())
+    .then(data=>{
+        const form = data.performa;
+        const customer = data.customer;
+        const products = data.products;
+        document.querySelector(".shipmentFrom").textContent = form.loadingPort; 
+        document.querySelector(".shipmentDestination").textContent = form.shippingPort;
+        document.querySelector(".date").textContent = form.orderDate;
+        document.querySelector(".invoiceNumber").textContent = form.invoiceNum;
+        document.querySelector("#shipmentDate").textContent =form.shipmentDate;
+        document.querySelector("#customerAddress").textContent = customer.address;
+        
+        var total = 0;
+        products.forEach((product,index) => {
+            const mainTable = document.querySelector(".dynamicTableBody");
+            const articleNumber = Array.isArray(form.productNumber) && form.productNumber.length > index ? form.productNumber[index] : form.productNumber;
+            const productAmount = Array.isArray(form.productAmount) && form.productAmount.length > index ? form.productAmount[index] : form.productAmount;
+            const unitPrice = Array.isArray(form.unitPrice) && form.unitPrice.length >index ? form.unitPrice[index] : form.unitPrice;
+            const currency = Array.isArray(form.currency) && form.currency.length > index ? form.currency[index] : form.currency;
+            //console.log(articleNumber)
+            total += (unitPrice*productAmount);
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td>${articleNumber}</td>
+                <td>${product.name}<br>${productAmount}<br>${product.description}</td>
+                <td>${unitPrice}${currency}</td>
+                <td>${unitPrice*productAmount}${currency}</td>
+            `;   
+            mainTable.appendChild(newRow);
+        });
+        document.getElementById('totalValue').innerHTML=`Total: <strong>${total} ${form.currency[0]}<strong>`; 
+        
+        
+       // console.log(form);
+       // console.log(customer);
+       // console.log(products);
+        
+      //  document.querySelector(".customerName").textContent = form.customerName;
+        
+        
+    })
+    .catch(error => console.log('error fetching data,', error));
+
+       
+        
+
+
+
+
+
+
+
+/*function exportToExcel() {
     // Get the header table and main table
     const headerTable = document.querySelector('.header-table');
     const mainTable = document.querySelector('.mainTable');
@@ -87,7 +140,7 @@ window.jsPDF = window.jspdf.jsPDF;
             pdf.addImage(imgData, 'PNG', 10, 10, 190, 0); // Add the canvas as an image
             pdf.save('performa.pdf'); // Save the PDF
         });
-    }       
+    }       */
            
             
 
@@ -135,10 +188,4 @@ window.jsPDF = window.jspdf.jsPDF;
         `;
         tableBody.appendChild(row);
 });*/
-
-fetch('http://localhost:3000/api/performa')
-    .then(response => response.json())
-    .then(data=>{
-
-    })
 

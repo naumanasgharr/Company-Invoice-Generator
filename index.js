@@ -88,9 +88,9 @@ app.get("/api/customerReport",(req,res)=>{
 
 app.post("/productForm",(req,res)=>{
     console.log(req.body);
-    const {productName, articleNumber, productCode, prodDesc, productWeight, productSize, cartonLength, cartonHeight, cartonWidth} = req.body;
+    const {productName, articleNumber, productCode, productDesc, productWeight, productSize, cartonLength, cartonHeight, cartonWidth} = req.body;
     const query = 'INSERT INTO product_table (article_number, name, description, hs_code, size, carton_length, carton_width, carton_height, weight) VALUES (?,?,?,?,?,?,?,?,?)';
-    db.query(query, [articleNumber,productName,prodDesc,productCode,productSize,cartonLength,cartonWidth,cartonHeight,productWeight], (err, result) => {
+    db.query(query, [articleNumber,productName,productDesc,productCode,productSize,cartonLength,cartonWidth,cartonHeight,productWeight], (err, result) => {
         if (err) {
           console.error('Error inserting data:', err);
           res.status(500).send('Failed to insert data');
@@ -205,9 +205,8 @@ app.get("/api/performa",(req,res)=>{
 
                     completedQuerries++;
                     console.log(products);
-
                     // Once all queries are completed, send the response
-                    if (completedQuerries === productNumber.length) {
+                    if (completedQuerries === articleNumbersArray.length) {
                         res.json({
                             performa: performaData,
                             customer: customerResult[0],
