@@ -35,18 +35,52 @@ app.get("/",(req,res)=>{
 
 // GENERATING PERFORMA INVOICE
 var performaData = null;
-
 app.post("/performaInvoice",(req,res)=>{
     console.log("Request received at performaInvoice");
     console.log(req.body);
     performaData = req.body;
-   // const {orderDate, invoiceNum, customerID, productNumber,productAmount, unitPrice, currency, loadingPort, shippingPort, shipmentDate} = req.body;
-   // const variables = {orderDate, invoiceNum, customerID, productNumber,productAmount, unitPrice, currency, loadingPort, shippingPort, shipmentDate};
-   // Object.keys(variables).forEach(key => {
-   //     variables[key] = Array.isArray(variables[key]) ? variables[key] : [variables[key]];
-   // });
-    const query = 'INSERT INTO order_table (order_date, invoice_number, customer_id, article_id, ) VALUES (?,?,?,?,?,?,?,?,?,?)';
     res.sendFile(__dir+"/public/pages/document1.html");
+});
+
+// saving invoice to db
+app.post("/api/saveInvoice",async (req,res)=>{
+    console.log("Received request body:", req.body);
+    if (!req.body.invoiceData || !req.body.invoiceData.performa.orderNumber) {
+        return res.status(400).send({ error: "Invalid invoice data" });
+    }
+
+    const {invoiceData, total} = req.body;
+    const invoiceNumber = invoiceData.performa.invoiceNum;
+    const customerID = invoiceData.performa.customerID;
+    const orderDate = invoiceData.performa.orderDate;
+    const loadingPort = invoiceData.performa.loadingPort;
+    const shippingPort = invoiceData.performa.shippingPort;
+    const shipmentDate = invoiceData.performa.shipmentDate;
+    const articleNumbersArray = Array.isArray(invoiceData.performa.productNumber) ? invoiceData.performa.productNumber : [invoiceData.performa.productNumber]; 
+    const articleAmountArray = Array.isArray(invoiceData.performa.productAmount) ? invoiceData.performa.productAmount : [invoiceData.performa.productAmount];
+    const unitPriceArray = Array.isArray(invoiceData.performa.unitPrice) ? invoiceData.performa.unitPrice : [invoiceData.performa.unitPrice];
+    const orderNumberArray = Array.isArray(invoiceData.performa.orderNumber) ? invoiceData.performa.orderNumber : [invoiceData.performa.orderNumber];
+    const currencyArray = Array.isArray(invoiceData.performa.currency) ? invoiceData.performa.currency : [invoiceData.performa.currency];
+
+    if (orderNumberArray.length !== articleNumbersArray.length ||orderNumberArray.length !== articleAmountArray.length || orderNumberArray.length !== unitPriceArray.length || orderNumberArray.length !== currencyArray.length){
+        return res.status(400).send({ error: "Mismatch in order and article data" });
+    }
+    try{
+        const query1 = 'INSERT INTO invoice_table(invoice_number,customer_id,order_date,shipping_date,loading_port,shipping_port,total) VALUES (?,?,?,?,?,?,?)'
+        const query2 = 'INSERT INTO order_table(invoice_number,order_number) VALUES (?,?)';
+        const query3 = 'INSERT INTO orderDetail_table(order_number,article_number,article_amount,unit_price,currency) VALUES (?,?,?,?,?)';
+    
+        await db.promise().query(query1,[invoiceNumber,customerID, orderDate, shipmentDate, loadingPort,shippingPort, total]);
+    
+        for(var i = 0; i<articleNumbersArray.length;i++){
+            await db.promise().query(query2,[invoiceNumber,orderNumberArray[i]]);
+            await db.promise().query(query3,[orderNumberArray[i],articleNumbersArray[i],articleAmountArray[i],unitPriceArray[i],currencyArray[i]]);
+        }; 
+        res.status(200).json({message:"invoice saved successfully!"});
+    }catch(error){
+        console.error("Error inserting data:", error.message, error.stack);
+        res.status(500).json({ error: error.message});
+    }
 });
 
 // ADDING CUSTOMER TO DB
@@ -160,7 +194,7 @@ app.get("/api/performa",(req,res)=>{
     const articleNumbersArray = Array.isArray(productNumber) ? productNumber : [productNumber]; 
     
     // logging to see if we are getting the correct data
-    console.log(customerID,productNumber); 
+   // console.log(customerID,productNumber); 
 
     // SQL query for retrieving customer data related to customerid recieved from form data/ used nested queries (3)
     const query1 = 'SELECT * FROM customer_table WHERE id = ?'; 
@@ -171,7 +205,7 @@ app.get("/api/performa",(req,res)=>{
         }
 
         //logging customer data to check if the result is correct
-        console.log(customerResult);
+      //  console.log(customerResult);
         
         //created an empty products array for storing product_ids and a global parameter
         const products = [];
@@ -209,7 +243,7 @@ app.get("/api/performa",(req,res)=>{
                     products.push(productResult[0]);
 
                     completedQuerries++;
-                    console.log(products);
+                 //   console.log(products);
                     // Once all queries are completed, send the response
                     if (completedQuerries === articleNumbersArray.length) {
                         res.json({

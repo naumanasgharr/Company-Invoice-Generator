@@ -1,6 +1,9 @@
+let total;
+let invoiceData;
 fetch('http://localhost:3000/api/performa')
     .then(response => response.json())
     .then(data=>{
+        invoiceData = data;
         const form = data.performa;
         const customer = data.customer;
         const products = data.products;
@@ -11,7 +14,7 @@ fetch('http://localhost:3000/api/performa')
         document.querySelector("#shipmentDate").textContent =form.shipmentDate;
         document.querySelector("#customerAddress").textContent = customer.address;
         
-        var total = 0;
+        total = 0;
         products.forEach((product,index) => {
             const mainTable = document.querySelector(".dynamicTableBody");
             const articleNumber = Array.isArray(form.productNumber) && form.productNumber.length > index ? form.productNumber[index] : form.productNumber;
@@ -29,18 +32,38 @@ fetch('http://localhost:3000/api/performa')
             `;   
             mainTable.appendChild(newRow);
         });
-        document.getElementById('totalValue').innerHTML=`Total: <strong>${total} ${form.currency[0]}<strong>`; 
-        
-        
-       // console.log(form);
-       // console.log(customer);
-       // console.log(products);
-        
-      //  document.querySelector(".customerName").textContent = form.customerName;
-        
-        
+        document.getElementById('totalValue').innerHTML=`Total: <strong>${total} ${form.currency[0]}<strong>`;         
     })
     .catch(error => console.log('error fetching data,', error));
+
+    //sending data to backend to store it after user clicks save button
+document.addEventListener("DOMContentLoaded",()=>{
+    document.querySelector("#saveButton").addEventListener("click", async ()=>{
+        if(!invoiceData){
+            alert("invoice data is not available yet!");
+            return;
+        }
+        try{
+            const response = await fetch('http://localhost:3000/api/saveInvoice',{
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    invoiceData: invoiceData,
+                    total: total
+                })
+            });
+            const result = await response.json();
+            if (response.ok) {
+            alert("Invoice saved successfully!");
+            } else {
+            alert("Error saving invoice: " + result.message);
+            }
+        }catch(error){  
+            console.error("Error saving invoice:", error);
+        }
+    });
+});
+    
 
        
         
