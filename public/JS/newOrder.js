@@ -16,7 +16,6 @@ function addRow(){
   
   // Append the new row to the container
   productContainer.appendChild(newRow);
-  i++;
 }
   
 /*document.getElementById("save").addEventListener("click",function(event){
