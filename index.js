@@ -29,7 +29,7 @@ app.use(express.static(__dir + "/public"));
 // MAIN PAGE
 
 app.get("/",(req,res)=>{
-    res.sendFile(__dir + "/public/main.html");
+    res.sendFile(__dir + "/public/HTML/main.html");
     console.log("sent");
 });
 
@@ -39,7 +39,7 @@ app.post("/performaInvoice",(req,res)=>{
     console.log("Request received at performaInvoice");
     console.log(req.body);
     performaData = req.body;
-    res.sendFile(__dir+"/public/pages/document1.html");
+    res.sendFile(__dir+"/public/HTML/Invoices/document1.html");
 });
 
 // saving invoice to db
@@ -265,6 +265,16 @@ app.get('/api/productList',(req,res)=>{
         if(err){
             res.status(500).send({error: 'error fetching data'});
         } else{
+            res.json(results);
+        }
+    });
+});
+
+app.get('/api/orderList',(req,res)=>{
+    db.query('SELECT * FROM invoice_table',(err,results)=>{
+        if(err){
+            res.status.send({error: 'error fetching data'});
+        }else{
             res.json(results);
         }
     });
