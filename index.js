@@ -376,6 +376,49 @@ app.get('/api/orderList',(req,res)=>{
     });                  
 });
 
+// select invoice number for edit invoice page
+app.get("/api/selectInvoice",(req,res)=>{
+    const query = 'SELECT invoice_number FROM invoice_table';
+    db.query(query,(err,invoiceNumbers)=>{
+        if(err){
+            res.status(500).send({error: 'error loading invoice numbers'});
+        }
+        res.json(invoiceNumbers);
+    });
+});
+
+// send selected invoice data to edit invoice page
+app.get("/api/invoiceDetails",async (req,res)=>{
+    const invoiceNumber = req.query.invoice_number;
+    try{
+        const [invoiceData] = await db.promise().query('SELECT * FROM invoice_table WHERE invoice_number = ?',[invoiceNumber]);
+        if (invoiceData.length === 0){
+            return res.status(404).json({ error: "Invoice not found" });
+        }
+
+        const [orderNumbers] = await db.promise().query('SELECT * FROM order_table WHERE invoice_number = ?',[invoiceNumber]);
+        if(orderNumbers.length == 0){
+            res.status(500).json({ invoiceData: invoiceData[0], orders: [] });
+        }
+
+        const orderDetailsArray = await Promise.all(
+            orderNumbers.map(async (order) => {
+                const [orderDetails] = await db.promise().query("SELECT * FROM orderDetail_table WHERE order_number = ?",[order.order_number]);
+                return {orderDetails };
+            })
+        );
+
+        res.json({
+            invoiceData: invoiceData[0],
+            orders: orderDetailsArray,
+        });
+
+    }catch(error){
+        console.error("Error fetching invoice details:", error);
+        res.status(500).json({ error: "Server error" });
+    }
+});
+
 app.listen(port,()=>{
     console.log("server is running on port " + port);
 });

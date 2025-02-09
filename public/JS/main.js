@@ -38,4 +38,10 @@ document.getElementById('view-products').addEventListener('click', function (eve
 document.getElementById('view-orders').addEventListener('click', function (event){
     event.preventDefault();
     window.location.href = "../HTML/Reports/orderReport.html"; 
- });
+});
+
+//edit invoice page
+document.getElementById('edit-invoice').addEventListener('click', function (event){
+    event.preventDefault();
+    window.location.href = "../HTML/Forms/editInvoice.html"; 
+});
