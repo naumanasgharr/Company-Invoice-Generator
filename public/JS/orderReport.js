@@ -6,6 +6,8 @@ fetch("http://localhost:3000/api/orderList")
             const orders = invoice.orders;
            // const products = articles.product;
             const div = document.getElementById('mainDiv');
+            const subDiv = document.createElement('div');
+            subDiv.className = 'subDiv';
             const headDiv = document.createElement('div');
             headDiv.className = 'head';
             headDiv.innerHTML = `
@@ -43,7 +45,7 @@ fetch("http://localhost:3000/api/orderList")
                 orderDisplayTable.className = 'orderDisplay';
                 orderDisplayTable.innerHTML=`
                     <tr>
-                        <th style="padding: 2px; height: 10px; text-align: center; background-color: #070F2B; color: white; font-size: 10px;">ORDER NO</th>
+                        <th>ORDER NO</th>
                         <td id="orderNumber">${order.order_number}</td>
                     </tr>
                 `;
@@ -78,8 +80,8 @@ fetch("http://localhost:3000/api/orderList")
                 orderTable.appendChild(orderTableBody);
                 mainDiv.appendChild(orderTable);
             });
-            
-            div.appendChild(headDiv);
-            div.appendChild(mainDiv);
+            subDiv.appendChild(headDiv);
+            subDiv.appendChild(mainDiv);
+            div.appendChild(subDiv);
         });
     }).catch(error => console.log('error fetching data,', error));
