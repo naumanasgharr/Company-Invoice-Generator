@@ -3,6 +3,7 @@ import bodyParser from "body-parser";
 import mysql2 from "mysql2";
 import {dirname} from "path";
 import { fileURLToPath, pathToFileURL } from "url";
+import methodOverride from "method-override";
 
 const db = mysql2.createPool({
     host: "127.0.0.1",     
@@ -21,6 +22,7 @@ db.getConnection((err, connection) => {
 
 const app = express();
 const port = 3000;
+//app.use(methodOverride("_method"));
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.json());
 const __dir = dirname(fileURLToPath(import.meta.url));
@@ -65,21 +67,31 @@ app.post("/api/saveInvoice",async (req,res)=>{
     if (orderNumberArray.length !== articleNumbersArray.length ||orderNumberArray.length !== articleAmountArray.length || orderNumberArray.length !== unitPriceArray.length || orderNumberArray.length !== currencyArray.length){
         return res.status(400).send({ error: "Mismatch in order and article data" });
     }
+
+    const connection = await db.promise().getConnection();
+
     try{
+        await connection.beginTransaction();
+
         const query1 = 'INSERT INTO invoice_table(invoice_number,customer_id,order_date,shipping_date,loading_port,shipping_port,total) VALUES (?,?,?,?,?,?,?)'
         const query2 = 'INSERT INTO order_table(invoice_number,order_number) VALUES (?,?)';
         const query3 = 'INSERT INTO orderDetail_table(order_number,article_number,article_amount,unit_price,currency) VALUES (?,?,?,?,?)';
     
-        await db.promise().query(query1,[invoiceNumber,customerID, orderDate, shipmentDate, loadingPort,shippingPort, total]);
+        await connection.query(query1,[invoiceNumber,customerID, orderDate, shipmentDate, loadingPort,shippingPort, total]);
     
         for(var i = 0; i<articleNumbersArray.length;i++){
-            await db.promise().query(query2,[invoiceNumber,orderNumberArray[i]]);
-            await db.promise().query(query3,[orderNumberArray[i],articleNumbersArray[i],articleAmountArray[i],unitPriceArray[i],currencyArray[i]]);
+            await connection.query(query2,[invoiceNumber,orderNumberArray[i]]);
+            await connection.query(query3,[orderNumberArray[i],articleNumbersArray[i],articleAmountArray[i],unitPriceArray[i],currencyArray[i]]);
         }; 
+
+        await connection.commit();
         res.status(200).json({message:"invoice saved successfully!"});
-    }catch(error){
-        console.error("Error inserting data:", error.message, error.stack);
+    } catch(error){
+        await connection.rollback();
+        console.error("Error inserting data, rolling back:", error.message);
         res.status(500).json({ error: error.message});
+    } finally {
+        connection.release(); // Release connection back to pool
     }
 });
 
@@ -223,7 +235,7 @@ app.get("/api/performa",(req,res)=>{
                 }
                 if (articleResult.length === 0) {
                     console.log(`No product found for article number ${productNumber}`);
-                    return; // Skip if no product is found for this article number
+                    return res.status(404).json({ error: "No articles found for this customer." }); // Skip if no product is found for this article number
                 }
                 const product_number = articleResult[0].product_id;
                 // last query for retrieving product data for each product id
@@ -417,6 +429,63 @@ app.get("/api/invoiceDetails",async (req,res)=>{
         console.error("Error fetching invoice details:", error);
         res.status(500).json({ error: "Server error" });
     }
+});
+
+// storing new invoice details from edit invoice page
+
+app.put("/EditPerformaInvoice",async (req,res)=>{
+    const connection = await db.promise().getConnection();
+
+    try{
+        await connection.beginTransaction();
+
+        const newData = req.body.new;
+        const oldinvoiceData = req.body.old.invoiceData;
+        const oldorderData =[];
+        req.body.old.orders.forEach(order=>{
+            oldorderData.push(order);
+        });
+        oldorderData.forEach((obj,index)=>{
+        oldorderData[index] = obj.orderDetails;
+        });
+        oldorderData.forEach((arr,index)=>{
+            arr.forEach(value=>{
+                oldorderData[index] = value;
+            })
+        });
+        let newTotal = 0;
+        newData.productAmount.forEach((amount,index)=>{
+            newTotal += amount*newData.unitPrice[index];
+        });
+
+        console.log('old invoicedata:', oldinvoiceData);
+        console.log('old orderdata',oldorderData);
+        console.log('new data: ',newData);
+
+        const query3 = 'UPDATE invoice_table SET invoice_number = ?, customer_id = ?, order_date = ?, shipping_date = ?, loading_port = ?, shipping_port = ?, total = ? WHERE invoice_number = ? AND customer_id = ? AND order_date = ? AND shipping_date = ? AND loading_port = ? AND shipping_port = ? AND total = ?';
+        await connection.query(query3,[newData.invoiceNum,newData.customerID,newData.orderDate,newData.shippingDate,newData.loadingPort,newData.shippingPort,newTotal,oldinvoiceData.invoice_number,oldinvoiceData.customer_id,oldinvoiceData.order_date,oldinvoiceData.shipping_date,oldinvoiceData.loading_port,oldinvoiceData.shipping_port,oldinvoiceData.total]);
+        
+        await Promise.all(oldorderData.map(async (order,index)=>{
+            const query2 = 'UPDATE order_table SET invoice_number = ?, order_number = ? WHERE invoice_number = ? AND order_number = ?';
+            await connection.query(query2,[newData.invoiceNum, newData.orderNumber[index], oldinvoiceData.invoice_number, order.order_number]);
+        }));
+
+        await Promise.all(oldorderData.map(async (order, index) => {
+            const query1 = 'UPDATE orderDetail_table SET order_number = ?, article_number = ?, article_amount = ?, unit_price = ?,currency = ? WHERE order_number = ? AND article_number = ? AND article_amount = ? AND unit_price = ? AND currency= ? ';
+            await connection.query(query1,[newData.orderNumber[index],newData.productNumber[index],newData.productAmount[index],newData.unitPrice[index],newData.currency[index],order.order_number,order.article_number,order.article_amount,order.unit_price,order.currency]);
+        }));        
+            
+        await connection.commit()
+        res.json({message: 'INVOICE UPDATED SUCCESSFULLY'});
+
+    } catch (err){
+        await connection.rollback(); // Rollback if any error occurs
+        console.error("Error updating invoice:", err);
+        res.status(500).json({ error: "Server error updating invoice" });
+    } finally {
+        connection.release(); // Release connection back to the pool
+    }
+    
 });
 
 app.listen(port,()=>{

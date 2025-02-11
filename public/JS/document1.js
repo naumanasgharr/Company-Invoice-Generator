@@ -1,7 +1,13 @@
 let total;
 let invoiceData;
 fetch('http://localhost:3000/api/performa')
-    .then(response => response.json())
+    .then(async response =>{
+        if (!response.ok) {
+            const errorData = await response.json(); // Ensure we read the JSON error
+            throw new Error(errorData.error || "Unknown error");
+        }
+        return response.json();
+    })
     .then(data=>{
         invoiceData = data;
         const form = data.performa;
@@ -33,14 +39,16 @@ fetch('http://localhost:3000/api/performa')
             mainTable.appendChild(newRow);
         });
         document.getElementById('totalValue').innerHTML=`Total: <strong>${total} ${form.currency[0]}<strong>`;         
-    })
-    .catch(error => console.log('error fetching data,', error));
+    }).catch(error =>{
+        console.log('error fetching data,', error);
+        alert(error.message || "Failed to load invoice data!");
+    });
 
     //sending data to backend to store it after user clicks save button
 document.addEventListener("DOMContentLoaded",()=>{
     document.querySelector("#saveButton").addEventListener("click", async ()=>{
         if(!invoiceData){
-            alert("invoice data is not available yet!");
+            alert("Error! No invoice Data available!! Check article numbers and customer IDs in database!");
             return;
         }
         try{
