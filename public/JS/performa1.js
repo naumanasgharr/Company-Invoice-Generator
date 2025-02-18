@@ -13,6 +13,27 @@ fetch('http://localhost:3000/api/performa')
         const form = data.performa;
         const customer = data.customer;
         const products = data.products;
+        let articleData = [];
+        form.orders.forEach(order=>{
+            articleData.push(order.products);
+        });
+        articleData = articleData.flat();
+        
+        const articleNumberArray =[];
+        const productAmountArray = [];
+        const unitPriceArray = [];
+        const currencyArray = [];
+        articleData.forEach(order=>{
+            articleNumberArray.push(order.productNumber);
+            productAmountArray.push(order.productAmount);
+            unitPriceArray.push(order.unitPrice);
+            currencyArray.push(order.currency);
+        });
+
+        if(form.source == 'editInvoice')
+        {
+            document.getElementById('saveButton').hidden = true;
+        }
         document.querySelector(".shipmentFrom").textContent = form.loadingPort; 
         document.querySelector(".shipmentDestination").textContent = form.shippingPort;
         document.querySelector(".date").textContent = form.orderDate;
@@ -23,11 +44,10 @@ fetch('http://localhost:3000/api/performa')
         total = 0;
         products.forEach((product,index) => {
             const mainTable = document.querySelector(".dynamicTableBody");
-            const articleNumber = Array.isArray(form.productNumber) && form.productNumber.length > index ? form.productNumber[index] : form.productNumber;
-            const productAmount = Array.isArray(form.productAmount) && form.productAmount.length > index ? form.productAmount[index] : form.productAmount;
-            const unitPrice = Array.isArray(form.unitPrice) && form.unitPrice.length >index ? form.unitPrice[index] : form.unitPrice;
-            const currency = Array.isArray(form.currency) && form.currency.length > index ? form.currency[index] : form.currency;
-            //console.log(articleNumber)
+            const articleNumber =  articleNumberArray[index];
+            const productAmount = productAmountArray[index];
+            const unitPrice =  unitPriceArray[index];
+            const currency =  currencyArray[index];
             total += (unitPrice*productAmount);
             const newRow = document.createElement('tr');
             newRow.innerHTML = `
@@ -38,7 +58,7 @@ fetch('http://localhost:3000/api/performa')
             `;   
             mainTable.appendChild(newRow);
         });
-        document.getElementById('totalValue').innerHTML=`Total: <strong>${total} ${form.currency[0]}<strong>`;         
+        document.getElementById('totalValue').innerHTML=`Total: <strong>${total} ${currencyArray[0]}<strong>`;      
     }).catch(error =>{
         console.log('error fetching data,', error);
         alert(error.message || "Failed to load invoice data!");
@@ -56,7 +76,8 @@ document.addEventListener("DOMContentLoaded",()=>{
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    invoiceData: invoiceData,
+                    invoiceData: invoiceData.performa,
+                    productData: invoiceData.products,
                     total: total
                 })
             });

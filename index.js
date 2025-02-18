@@ -4,6 +4,8 @@ import mysql2 from "mysql2";
 import {dirname} from "path";
 import { fileURLToPath, pathToFileURL } from "url";
 import methodOverride from "method-override";
+import session from "express-session";
+import { group } from "console";
 
 const db = mysql2.createPool({
     host: "127.0.0.1",     
@@ -27,6 +29,23 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.json());
 const __dir = dirname(fileURLToPath(import.meta.url));
 app.use(express.static(__dir + "/public"));
+app.use(session({
+    secret: 'naumanasgharr', 
+    resave: false,
+    saveUninitialized: true
+  }));
+
+function ensureArray(value) {
+    return Array.isArray(value) ? value : [value];
+}
+function flattenObject(obj) {
+    Object.keys(obj).forEach(key => {
+        if (Array.isArray(obj[key])) {
+            obj[key] = obj[key].flat(); // Flatten nested arrays
+        }
+    });
+    return obj;
+}
 
 // MAIN PAGE
 
@@ -39,50 +58,45 @@ app.get("/",(req,res)=>{
 var performaData = null;
 app.post("/performaInvoice",(req,res)=>{
     console.log("Request received at performaInvoice");
-    console.log(req.body);
-    performaData = req.body;
-    res.sendFile(__dir+"/public/HTML/Invoices/document1.html");
+    req.session.pData = req.body;
+    res.json({ message: "Order processed successfully"});
 });
 
 // saving invoice to db
 app.post("/api/saveInvoice",async (req,res)=>{
-    console.log("Received request body:", req.body);
-    if (!req.body.invoiceData || !req.body.invoiceData.performa.orderNumber) {
-        return res.status(400).send({ error: "Invalid invoice data" });
-    }
 
-    const {invoiceData, total} = req.body;
-    const invoiceNumber = invoiceData.performa.invoiceNum;
-    const customerID = invoiceData.performa.customerID;
-    const orderDate = invoiceData.performa.orderDate;
-    const loadingPort = invoiceData.performa.loadingPort;
-    const shippingPort = invoiceData.performa.shippingPort;
-    const shipmentDate = invoiceData.performa.shipmentDate;
-    const articleNumbersArray = Array.isArray(invoiceData.performa.productNumber) ? invoiceData.performa.productNumber : [invoiceData.performa.productNumber]; 
-    const articleAmountArray = Array.isArray(invoiceData.performa.productAmount) ? invoiceData.performa.productAmount : [invoiceData.performa.productAmount];
-    const unitPriceArray = Array.isArray(invoiceData.performa.unitPrice) ? invoiceData.performa.unitPrice : [invoiceData.performa.unitPrice];
-    const orderNumberArray = Array.isArray(invoiceData.performa.orderNumber) ? invoiceData.performa.orderNumber : [invoiceData.performa.orderNumber];
-    const currencyArray = Array.isArray(invoiceData.performa.currency) ? invoiceData.performa.currency : [invoiceData.performa.currency];
-
-    if (orderNumberArray.length !== articleNumbersArray.length ||orderNumberArray.length !== articleAmountArray.length || orderNumberArray.length !== unitPriceArray.length || orderNumberArray.length !== currencyArray.length){
-        return res.status(400).send({ error: "Mismatch in order and article data" });
-    }
+    const {invoiceData, productData, total} = req.body;
+    const invoiceNumber = invoiceData.invoiceNum;
+    const customerID = invoiceData.customerID;
+    const orderDate = invoiceData.orderDate;
+    const loadingPort = invoiceData.loadingPort;
+    const shippingPort = invoiceData.shippingPort;
+    const shipmentDate = invoiceData.shipmentDate;
+    const orderNumberArray =[]; 
+    invoiceData.orders.forEach(order=>{
+        orderNumberArray.push(order.orderNumber);
+    });
 
     const connection = await db.promise().getConnection();
-
     try{
         await connection.beginTransaction();
 
-        const query1 = 'INSERT INTO invoice_table(invoice_number,customer_id,order_date,shipping_date,loading_port,shipping_port,total) VALUES (?,?,?,?,?,?,?)'
+        const query1 = 'INSERT INTO invoice_table(invoice_number,customer_id,order_date,shipping_date,loading_port,shipping_port,total) VALUES (?,?,?,?,?,?,?)';
         const query2 = 'INSERT INTO order_table(invoice_number,order_number) VALUES (?,?)';
         const query3 = 'INSERT INTO orderDetail_table(order_number,article_number,article_amount,unit_price,currency) VALUES (?,?,?,?,?)';
     
         await connection.query(query1,[invoiceNumber,customerID, orderDate, shipmentDate, loadingPort,shippingPort, total]);
-    
-        for(var i = 0; i<articleNumbersArray.length;i++){
+        
+        for(var i = 0; i<orderNumberArray.length;i++){
             await connection.query(query2,[invoiceNumber,orderNumberArray[i]]);
-            await connection.query(query3,[orderNumberArray[i],articleNumbersArray[i],articleAmountArray[i],unitPriceArray[i],currencyArray[i]]);
-        }; 
+        }
+
+        invoiceData.orders.forEach(async order=>{
+            const orderNo = order.orderNumber;
+            order.products.forEach(async product=>{
+                await connection.query(query3,[orderNo,product.productNumber,product.productAmount,product.unitPrice,product.currency]);
+            });
+        });
 
         await connection.commit();
         res.status(200).json({message:"invoice saved successfully!"});
@@ -175,38 +189,29 @@ app.post("/articleLink",(req,res)=>{
             res.status(500).send('Failed to insert data');
             return;
         }
-        if(req){
-            res.send(`
-                <html>
-                    <head><title>Form Submitted</title></head>
-                    <body>
-                        <script>
-                            alert("Article linked to Customer");
-                            window.location.href = "/"; // Redirect after the alert
-                        </script>
-                    </body>
-                </html>
-            `);
-        }    
+        
+            res.status(200).json({message:'Article linked Successfully! ✅✅'});    
     });
 });
 
-// SENDING DATA TO DOCUMENT1.HTML
+// SENDING DATA TO performa1.HTML
 
 app.get("/api/performa",(req,res)=>{
     // form data error check
+    const performaData = req.session.pData;
     if(!performaData){
         res.status(404).json({error: 'no data available!'});
     }
-
+    //flattenObject(performaData);
     // extracting customer_id and article_number from form data
-    const{customerID,productNumber} = performaData;
-    
-    // checking converting articlenumbers into an array
-    const articleNumbersArray = Array.isArray(productNumber) ? productNumber : [productNumber]; 
-    
-    // logging to see if we are getting the correct data
-   // console.log(customerID,productNumber); 
+    const{customerID,orders} = performaData;
+    /////////
+    const articleNumbersArray = [];
+    orders.forEach(order=>{
+        order.products.forEach(product=>{
+            articleNumbersArray.push(product.productNumber);
+        });
+    }); 
 
     // SQL query for retrieving customer data related to customerid recieved from form data/ used nested queries (3)
     const query1 = 'SELECT * FROM customer_table WHERE id = ?'; 
@@ -215,9 +220,6 @@ app.get("/api/performa",(req,res)=>{
             console.log('error fetching data');
             res.status(500).json({error: 'error fetching data'});
         }
-
-        //logging customer data to check if the result is correct
-      //  console.log(customerResult);
         
         //created an empty products array for storing product_ids and a global parameter
         const products = [];
@@ -255,7 +257,7 @@ app.get("/api/performa",(req,res)=>{
                     products.push(productResult[0]);
 
                     completedQuerries++;
-                 //   console.log(products);
+                    //console.log(products);
                     // Once all queries are completed, send the response
                     if (completedQuerries === articleNumbersArray.length) {
                         res.json({
@@ -282,6 +284,7 @@ app.get('/api/productList',(req,res)=>{
     });
 });
 
+// sending data for order bank
 app.get('/api/orderList',(req,res)=>{
     const query1 = 'SELECT id,name FROM customer_table INNER JOIN invoice_table ON customer_table.id = invoice_table.customer_id';
     const query2 = 'SELECT * FROM order_table INNER JOIN invoice_table ON order_table.invoice_number = invoice_table.invoice_number';
@@ -416,15 +419,37 @@ app.get("/api/invoiceDetails",async (req,res)=>{
         const orderDetailsArray = await Promise.all(
             orderNumbers.map(async (order) => {
                 const [orderDetails] = await db.promise().query("SELECT * FROM orderDetail_table WHERE order_number = ?",[order.order_number]);
-                return {orderDetails };
+                return {orderDetails};
             })
         );
-
+        const groupedOrders = orderDetailsArray.reduce((acc,order)=>{
+            order.orderDetails.forEach(detail=>{
+                const orderNumber = detail.order_number;
+                if (!acc[orderNumber]) {
+                    acc[orderNumber] = {
+                        orderNumber: orderNumber,
+                        orderDetails: []
+                    };
+                }   
+                acc[orderNumber].orderDetails.push(detail);
+            });
+            return acc;
+        },{});
+        const groupedOrderObjects = Object.values(groupedOrders);
+        groupedOrderObjects.forEach(obj=>{
+            obj.orderDetails.forEach(detail=>{
+                delete detail.order_number;
+            });
+        });
+        //console.log("grouped orders", JSON.stringify(groupedOrderObjects,null,4));
+        
+        
+        
         res.json({
             invoiceData: invoiceData[0],
-            orders: orderDetailsArray,
+            orders: groupedOrderObjects,
         });
-
+        
     }catch(error){
         console.error("Error fetching invoice details:", error);
         res.status(500).json({ error: "Server error" });
@@ -437,47 +462,47 @@ app.put("/EditPerformaInvoice",async (req,res)=>{
     const connection = await db.promise().getConnection();
 
     try{
-        await connection.beginTransaction();
+       await connection.beginTransaction();
+       const newData = req.body.new;
+       //const originalData = req.body.originalData;
+       const oldInvoiceData = req.body.old.invoiceData;
+       const oldOrderData = req.body.old.orders;
+       const oldOrderNumbers = oldOrderData.map(order=>order.orderNumber);
+       const newOrders = newData.orders;
+       let newTotal = 0;
+        newOrders.forEach(order=>{
+            order.products.forEach(product=>{
+                newTotal += product.productAmount*product.unitPrice;
+            });
+        });
+        const newOrderNumbers = [];
+        newData.orders.forEach(order=>{
+             newOrderNumbers.push(order.orderNumber);     
+        }); 
+       console.log(newOrderNumbers);
+       if(newOrders.length>0){
+       await connection.query('DELETE FROM orderDetail_table WHERE order_number IN (?)',[oldOrderNumbers]);
+       await connection.query('DELETE FROM order_table WHERE order_number IN (?)',[oldOrderNumbers]);
+       await connection.query('DELETE FROM invoice_table WHERE invoice_number =?',[oldInvoiceData.invoice_number]);
+       }
 
-        const newData = req.body.new;
-        const oldinvoiceData = req.body.old.invoiceData;
-        const oldorderData =[];
-        req.body.old.orders.forEach(order=>{
-            oldorderData.push(order);
-        });
-        oldorderData.forEach((obj,index)=>{
-        oldorderData[index] = obj.orderDetails;
-        });
-        oldorderData.forEach((arr,index)=>{
-            arr.forEach(value=>{
-                oldorderData[index] = value;
-            })
-        });
-        let newTotal = 0;
-        newData.productAmount.forEach((amount,index)=>{
-            newTotal += amount*newData.unitPrice[index];
-        });
-
-        console.log('old invoicedata:', oldinvoiceData);
-        console.log('old orderdata',oldorderData);
-        console.log('new data: ',newData);
-
-        const query3 = 'UPDATE invoice_table SET invoice_number = ?, customer_id = ?, order_date = ?, shipping_date = ?, loading_port = ?, shipping_port = ?, total = ? WHERE invoice_number = ? AND customer_id = ? AND order_date = ? AND shipping_date = ? AND loading_port = ? AND shipping_port = ? AND total = ?';
-        await connection.query(query3,[newData.invoiceNum,newData.customerID,newData.orderDate,newData.shippingDate,newData.loadingPort,newData.shippingPort,newTotal,oldinvoiceData.invoice_number,oldinvoiceData.customer_id,oldinvoiceData.order_date,oldinvoiceData.shipping_date,oldinvoiceData.loading_port,oldinvoiceData.shipping_port,oldinvoiceData.total]);
+       await connection.query('INSERT INTO invoice_table(invoice_number, customer_id, order_date, shipping_date, loading_port, shipping_port, total) VALUES (?, ?, ?, ?, ?, ?, ?)',[newData.invoiceNum, newData.customerID, newData.orderDate, newData.shipmentDate, newData.loadingPort, newData.shippingPort, newTotal]); 
         
-        await Promise.all(oldorderData.map(async (order,index)=>{
-            const query2 = 'UPDATE order_table SET invoice_number = ?, order_number = ? WHERE invoice_number = ? AND order_number = ?';
-            await connection.query(query2,[newData.invoiceNum, newData.orderNumber[index], oldinvoiceData.invoice_number, order.order_number]);
+       await Promise.all(newOrderNumbers.map(async number => {
+            await connection.query('INSERT INTO order_table(invoice_number, order_number) VALUES (?, ?)', [newData.invoiceNum, number]);
+       }));
+
+        await Promise.all(newData.orders.map(async order => {
+            await Promise.all(order.products.map(async product => {
+                await connection.query(
+                    'INSERT INTO orderDetail_table(order_number, article_number, article_amount, unit_price, currency) VALUES (?, ?, ?, ?, ?)',
+                    [order.orderNumber, product.productNumber, product.productAmount, product.unitPrice, product.currency]
+                );
+            }));
         }));
 
-        await Promise.all(oldorderData.map(async (order, index) => {
-            const query1 = 'UPDATE orderDetail_table SET order_number = ?, article_number = ?, article_amount = ?, unit_price = ?,currency = ? WHERE order_number = ? AND article_number = ? AND article_amount = ? AND unit_price = ? AND currency= ? ';
-            await connection.query(query1,[newData.orderNumber[index],newData.productNumber[index],newData.productAmount[index],newData.unitPrice[index],newData.currency[index],order.order_number,order.article_number,order.article_amount,order.unit_price,order.currency]);
-        }));        
-            
-        await connection.commit()
+        await connection.commit();
         res.json({message: 'INVOICE UPDATED SUCCESSFULLY'});
-
     } catch (err){
         await connection.rollback(); // Rollback if any error occurs
         console.error("Error updating invoice:", err);

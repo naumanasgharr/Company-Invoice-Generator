@@ -1,4 +1,14 @@
+document.addEventListener("DOMContentLoaded", () => {
+    hideViewButtonOnChange();
+});
 let originalData = {};
+let deletedOrderDetails = [];
+let deletedOrders = [];
+const editForm = document.createElement('form');
+editForm.name = 'editForm';
+editForm.id = 'editForm';
+editForm.action = '#';
+editForm.method = 'POST';
 fetch("http://localhost:3000/api/selectInvoice")
     .then(response=>response.json())
     .then(data=>{
@@ -11,6 +21,8 @@ fetch("http://localhost:3000/api/selectInvoice")
             select.appendChild(option);
         });
         select.addEventListener("change",function (){
+            let index = 0;
+            let index2 = 0;
             const selectedInvoice = this.value;
             const mainDiv = document.querySelector('.form');
             mainDiv.innerHTML = '';
@@ -19,13 +31,9 @@ fetch("http://localhost:3000/api/selectInvoice")
                     .then(response=>response.json())
                     .then(data=>{
                         originalData = JSON.parse(JSON.stringify(data));
+                        //console.log(data);
                         const invoiceData = data.invoiceData;
                         const orderData = data.orders;
-                        const editForm = document.createElement('form');
-                        editForm.name = 'editForm';
-                        editForm.id = 'editForm';
-                        editForm.action = '#';
-                        editForm.method = 'POST';
                         const invoiceDiv = document.createElement('div');
                         invoiceDiv.className = 'invoiceDetails';
                         const productDiv = document.createElement('div');
@@ -60,79 +68,18 @@ fetch("http://localhost:3000/api/selectInvoice")
                         customerIDInput.id = 'customerID';
                         customerIDInput.type = 'text';
                         customerIDInput.value = `${invoiceData.customer_id}`;
-                        invoiceDiv.append(orderDateLabel,orderDateInput,invoiceNumberLabel,invoiceNumberInput,customerIDLabel,customerIDInput);
-                        
-                        orderData.forEach((order,index)=>{
-                            const orderDetails = order.orderDetails;
-                            const productRow = document.createElement('div');
-                            productRow.className = 'productRow';
-                            orderDetails.forEach(orderDetail=>{
-                                const productNumberLabel = document.createElement('label');
-                                productNumberLabel.htmlFor = 'productNumber';
-                                productNumberLabel.innerText = 'Article ID: ';
-                                const productNumberInput = document.createElement('input');
-                                productNumberInput.name = `productNumber[${index}]`;
-                                productNumberInput.className = 'productNumber';
-                                productNumberInput.type = 'text';
-                                productNumberInput.value = `${orderDetail.article_number}`;
 
-                                const productAmountLabel = document.createElement('label');
-                                productAmountLabel.htmlFor = 'productAmount';
-                                productAmountLabel.innerText = 'Article Amount: ';
-                                const productAmountInput = document.createElement('input');
-                                productAmountInput.name = `productAmount[${index}]`;
-                                productAmountInput.className = 'productAmount';
-                                productAmountInput.type = 'text';
-                                productAmountInput.value = `${orderDetail.article_amount}`;
-
-                                const unitPriceLabel = document.createElement('label');
-                                unitPriceLabel.htmlFor = 'unitPrice';
-                                unitPriceLabel.innerText = 'Unit Price : ';
-                                const unitPriceInput = document.createElement('input');
-                                unitPriceInput.name = `unitPrice[${index}]`;
-                                unitPriceInput.className = 'unitPrice';
-                                unitPriceInput.type = 'number';
-                                unitPriceInput.min = '0';
-                                unitPriceInput.step = '0.01';
-                                unitPriceInput.value = `${orderDetail.unit_price}`;
-
-                                const currencyLabel = document.createElement('label');
-                                currencyLabel.htmlFor = 'currency';
-                                currencyLabel.innerText = 'Currency: ';
-                                const currencySelect = document.createElement('select');
-                                currencySelect.name = `currency[${index}]`;
-                                currencySelect.className = 'currency';
-                                ['USD', 'PKR', 'SAUDI RIYAL', 'UAE DHIRAM'].forEach(currency => {
-                                    const option = document.createElement('option');
-                                    option.innerText = currency;
-                                    currencySelect.appendChild(option);
-                                });
-                                currencySelect.value = `${orderDetail.currency}`;
-
-                                const orderNumberLabel = document.createElement('label');
-                                orderNumberLabel.htmlFor = 'orderNumber';
-                                orderNumberLabel.innerText = 'PO Number: ';
-                                const orderNumberInput = document.createElement('input');
-                                orderNumberInput.name = `orderNumber[${index}]`;
-                                orderNumberInput.className = 'orderNumber';
-                                orderNumberInput.type = 'text';
-                                orderNumberInput.value = `${orderDetail.order_number}`;
-
-                                productRow.append(productNumberLabel,productNumberInput,productAmountLabel,productAmountInput,unitPriceLabel,unitPriceInput,currencyLabel,currencySelect,orderNumberLabel,orderNumberInput);
-                                productDiv.appendChild(productRow);
-                            });
-                            
-                        });
-
+                        //generating shipment date input
                         const shipmentDateLabel = document.createElement('label');
                         shipmentDateLabel.htmlFor = 'shippingDate';
                         shipmentDateLabel.innerText = 'shipping Date: ';
                         const shipmentDateInput = document.createElement('input');
-                        shipmentDateInput.name = `shippingDate`;
-                        shipmentDateInput.className = 'shippingDate';
+                        shipmentDateInput.name = `shipmentDate`;
+                        shipmentDateInput.className = 'shipmentDate';
                         shipmentDateInput.type = 'date';
                         shipmentDateInput.value = `${invoiceData.shipping_date}`;
 
+                        //generating shipment port input
                         const shipmentPortLabel = document.createElement('label');
                         shipmentPortLabel.htmlFor = 'shippingPort';
                         shipmentPortLabel.innerText = 'shipping Port: ';
@@ -141,7 +88,8 @@ fetch("http://localhost:3000/api/selectInvoice")
                         shipmentPortInput.className = 'shippingPort';
                         shipmentPortInput.type = 'text';
                         shipmentPortInput.value = `${invoiceData.shipping_port}`;
-
+                        
+                        //generating loading port input
                         const loadingPortLabel = document.createElement('label');
                         loadingPortLabel.htmlFor = 'loadingPort';
                         loadingPortLabel.innerText = 'Loading Port: ';
@@ -150,23 +98,257 @@ fetch("http://localhost:3000/api/selectInvoice")
                         loadingPortInput.className = 'loadingPort';
                         loadingPortInput.type = 'text';
                         loadingPortInput.value = `${invoiceData.loading_port}`;
+                        //appending inputs to invoiceDiv and invoiceDiv to editForm
+                        invoiceDiv.append(orderDateLabel,orderDateInput,invoiceNumberLabel,invoiceNumberInput,customerIDLabel,customerIDInput,shipmentDateLabel,shipmentDateInput,loadingPortLabel,loadingPortInput,shipmentPortLabel,shipmentPortInput);
+                        mainDiv.appendChild(editForm);
+                        editForm.appendChild(invoiceDiv);
 
+                        //adding a new order
+                        const newOrderButton = document.createElement('button');
+                        newOrderButton.id = 'addnewOrder';
+                        newOrderButton.innerText = 'New Order';
+                        newOrderButton.type = 'button';
+                        newOrderButton.addEventListener('click',()=>{
+                            const orderSection = document.createElement('div');
+                            orderSection.className = 'orderSection';
+                            orderSection.innerHTML = `
+                            <label for = 'orderNumber'>PO Number:</label>
+                            <input type='text' name='orderNumber' id='orderNumber'>
+                            `;
+                            const removeOrderButton = document.createElement('button');
+                            removeOrderButton.innerText = 'Remove order';
+                            removeOrderButton.id = 'removeOrderButton';
+                            removeOrderButton.type = 'button';
+                            removeOrderButton.addEventListener('click',()=>{
+                            orderSection.remove();  
+                            });
+                            orderSection.appendChild(removeOrderButton);
+                            productDiv.appendChild(orderSection);
 
+                            const addProductButton = document.createElement('button');
+                            addProductButton.type = 'button';
+                            addProductButton.id = 'addProductButton';
+                            addProductButton.innerText = 'add product';
+                            orderSection.appendChild(addProductButton);
+                            addProductButton.addEventListener('click',()=>{
+                            const productRow = document.createElement('div');
+                            productRow.className = 'productRow';
+                            productRow.innerHTML =`
+                                <label for="productNumber">Article ID: </label>
+                                <input class = "prodInput" type="text" id="productNumber" name = "productNumber">
+                                <label for="productAmount">Article Amount (pieces): </label>
+                                <input class = "prodInput" id ="productAmount" name ="productAmount" min="0" step="1" value="0" />               
+                                <label for="unitPrice">Unit Price: </label>
+                                <input class="unitPrice" type="number" name="unitPrice" min="0" step="0.01">
+                                <label for="currency">Currency: </label>
+                                <select name="currency" class="currency">
+                                <option>USD</option>
+                                <option>PKR</option>
+                                <option>SAUDI RIYAL</option>
+                                <option>UAE DHIRAM</option>
+                                </select>
+                            `;
+                            const removeProductButton = document.createElement('button');
+                            removeProductButton.id = 'RemoveProductButton';
+                            removeProductButton.type = 'button';
+                            removeProductButton.innerText = 'Remove Product';
+                            removeProductButton.addEventListener('click',()=>{
+                                productRow.remove();
+                            });
+                            productRow.appendChild(removeProductButton);
+                            orderSection.appendChild(productRow);
+                            });
+                        });
+                        productDiv.appendChild(newOrderButton);
+                        
+                        orderData.forEach(order=>{
+                            const orderSection = document.createElement('div');
+                            orderSection.className = 'orderSection';
+                            //order number
+                            const orderNumberLabel = document.createElement('label');
+                            orderNumberLabel.htmlFor = 'orderNumber';
+                            orderNumberLabel.innerText = 'PO Number: ';
+                            const orderNumberInput = document.createElement('input');
+                            orderNumberInput.name = `orderNumber`;
+                            orderNumberInput.className = 'orderNumber';
+                            orderNumberInput.type = 'text';
+                            orderNumberInput.value = `${order.orderNumber}`;
 
-                        const buttonDiv = document.createElement('div');
-                        buttonDiv.className = 'button';
-                        buttonDiv.innerHTML =  `
+                            //add new product row
+                            const newProductButton = document.createElement("button");
+                            newProductButton.innerText = "Add Product";
+                            newProductButton.type = "button";
+                            newProductButton.className = "addProduct";
+                            newProductButton.addEventListener('click',()=>{
+                                const newRow = document.createElement('div');
+                                newRow.className = 'productRow';
+                                newRow.innerHTML = `
+                                    <label for = 'productNumber'>Article ID: </label>
+                                    <input type = 'text' name = 'productNumber' id = 'productNumber'>
+                                    <label for = 'productAmount'>Article Amount:</label>
+                                    <input type = 'text' name = 'productAmount' id = 'productAmount'> 
+                                    <label for = 'unitPrice'>Unit Price:</label>
+                                    <input type = 'number' name = 'unitPrice' id = 'unitPrice' min = '0' step = '0.01'>
+                                    <label for = 'currency'>Currency: </label>
+                                    <select name = 'currency' class= 'currency'>
+                                    <option>USD</option>
+                                    <option>PKR</option>
+                                    <option>SAUDI RIYAL</option>
+                                    <option>UAE DHIRAM</option>
+                                    </select>
+                                `;
+                                const removeProductButton = document.createElement("button");
+                                removeProductButton.innerText = "Remove Product";
+                                removeProductButton.type = "button";
+                                removeProductButton.className = "removeProduct";
+                                removeProductButton.addEventListener("click", function () {
+                                    newRow.remove(); // Remove row from UI
+                                });
+                                newRow.appendChild(removeProductButton);
+                                orderSection.appendChild(newRow);    
+                            });
+
+                            //remove order completely
+                            const removeOrderButton = document.createElement("button");
+                            removeOrderButton.innerText = "Remove Order";
+                            removeOrderButton.type = "button";
+                            removeOrderButton.className = "removeOrder";
+                            removeOrderButton.addEventListener('click',()=>{
+                                orderSection.remove();
+                                deletedOrders.push(order.orderNumber);
+                                console.log("deleted orders: ",deletedOrders);
+                            });
+                            orderSection.append(orderNumberLabel,orderNumberInput,removeOrderButton,newProductButton);
+                            //ORDERS
+                            order.orderDetails.forEach(detail=>{
+                                const productRow = document.createElement('div');
+                                productRow.className = 'productRow';
+                                //product number
+                                const productNumberLabel = document.createElement('label');
+                                productNumberLabel.htmlFor = 'productNumber';
+                                productNumberLabel.innerText = 'Article ID: ';
+                                const productNumberInput = document.createElement('input');
+                                productNumberInput.name = `productNumber`;
+                                productNumberInput.className = 'productNumber';
+                                productNumberInput.type = 'text';
+                                productNumberInput.value = `${detail.article_number}`;
+
+                                //product amount 
+                                const productAmountLabel = document.createElement('label');
+                                productAmountLabel.htmlFor = 'productAmount';
+                                productAmountLabel.innerText = 'Article Amount: ';
+                                const productAmountInput = document.createElement('input');
+                                productAmountInput.name = `productAmount`;
+                                productAmountInput.className = 'productAmount';
+                                productAmountInput.type = 'text';
+                                productAmountInput.value = `${detail.article_amount}`;
+                                //unit price
+                                const unitPriceLabel = document.createElement('label');
+                                unitPriceLabel.htmlFor = 'unitPrice';
+                                unitPriceLabel.innerText = 'Unit Price : ';
+                                const unitPriceInput = document.createElement('input');
+                                unitPriceInput.name = `unitPrice`;
+                                unitPriceInput.className = 'unitPrice';
+                                unitPriceInput.type = 'number';
+                                unitPriceInput.min = '0';
+                                unitPriceInput.step = '0.01';
+                                unitPriceInput.value = `${detail.unit_price}`;
+
+                                const currencyLabel = document.createElement('label');
+                                currencyLabel.htmlFor = 'currency';
+                                currencyLabel.innerText = 'Currency: ';
+                                const currencySelect = document.createElement('select');
+                                currencySelect.name = `currency`;
+                                currencySelect.className = 'currency';
+                                ['USD', 'PKR', 'SAUDI RIYAL', 'UAE DHIRAM'].forEach(currency => {
+                                    const option = document.createElement('option');
+                                    option.innerText = currency;
+                                    currencySelect.appendChild(option);
+                                });
+                                currencySelect.value = `${detail.currency}`;
+
+                                // remove button for removing the productRows
+                                const removeProductButton = document.createElement("button");
+                                removeProductButton.innerText = "Remove Product";
+                                removeProductButton.type = "button";
+                                removeProductButton.className = "removeProduct";
+                                //removeProductButton.dataset.orderIndex = index;
+
+                                removeProductButton.addEventListener("click", function () {
+                                    productRow.remove(); // Remove row from UI
+                                    deletedOrderDetails.push({orderNumber: order.orderNumber,articleId:detail.article_number});
+                                    // Track order for deletion
+                                    //updateRowIndices(); // Update field names after deletion
+                                    console.log("deleted order details: ",deletedOrderDetails);
+                                });
+
+                                productRow.append(productNumberLabel,productNumberInput,productAmountLabel,productAmountInput,unitPriceLabel,unitPriceInput,currencyLabel,currencySelect,removeProductButton);
+                                orderSection.appendChild(productRow);
+                            });
+                            index++;
+                            productDiv.appendChild(orderSection);
+                            //console.log(order);
+                        });
+                        editForm.appendChild(productDiv);
+                        const submitButtonDiv = document.createElement('div');
+                        submitButtonDiv.className = 'submitButtonDiv';
+                        submitButtonDiv.innerHTML =`
                             <button id="save" type="submit">Save</button>
                         `;
+                        editForm.append(submitButtonDiv);
 
-                        editForm.appendChild(invoiceDiv);
-                        editForm.appendChild(productDiv); 
-                        editForm.append(shipmentDateLabel,shipmentDateInput,shipmentPortLabel,shipmentPortInput,loadingPortLabel,loadingPortInput);
-                        editForm.appendChild(buttonDiv);
-                        
-                        mainDiv.appendChild(editForm);
-
-                        editForm.addEventListener("submit", handleSubmit);
+                        editForm.addEventListener("submit", async function(event){
+                            event.preventDefault();
+                            const formData={
+                                old: originalData,
+                                new:{
+                                    orderDate: editForm.orderDate.value,
+                                    invoiceNum: editForm.invoiceNum.value,
+                                    customerID: editForm.customerID.value,
+                                    loadingPort: editForm.loadingPort.value,
+                                    shippingPort: editForm.shippingPort.value,
+                                    shipmentDate: editForm.shipmentDate.value,
+                                    orders: []
+                                }
+                            };
+                            document.querySelectorAll('.orderSection').forEach(orderDiv=>{
+                                const order = {
+                                    orderNumber: orderDiv.querySelector('.orderNumber').value,
+                                    products: []
+                                };
+                                orderDiv.querySelectorAll('.productRow').forEach(row=>{
+                                    const product = {
+                                        productNumber: row.querySelector('[name="productNumber"]').value,
+                                        productAmount: row.querySelector('[name="productAmount"]').value,
+                                        unitPrice: row.querySelector('[name="unitPrice"]').value,
+                                        currency: row.querySelector('[name="currency"]').value
+                                    };
+                                    order.products.push(product);
+                                });
+                                formData.new.orders.push(order);
+                            });
+                            console.log(formData);
+                            try{
+                                const response = await fetch("/editPerformaInvoice",{
+                                  method: 'PUT',
+                                  headers: {
+                                    "Content-Type": "application/json"
+                                  },
+                                  body: JSON.stringify(formData)
+                                });
+                                const result = await response.json();
+                                if (!response.ok) {
+                                    alert("Error: " + result.error);
+                                } else {
+                                    alert(result.message);
+                                    showViewButton();
+                                }
+                                console.log("Server Response:", result);
+                                }catch (error) {
+                                  console.error("Fetch Error:", error);
+                                  alert("An error occurred while submitting the order.");
+                                }
+                        });
                     })
                 .catch(error => console.error('Error fetching customer data:', error));
             }
@@ -174,9 +356,21 @@ fetch("http://localhost:3000/api/selectInvoice")
     })
 .catch(error => console.error('Error fetching customer data:', error));
 
+function updateRowIndices() {
+    document.querySelectorAll('.productRow').forEach((row, newIndex) => {
+        row.querySelectorAll('input, select').forEach((input) => {
+            let name = input.name.replace(/\[\d+\]/, `[${newIndex}]`);
+            input.name = name;
+        });
+    });
+}
 
 
-async function handleSubmit(event) {
+
+
+
+
+/*async function handleSubmit(event) {
     event.preventDefault(); // Prevents page reload
 
     const formData = new FormData(event.target);
@@ -194,7 +388,8 @@ async function handleSubmit(event) {
 
     const payload = {
         old: originalData,
-        new: newData
+        new: newData,
+        deletedOrders: deletedOrders
     };
 
     // Send data to the server
@@ -212,28 +407,63 @@ async function handleSubmit(event) {
             alert("Error: " + result.error);
         } else {
             alert(result.message);
+            showViewButton();
         }
         console.log("Server Response:", result);
     } catch (error) {
         console.error("Error submitting form:", error);
     }
+}*/
+
+function showViewButton(){
+    const buttonDiv = document.querySelector('.submitButtonDiv');
+    if (!buttonDiv) {
+        buttonDiv = document.createElement('div');
+        buttonDiv.className = 'submitButtonDiv';
+        document.querySelector('#editForm').appendChild(buttonDiv);
+    }
+
+    const existingButton = document.querySelector('#viewInvoice');
+    if(existingButton){
+        existingButton.remove();
+        
+    }
+    const viewButton = document.createElement('button');
+    viewButton.innerText = 'View Invoice';
+    viewButton.id = 'viewInvoice';
+    viewButton.type = 'button';
+    viewButton.className = 'button';
+    buttonDiv.appendChild(viewButton);
+
+    viewButton.addEventListener('click', ()=>{
+        const form = document.querySelector('#editForm');
+        let sourceInput = document.querySelector("input[name='source']");
+        if (!sourceInput) {
+            sourceInput = document.createElement("input");
+            sourceInput.type = "hidden";
+            sourceInput.name = "source";
+            form.appendChild(sourceInput);
+        }
+        sourceInput.value = "editInvoice";
+
+        form.method = 'POST';
+        form.action = `/performaInvoice`;
+        form.submit();
+    });
+
+    hideViewButtonOnChange();
 }
 
+function hideViewButtonOnChange() {
+    const inputs = document.querySelectorAll("#editForm input, #editForm select, #editForm textarea");
 
-
-
-/*document.getElementById("editForm").addEventListener("submit",async function(event) {
-    const formData = new FormData(this);
-    const data = Object.fromEntries(formData.entries());
-    const response = await fetch("/editPerformaInvoice",{
-        method: "PUT",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(data)
+    inputs.forEach(input => {
+        input.addEventListener("input", () => {
+            const viewButton = document.getElementById("viewInvoice");
+            if (viewButton) {
+                viewButton.remove(); // Remove the button when user changes anything
+            }
+        });
     });
-    
-    const result = await response.text();
-    console.log(result);
-});*/
+}
 

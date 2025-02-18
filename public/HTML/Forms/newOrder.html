@@ -8,6 +8,12 @@
         body{
         background-color: gray;
         }
+        .orderSection{
+            border: 1px solid black;
+            border-radius: 5px;
+            padding: 5px;
+            margin: 5px;
+        }
         .titlediv{
             text-align: center;
     
@@ -54,7 +60,7 @@
         <hr>
     </div>
     <div class = "form">
-        <form name = "mainForm" action="/performaInvoice" method="post">     
+        <form id = 'mainForm' action="/performaInvoice" method="post">     
             <div class="invoiceDetails">
                 <h2><strong>INVOICE DETAILS</strong></h2>
                 <label for ="orderDate">Date:</label>
@@ -63,41 +69,20 @@
                 <input type="text" id="invoiceNum" name="invoiceNum">
                 <label for="customerID">Customer ID: </label>
                 <input name="customerID" type="text" id="customerID">
-            </div>
-            <div id ="productContainer">
-                <div class = "productRow">
-                    <label for="productNumber">Article ID: </label>
-                    <input class = "prodInput" type="text" id="productNumber" name = "productNumber">
-                    <label for="productAmount">Article Amount (pieces): </label>
-                    <input class = "prodInput" id ="productAmount" name ="productAmount" min="0" step="1" value="0" />               
-                    <label for="unitPrice">Unit Price: </label>
-                    <input class="unitPrice" type="number" name="unitPrice" min="0" step="0.01">
-                    <label for="currency">Currency: </label>
-                    <select name="currency" class="currency">
-                        <option>USD</option>
-                        <option>PKR</option>
-                        <option>SAUDI RIYAL</option>
-                        <option>UAE DHIRAM</option>
-                    </select>
-                    <br>
-                    <br>
-                    <label for="orderNumber">PO number: </label>
-                    <input type="text" id="orderNumber" name="orderNumber">
-                </div>
-            </div>    
-            <button type="button" id="addProductButton">Add Article</button>
-            <br>
-            <br>
-            <label for="loadingPort">Loading Port: </label>
-            <input type="text" name="loadingPort" id="loadingPort">
-            <label for="shippingPort">Shipping Port: </label>
-            <input name="shippingPort" type="text" id="shippingPort">
-            <label for="shipmentDate">Shipment date: </label>
+                <label for="loadingPort">Loading Port: </label>
+                <input type="text" name="loadingPort" id="loadingPort">
+                <label for="shippingPort">Shipping Port: </label>
+                <input name="shippingPort" type="text" id="shippingPort">
+                <label for="shipmentDate">Shipment date: </label>
                 <input type="date" id="shipmentDate" name="shipmentDate">
-                <br>
-                <div class="button">
-                    <button id = "save" type="submit">Submit</button>
-                </div>
+            </div>
+            <br>
+            <div class="productContainer">
+                <button id="addOrderButton" type="button">add order</button>
+            </div>
+            <div class="button">
+                <button id = "save" type="submit">Submit</button>
+            </div>
         </form>
         
 

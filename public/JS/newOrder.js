@@ -1,53 +1,113 @@
-document.getElementById("addProductButton").addEventListener("click", addRow);
-function addRow(){
-  // Select the container for product rows
-  const productContainer = document.getElementById("productContainer");
-   
-  const firstRow = document.querySelector(".productRow");  //clone first row
-  var newRow = firstRow.cloneNode(true);
-  const removeButton = document.createElement("button"); //remove button
-  removeButton.textContent = "Remove";
-  removeButton.id = 'removeButton';
-  removeButton.type = "button";
-  removeButton.addEventListener("click", function () {
-    productContainer.removeChild(newRow);
-  });
-  newRow.appendChild(removeButton);
-  
-  // Append the new row to the container
-  productContainer.appendChild(newRow);
-}
-  
-/*document.getElementById("save").addEventListener("click",function(event){
-
-    //event.preventDefault();
-    const customerName = document.getElementById("customerName").value;
-    const customerAddress = document.getElementById("customerAddress").value;
-    const country = document.getElementById("country").value;
-    const orderDate = document.getElementById("orderDate").value;
-    const invoiceNum = document.getElementById("invoiceNum").value;
-    const shipmentDate = document.getElementById("shipmentDate").value;
-    const productData = [];
-    const productRows = document.querySelectorAll(".productRow");
-  
-    productRows.forEach(row => {
-      const productNumber = row.querySelector("input[name='productNumberr']").value;
-      const productName = row.querySelector("input[name='productNamee']").value;
-      const productDescription = row.querySelector("input[name='productDesc']").value;
-      const unitPrice = row.querySelector("input[name='unitInput']").value;
-      const productAmount = row.querySelector("input[name='productAmountt']").value;
-  
-      productData.push({ productNumber, productName, productDescription, unitPrice, productAmount });
+document.addEventListener("DOMContentLoaded",()=>{
+  const form = document.getElementById('mainForm');
+  document.querySelector('#addOrderButton').addEventListener('click',()=>{
+    const productContainer = document.querySelector('.productContainer');
+    const orderSection = document.createElement('div');
+    orderSection.className = 'orderSection';
+    orderSection.innerHTML = `
+      <label for = 'orderNumber'>Order Number:</label>
+      <input type='text' name='orderNumber' id='orderNumber'>
+    `;
+    const removeOrderButton = document.createElement('button');
+    removeOrderButton.innerText = 'Remove order';
+    removeOrderButton.id = 'removeOrderButton';
+    removeOrderButton.type = 'button';
+    removeOrderButton.addEventListener('click',()=>{
+      orderSection.remove();  
     });
+    orderSection.appendChild(removeOrderButton);
+    productContainer.appendChild(orderSection);
 
-    localStorage.setItem("formData", JSON.stringify({
-        customerName,
-        customerAddress,
-        country,
-        orderDate,
-        invoiceNum,
-        shipmentDate,
-    }));
-    localStorage.setItem("productData", JSON.stringify(productData));
-    window.location.href = "document1.html";
-});*/
+    const addProductButton = document.createElement('button');
+    addProductButton.type = 'button';
+    addProductButton.id = 'addProductButton';
+    addProductButton.innerText = 'add product';
+    orderSection.appendChild(addProductButton);
+    addProductButton.addEventListener('click',()=>{
+      const productRow = document.createElement('div');
+      productRow.className = 'productRow';
+      productRow.innerHTML =`
+        <label for="productNumber">Article ID: </label>
+        <input class = "prodInput" type="text" id="productNumber" name = "productNumber">
+        <label for="productAmount">Article Amount (pieces): </label>
+        <input class = "prodInput" id ="productAmount" name ="productAmount" min="0" step="1" value="0" />               
+        <label for="unitPrice">Unit Price: </label>
+        <input class="unitPrice" type="number" name="unitPrice" min="0" step="0.01">
+        <label for="currency">Currency: </label>
+        <select name="currency" class="currency">
+          <option>USD</option>
+          <option>PKR</option>
+          <option>SAUDI RIYAL</option>
+          <option>UAE DHIRAM</option>
+        </select>
+        <br>
+        <br>
+      `;
+      const removeProductButton = document.createElement('button');
+      removeProductButton.id = 'RemoveProductButton';
+      removeProductButton.type = 'button';
+      removeProductButton.innerText = 'Remove Product';
+      removeProductButton.addEventListener('click',()=>{
+        productRow.remove();
+      });
+      productRow.appendChild(removeProductButton);
+      orderSection.appendChild(productRow);
+    });
+  });
+
+  form.addEventListener('submit',async function (event){
+    event.preventDefault();
+    const formData = {
+      orderDate: form.orderDate.value,
+      invoiceNum: form.invoiceNum.value,
+      customerID: form.customerID.value,
+      loadingPort: form.loadingPort.value,
+      shippingPort: form.shippingPort.value,
+      shipmentDate: form.shipmentDate.value,
+      orders: []
+    };
+    document.querySelectorAll('.orderSection').forEach(orderDiv=>{
+      const order = {
+        orderNumber: orderDiv.querySelector('[name=orderNumber]').value,
+        products: []
+      };
+      orderDiv.querySelectorAll('.productRow').forEach(row=>{
+        const product = {
+          productNumber: row.querySelector('[name="productNumber"]').value,
+          productAmount: row.querySelector('[name="productAmount"]').value,
+          unitPrice: row.querySelector('[name="unitPrice"]').value,
+          currency: row.querySelector('[name="currency"]').value
+        };
+        order.products.push(product);
+      });
+      formData.orders.push(order);
+    });
+    console.log("Collected Order Data:", formData);
+    try{
+    const response = await fetch("/performaInvoice",{
+      method: 'POST',
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(formData)
+    });
+    if (response.ok) {
+      const result = await response.json();
+      console.log("Response:", result);
+      if(result.message)
+      {
+        alert('success!');
+        window.location.href = "../Invoices/performa1.html";
+      }
+      else{
+        alert('failure');
+      }
+
+      // Redirect user to the URL returned by the backend
+    }
+    }catch (error) {
+      console.error("Fetch Error:", error);
+      alert("An error occurred while submitting the order.");
+    }
+  });
+});

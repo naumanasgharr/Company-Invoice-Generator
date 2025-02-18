@@ -6,7 +6,7 @@
     <title>Document</title>
 </head>
 <body>
-    <form name="linkForm" method="post" action="/articleLink">
+    <form id= 'linkForm' name="linkForm">
         <label for="customerId">Customer ID: </label>
         <input name="customerId" id="customerId" type="text">
         <label for="articleNumber">Customer Article Number: </label>
@@ -17,5 +17,36 @@
             <button id="save" type="submit">SAVE</button>
         </div>
     </form>
+
+    <script>
+       const form = document.getElementById('linkForm');
+       const inputs = document.querySelectorAll('input');
+       form.addEventListener('submit',function(event){
+            event.preventDefault();
+            const formData = {
+                customerId: form.customerId.value,
+                articleNumber: form.articleNumber.value,
+                productNumber: form.productNumber.value
+            };
+            console.log(formData);
+            fetch('/articleLink',{
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data=>{
+                console.log(data.message);
+                alert(data.message);
+            })
+            .catch(error=>{console.error('Error submitting the form:', error);alert('Could not link! ❌❌')});
+
+            inputs.forEach(input=>{
+                input.value = '';
+            });
+       });
+    </script>
 </body>
 </html>
