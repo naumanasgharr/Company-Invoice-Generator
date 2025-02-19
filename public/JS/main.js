@@ -16,22 +16,10 @@ document.querySelector("#addArticle").addEventListener("click",function (event){
     window.location.href="../HTML/Forms/productForm.html";
 });
 
-// customer list page
-document.getElementById('view-customers').addEventListener('click', function (event){
-    event.preventDefault();
-    window.location.href = "../HTML/Reports/customerReport.html";
-});
-
 // article link to customer page
 document.getElementById('customerLink').addEventListener('click', function (event){
     event.preventDefault();
     window.location.href = "../HTML/Forms/customerLink.html"; 
-});
-
-// product list page
-document.getElementById('view-products').addEventListener('click', function (event){
-   event.preventDefault();
-   window.location.href = "../HTML/Reports/productList.html"; 
 });
 
 //order list page
