@@ -297,58 +297,7 @@ fetch("http://localhost:3000/api/selectInvoice")
                         `;
                         editForm.append(submitButtonDiv);
 
-                        editForm.addEventListener("submit", async function(event){
-                            event.preventDefault();
-                            const formData={
-                                old: originalData,
-                                new:{
-                                    orderDate: editForm.orderDate.value,
-                                    invoiceNum: editForm.invoiceNum.value,
-                                    customerID: editForm.customerID.value,
-                                    loadingPort: editForm.loadingPort.value,
-                                    shippingPort: editForm.shippingPort.value,
-                                    shipmentDate: editForm.shipmentDate.value,
-                                    orders: []
-                                }
-                            };
-                            document.querySelectorAll('.orderSection').forEach(orderDiv=>{
-                                const order = {
-                                    orderNumber: orderDiv.querySelector('.orderNumber').value,
-                                    products: []
-                                };
-                                orderDiv.querySelectorAll('.productRow').forEach(row=>{
-                                    const product = {
-                                        productNumber: row.querySelector('[name="productNumber"]').value,
-                                        productAmount: row.querySelector('[name="productAmount"]').value,
-                                        unitPrice: row.querySelector('[name="unitPrice"]').value,
-                                        currency: row.querySelector('[name="currency"]').value
-                                    };
-                                    order.products.push(product);
-                                });
-                                formData.new.orders.push(order);
-                            });
-                            console.log(formData);
-                            try{
-                                const response = await fetch("/editPerformaInvoice",{
-                                  method: 'PUT',
-                                  headers: {
-                                    "Content-Type": "application/json"
-                                  },
-                                  body: JSON.stringify(formData)
-                                });
-                                const result = await response.json();
-                                if (!response.ok) {
-                                    alert("Error: " + result.error);
-                                } else {
-                                    alert(result.message);
-                                    showViewButton();
-                                }
-                                console.log("Server Response:", result);
-                                }catch (error) {
-                                  console.error("Fetch Error:", error);
-                                  alert("An error occurred while submitting the order.");
-                                }
-                        });
+                        editForm.addEventListener("submit",editFormSubmitHandler);
                     })
                 .catch(error => console.error('Error fetching customer data:', error));
             }
@@ -436,19 +385,9 @@ function showViewButton(){
     buttonDiv.appendChild(viewButton);
 
     viewButton.addEventListener('click', ()=>{
-        const form = document.querySelector('#editForm');
-        let sourceInput = document.querySelector("input[name='source']");
-        if (!sourceInput) {
-            sourceInput = document.createElement("input");
-            sourceInput.type = "hidden";
-            sourceInput.name = "source";
-            form.appendChild(sourceInput);
-        }
-        sourceInput.value = "editInvoice";
-
-        form.method = 'POST';
-        form.action = `/performaInvoice`;
-        form.submit();
+        //form.removeEventListener("submit", editFormSubmitHandler);
+        //viewButton.removeEventListener("click", viewButtonEventHandler);
+        viewButton.addEventListener("click",viewButtonEventHandler);
     });
 
     hideViewButtonOnChange();
@@ -465,5 +404,117 @@ function hideViewButtonOnChange() {
             }
         });
     });
+}
+
+async function editFormSubmitHandler(event){
+    event.preventDefault();
+    const formData={
+        old: originalData,
+        new:{
+            orderDate: editForm.orderDate.value,
+            invoiceNum: editForm.invoiceNum.value,
+            customerID: editForm.customerID.value,
+            loadingPort: editForm.loadingPort.value,
+            shippingPort: editForm.shippingPort.value,
+            shipmentDate: editForm.shipmentDate.value,
+            orders: []
+        }
+    };
+    document.querySelectorAll('.orderSection').forEach(orderDiv=>{
+        const order = {
+            orderNumber: orderDiv.querySelector('.orderNumber').value,
+            products: []
+        };
+        orderDiv.querySelectorAll('.productRow').forEach(row=>{
+            const product = {
+                productNumber: row.querySelector('[name="productNumber"]').value,
+                productAmount: row.querySelector('[name="productAmount"]').value,
+                unitPrice: row.querySelector('[name="unitPrice"]').value,
+                currency: row.querySelector('[name="currency"]').value
+            };
+            order.products.push(product);
+        });
+        formData.new.orders.push(order);
+    });
+    console.log(formData);
+    try{
+        const response = await fetch("/editPerformaInvoice",{
+            method: 'PUT',
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(formData)
+        });
+        const result = await response.json();
+        if (!response.ok) {
+            alert("Error: " + result.error);
+        } else {
+            alert(result.message);
+            showViewButton();
+        }
+        console.log("Server Response:", result);
+    }catch (error) {
+        console.error("Fetch Error:", error);
+        alert("An error occurred while submitting the order.");
+    }
+
+}
+
+async function viewButtonEventHandler(event){
+    event.preventDefault();
+    const form = document.querySelector('#editForm');
+    const formData = {
+      orderDate: form.orderDate.value,
+      invoiceNum: form.invoiceNum.value,
+      customerID: form.customerID.value,
+      loadingPort: form.loadingPort.value,
+      shippingPort: form.shippingPort.value,
+      shipmentDate: form.shipmentDate.value,
+      source: 'editForm',
+      orders: []
+    };
+    document.querySelectorAll('.orderSection').forEach(orderDiv=>{
+      const order = {
+        orderNumber: orderDiv.querySelector('[name=orderNumber]').value,
+        products: []
+      };
+      orderDiv.querySelectorAll('.productRow').forEach(row=>{
+        const product = {
+          productNumber: row.querySelector('[name="productNumber"]').value,
+          productAmount: row.querySelector('[name="productAmount"]').value,
+          unitPrice: row.querySelector('[name="unitPrice"]').value,
+          currency: row.querySelector('[name="currency"]').value
+        };
+        order.products.push(product);
+      });
+      formData.orders.push(order);
+    });
+    console.log("Collected Order Data:", formData);
+    try{
+    const response = await fetch("/performaInvoice",{
+      method: 'POST',
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(formData)
+    });
+    if (response.ok) {
+      const result = await response.json();
+      console.log("Response:", result);
+      if(result.message)
+      {
+        //alert('success!');
+        window.location.href = "../Invoices/performa1.html";
+      }
+      else{
+        alert('failure');
+      }
+
+      // Redirect user to the URL returned by the backend
+    }
+    }catch (error) {
+      console.error("Fetch Error:", error);
+      alert("An error occurred while submitting the order.");
+    }
 }
 

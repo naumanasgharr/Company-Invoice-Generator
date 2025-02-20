@@ -460,6 +460,7 @@ app.get("/api/invoiceDetails",async (req,res)=>{
 
 app.put("/EditPerformaInvoice",async (req,res)=>{
     const connection = await db.promise().getConnection();
+    console.log("request recieved at editinvoice");
 
     try{
        await connection.beginTransaction();

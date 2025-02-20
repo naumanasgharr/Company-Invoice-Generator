@@ -11,6 +11,9 @@ fetch('http://localhost:3000/api/performa')
     .then(data=>{
         invoiceData = data;
         const form = data.performa;
+        if(form.source){
+            document.querySelector("#saveButton").hidden = true;
+        }
         const customer = data.customer;
         const products = data.products;
         let articleData = [];
@@ -103,7 +106,7 @@ document.addEventListener("DOMContentLoaded",()=>{
 
 
 
-/*function exportToExcel() {
+function exportToExcel() {
     // Get the header table and main table
     const headerTable = document.querySelector('.header-table');
     const mainTable = document.querySelector('.mainTable');
@@ -192,52 +195,5 @@ window.jsPDF = window.jspdf.jsPDF;
             pdf.addImage(imgData, 'PNG', 10, 10, 190, 0); // Add the canvas as an image
             pdf.save('performa.pdf'); // Save the PDF
         });
-    }       */
-           
-            
-
-/*window.addEventListener("DOMContentLoaded", function () {
-    const formData = JSON.parse(localStorage.getItem("formData"));
-    const productData = JSON.parse(localStorage.getItem("productData"));
-    var total = 0;
-    if (formData) {
-        document.querySelector(".customerName").textContent = formData.customerName;
-        document.querySelector(".customerAddress").textContent = formData.customerAddress;
-        document.querySelector(".shipmentFrom").textContent = "Karachi, Pakistan"; // Example fixed value
-        document.querySelector(".shipmentDestination").textContent = formData.country;
-        document.querySelector(".date").textContent = formData.orderDate;
-        document.querySelector(".invoiceNumber").textContent = formData.invoiceNum;
-        this.document.querySelector("#shipmentDate").textContent =formData.shipmentDate;
-    }      
-
-        // Populate product details
-    if (productData) {
-        const tableBody = document.querySelector(".mainTable tbody");
-        
-        productData.forEach(product => {
-            const row = document.createElement("tr");
-            const sumValue = (product.unitPrice)*(product.productAmount);
-            total+= sumValue; 
-            row.innerHTML = `
-                <td><strong>${product.productNumber}</strong></td>
-                <td style="text-transform: uppercase;font-weight: bold;"><u>${product.productName}</u> <br> ${product.productDescription}</td>
-                <td>${product.unitPrice}</td>
-                <td><strong>${sumValue}</strong></td>
-              `;
-              tableBody.appendChild(row);
-            });
-          }
-          this.document.querySelector("#totalValue strong").textContent ="Total: " + total+ " $";
-        
-        const tableBody = document.querySelector(".mainTable tbody");
-        const row = document.createElement("tr");
-        row.innerHTML = `
-            <td colspan="1"></td>
-            <td colspan="1"">${formData.productNumber}</td>
-            <td colspan="4" style="text-transform: uppercase;font-weight: bold;">${formData.productName} <br> ${formData.productDescription}</td>
-            <td colspan="1">${formData.unitPrice}$</td>
-            <td colspan="1">${(formData.productAmount)*(formData.unitPrice)}$</td>
-        `;
-        tableBody.appendChild(row);
-});*/
+    }       
 
