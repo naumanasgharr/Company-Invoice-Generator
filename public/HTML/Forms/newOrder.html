@@ -5,78 +5,251 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventory manager</title>
     <style>
-        body{
-        background-color: gray;
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f9f9f9;
+            color: black;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
         }
-        .orderSection{
-            border: 1px solid black;
+
+        h1 {
+            color: #283593;
+            font-size: 28px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            color: #283593;
+            font-size: 24px;
+            text-transform: uppercase;
+            border-bottom: 2px solid #283593;
+            display: inline-block;
+            padding-bottom: 5px;
+            margin-bottom: 20px;
+        }
+
+        .invoiceDetails {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* Forces exactly 3 columns */
+            gap: 15px 20px; /* Adds spacing between inputs */
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+            max-width: 900px;
+            margin: auto;
+        }
+
+        .invoiceDetails div {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            text-align: left;
+        }
+
+        input {
+            padding: 8px;
+            border: 1px solid #ccc;
             border-radius: 5px;
-            padding: 5px;
-            margin: 5px;
+            width: 100%;
         }
-        .titlediv{
-            text-align: center;
-    
+
+        .button {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
         }
-        #title{
+
+        button {
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #283593, #1a237e);
             color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
         }
-        .container{
-            text-align: center;
-            background-color: black
+
+        button:hover {
+            background: linear-gradient(135deg, #1a237e, #283593);
+            transform: scale(1.05);
         }
-        .customerDetails{
-            margin: 5px;
-        }
-        .invoiceDetails{
-            margin: 5px;
-        }
-        .productDetails{
-            margin: 5px;
-        }
-        #prodDesc{
-            width: 35%;
-        }
-        .prodInput{
-            margin: 5px;
-        }
-        h2{
-            text-align: center;
-            margin: 30px;
-            border: 0;
-        }
-        .button{
-            margin: auto ;
-            width: 10%;
-            border: 0;
+        .productContainer {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start; /* Aligns everything to the left */
+            margin-top: 30px;
             padding: 10px;
         }
+        #addOrderButton {
+            align-self: flex-start; /* Aligns button to the far left */
+            padding: 10px 15px;
+            background: linear-gradient(135deg, #283593, #1a237e);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-bottom: 10px; /* Space between button and next section */
+        }
+        #addOrderButton:hover {
+            background: linear-gradient(135deg, #1a237e, #283593);
+            transform: scale(1.05);
+        }
+        .orderSection {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 1180px;
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+        }
+        .orderHeader {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        #orderNumber {
+            width: 120px;
+            padding: 6px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+        #removeOrderButton,#addProductButton {
+            padding: 6px 12px;
+            font-size: 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+            background: #d32f2f;
+            color: white;
+        }
+        #addProductButton {
+            background: #388e3c;
+        }
+        #removeOrderButton:hover {
+            background: #b71c1c;
+        }
+
+        #addProductButton:hover {
+            background: #2e7d32;
+        }
+        .productRow {
+            display: flex; /* Makes all inputs align in one row */
+            flex-wrap: wrap; /* Ensures it adjusts for smaller screens */
+            gap: 10px; /* Adds spacing between inputs */
+            align-items: center; /* Align elements properly */
+            justify-content: space-between; /* Distributes inputs evenly */
+            background: #fff;
+            padding: 5px;
+            border-radius: 5px;
+            box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.1);
+            width: 100%;
+        }
+        /* Labels should align properly */
+        .productRow label {
+            font-size: 12px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        /* Inputs and select elements - Smaller size */
+        .productRow input,
+        .productRow select {
+            padding: 6px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 100px; /* Smaller width */
+            font-size: 14px;
+        }
+
+        /* Remove Product Button - Placed below the input fields */
+        #RemoveProductButton {
+            padding: 8px 12px;
+            background: #d32f2f;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.3s;
+            grid-column: span 2; /* Ensures button takes up full width in the grid */
+            justify-self: center; /* Centers button */
+        }
+
+        #RemoveProductButton:hover {
+            background: #b71c1c;
+        }
+        /* General Button Styling */
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+        }
+
+       
     </style>
 </head>
 <body>
-    <div class ="titlediv">
-        <hr>
-        <h1 id="title">Document Generator</h1>
-        <hr>
-    </div>
+    <h2><strong>INVOICE DETAILS</strong></h2>
     <div class = "form">
         <form id = 'mainForm' action="/performaInvoice" method="post">     
             <div class="invoiceDetails">
-                <h2><strong>INVOICE DETAILS</strong></h2>
-                <label for ="orderDate">Date:</label>
-                <input name="orderDate"  type="date" id="orderDate">
-                <label for="invoiceNum">Invoice number: </label>
-                <input type="text" id="invoiceNum" name="invoiceNum">
-                <label for="customerID">Customer ID: </label>
-                <input name="customerID" type="text" id="customerID">
-                <label for="loadingPort">Loading Port: </label>
-                <input type="text" name="loadingPort" id="loadingPort">
-                <label for="shippingPort">Shipping Port: </label>
-                <input name="shippingPort" type="text" id="shippingPort">
-                <label for="shipmentDate">Shipment date: </label>
-                <input type="date" id="shipmentDate" name="shipmentDate">
+                <div>
+                    <label for ="orderDate">Date:</label>
+                    <input name="orderDate"  type="date" id="orderDate">
+                </div>
+
+                <div>
+                    <label for="invoiceNum">Invoice number: </label>
+                    <input type="text" id="invoiceNum" name="invoiceNum">
+                </div>
+
+                <div>
+                    <label for="customerID">Customer ID: </label>
+                    <input name="customerID" type="text" id="customerID">
+                </div>
+
+                <div>
+                    <label for="loadingPort">Loading Port: </label>
+                    <input type="text" name="loadingPort" id="loadingPort">
+                </div>
+                
+                <div>
+                    <label for="shippingPort">Shipping Port: </label>
+                    <input name="shippingPort" type="text" id="shippingPort">
+                </div>
+
+                <div>
+                    <label for="shipmentDate">Shipment date: </label>
+                    <input type="date" id="shipmentDate" name="shipmentDate">
+                </div>    
             </div>
-            <br>
+            
             <div class="productContainer">
                 <button id="addOrderButton" type="button">add order</button>
             </div>

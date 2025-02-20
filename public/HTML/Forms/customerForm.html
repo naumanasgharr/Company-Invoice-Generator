@@ -6,10 +6,11 @@
     <title>Customer Form</title>
     <style>
         body {
-            margin: 20px;
             font-family: 'Arial', sans-serif;
-            background-color:  #f9f9f9;   
-            color: #333;
+            background-color: #f9f9f9;
+            color: black;
+            margin: 0;
+            padding: 20px;
         }
         table {
             width: 100%;
@@ -29,7 +30,7 @@
         }
 
         thead {
-            background-color: #333;
+            background-color: #283593;
             color: white;
             text-transform: uppercase;
             font-weight: bold;
@@ -43,10 +44,17 @@
         tbody tr:hover {
             background-color: #ddd;
         }
-        h2{
+        h2 {
             text-align: center;
-            margin: 10px;
-            padding: 5px;
+            margin-bottom: 20px;
+            padding: 10px;
+            color: #283593;
+            font-size: 24px;
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 1px;
+            border-bottom: 2px solid #283593;
+            display: inline-block;
         }
         label{
             margin: 10px;
@@ -58,34 +66,96 @@
            border: 0;
            padding: 10px;
         }
+        .customerDetails {
+            display: grid;
+            grid-template-columns: repeat(3,1fr); /* Two columns */
+            gap: 15px 20px; /* Spacing between inputs */
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+            max-width: 900px;
+            margin: auto;
+        }
+        .customerDetails div {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+        }
+
+        input {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            
+        }
+
+        .button {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #283593, #1a237e);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, #1a237e, #283593);
+            transform: scale(1.05);
+        }
     </style>
 </head>
 <body>
+    <h2><strong>CUSTOMER DETAILS</strong></h2>
     <form id="customerForm" name="customerForm" action="/customerForm" method="POST">
         <div class = "customerDetails">
-            <h2><strong>CUSTOMER DETAILS</strong></h2>
-            <label for = "customerName">Customer Name: </label>
-            <input type = "text" id="customerName" name="customerName">
-            <label for="customerAddress">Customer Address: </label>
-            <input type="text" name="customerAddress" id="customerAddress">
-            <label for="country">Country: </label>
-            <input type="text" name="country" id="country">
-            <label for="phoneNumber">Phone Number: </label>
-            <input type="text" id="phoneNumber" name="phoneNumber">
-            <br>
-            <br>
-            <label for="officeNumber">Office Number: </label>
-            <input type="text" id="officeNumber" name="officeNumber">
-            <label for="email">Email: </label>
-            <input type="email" id="email" name="email">
-            <label for="VATnumber">VAT number: </label>
-            <input type="text" id="VATnumber" name="VATnumber">
-            <label for="PObox">PO Box: </label>
-            <input type="text" name="PObox" id="PObox">
-            <br>
-            <br>
-            <label for="website">Website: </label>
-            <input type="url" name="website" id="website">
+            <div>
+                <label for = "customerName">Customer Name: </label>
+                <input type = "text" id="customerName" name="customerName">
+            </div>
+            <div>
+                <label for="customerAddress">Customer Address: </label>
+                <input type="text" name="customerAddress" id="customerAddress">
+            </div>
+            <div>
+                <label for="country">Country: </label>
+                <input type="text" name="country" id="country">
+            </div>
+            <div>
+                <label for="phoneNumber">Phone Number: </label>
+                <input type="text" id="phoneNumber" name="phoneNumber">
+            </div>
+            <div>
+                <label for="officeNumber">Office Number: </label>
+                <input type="text" id="officeNumber" name="officeNumber">
+            </div>
+            <div>
+                <label for="email">Email: </label>
+                <input type="email" id="email" name="email">
+            </div>
+            <div>
+                <label for="VATnumber">VAT number: </label>
+                <input type="text" id="VATnumber" name="VATnumber">
+            </div>
+            <div>
+                <label for="PObox">PO Box: </label>
+                <input type="text" name="PObox" id="PObox">
+            </div>
+            <div>
+                <label for="website">Website: </label>
+                <input type="url" name="website" id="website">
+            </div>
         </div>
         <div class="button">
             <button type="submit" id="submitCustomer">Submit</button>

@@ -5,43 +5,94 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Main Page</title>
     <style>
-        #title{
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #e8eaf6, #c5cae9);
+        }
+        .container {
             text-align: center;
         }
-        h1{
-            text-decoration: underline;
+
+        .buttons-wrapper {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap; /* Allows wrapping for smaller screens */
+            margin-top: 20px;
         }
-        body{
-            background-color: gray;
+
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            background: linear-gradient(135deg, #283593, #1a237e);
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            transition: 0.3s;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
         }
-        .buttons{
-            margin: auto;
-            width: 20%;
-            border: 3px solid black;
+
+        button:hover {
+            background: linear-gradient(135deg, #1a237e, #283593);
+            transform: scale(1.05);
+        }
+
+        h1 {
+            color: #1a237e;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        h3 {
+            color: #3f51b5;
+            font-weight: 500;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .container {
+            animation: fadeIn 0.8s ease-in-out;
         }
     </style>
 </head>
 <body>
-    <div id="title">
+    <!--<div id="title">
     <h1>MAIN PAGE</h1>
     </div>
     <div>
         <h3 style="text-align: center;">Welcome. This website allows you to generate order documents and calculate order packaging.</h3>
         <h3 style="text-align: center;">To continue, please select an option: </h3>
+    </div>-->
+    <div class="container">
+        <h1>DashBoard</h1>
+        <div class="buttons-wrapper">
+            <button type="button" id="newOrder">New Order</button>
+            <button type="button" id="addArticle">New Article</button>
+            <button type="button" id="newCustomer">New Customer</button>
+        </div>
+        <div class="buttons-wrapper">
+            <button type="button" id="customerLink">Add Article No</button>
+            <button type="button" id="view-orders">View Orders</button>
+            <button type="button" id="edit-invoice">Edit Invoice</button>
+        </div>        
     </div>
-    <div class="buttons">
-        <form>
-        <ul class="buttonList">
-        <li><button type="button" id="newOrder">New order</button></li>
-        <li><button type="button" id="addArticle">Add article to Database</button></li>
-        <li><button type="button" id="customerLink">Link customer to article</button></li>
-        <li><button type="button" id="newCustomer">Add Customer</button></li>
-        <li><button type="button" id="view-orders">View Orders</button></li>
-        <li><button type="button" id="edit-invoice">Edit Invoice</button></li>
-        </ul>
-        </form>
-    </div>
-
 
 
 

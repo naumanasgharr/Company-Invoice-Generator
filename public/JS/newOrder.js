@@ -3,9 +3,11 @@ document.addEventListener("DOMContentLoaded",()=>{
   document.querySelector('#addOrderButton').addEventListener('click',()=>{
     const productContainer = document.querySelector('.productContainer');
     const orderSection = document.createElement('div');
+    const orderHeader = document.createElement('div');
     orderSection.className = 'orderSection';
-    orderSection.innerHTML = `
-      <label for = 'orderNumber'>Order Number:</label>
+    orderHeader.className = 'orderHeader';
+    orderHeader.innerHTML = `
+      <label for = 'orderNumber'>PO Number:</label>
       <input type='text' name='orderNumber' id='orderNumber'>
     `;
     const removeOrderButton = document.createElement('button');
@@ -15,14 +17,15 @@ document.addEventListener("DOMContentLoaded",()=>{
     removeOrderButton.addEventListener('click',()=>{
       orderSection.remove();  
     });
-    orderSection.appendChild(removeOrderButton);
+    orderHeader.append(removeOrderButton);
+    orderSection.appendChild(orderHeader);
     productContainer.appendChild(orderSection);
 
     const addProductButton = document.createElement('button');
     addProductButton.type = 'button';
     addProductButton.id = 'addProductButton';
     addProductButton.innerText = 'add product';
-    orderSection.appendChild(addProductButton);
+    orderHeader.appendChild(addProductButton);
     addProductButton.addEventListener('click',()=>{
       const productRow = document.createElement('div');
       productRow.className = 'productRow';
@@ -46,7 +49,7 @@ document.addEventListener("DOMContentLoaded",()=>{
       const removeProductButton = document.createElement('button');
       removeProductButton.id = 'RemoveProductButton';
       removeProductButton.type = 'button';
-      removeProductButton.innerText = 'Remove Product';
+      removeProductButton.innerText = 'Remove';
       removeProductButton.addEventListener('click',()=>{
         productRow.remove();
       });
