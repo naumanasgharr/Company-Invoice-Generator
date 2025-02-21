@@ -8,7 +8,7 @@ The front-end was designed using simple HTML, CSS, and JavaSript. A front-end fr
 - Invoices contains the HTML file for an invoice.
 - Reports folder contains the Order Report file.
 - Forms folder contains the html files for all the forms used in the application.
-#Step by Step by Working of the Application
+# Step by Step by Working of the Application
 The application was developed considering the business model and needs of a specific textile company.
 The application stores:
 -Customer Data
