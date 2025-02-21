@@ -21,9 +21,9 @@ To generate an invoice, the user should:
 - Store Product Data. (Add Article)
 - Store Customer Article Numbers. (Add Article No)
 - Generate Invoice using customer ID and Customer Article Numbers. The Article data for each article number is fetched accordingly from the database.
-**Make sure the Customer Article Numbers used have been stored for the same Customer. Invoice will not be generated if:**
-*- Customer ID is wrong*
-*- Customer Article Numbers are wrong*
+- **Make sure the Customer Article Numbers used have been stored for the same Customer. Invoice will not be generated if:**
+- *Customer ID is wrong*
+- *Customer Article Numbers are wrong*
 
 # Running the Application
 Clone the repo and make sure you have Node.js installed on your machine. Use *npm i* to install the necessary modules. Use *node index.js* to run the application on your localhost server.
