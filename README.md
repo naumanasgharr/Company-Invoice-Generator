@@ -9,12 +9,12 @@ The front-end was designed using simple HTML, CSS, and JavaSript. A front-end fr
 - Reports folder contains the Order Report file.
 - Forms folder contains the html files for all the forms used in the application.
 # Step by Step by Working of the Application
-The application was developed considering the business model and needs of a specific textile company.
+The application was developed considering a specific textile company's business model and needs.
 The application stores:
--Customer Data
--Article Data
--Specific Customer Article Numbers (Company specific)
--Order Data
+- Customer Data
+- Article Data
+- Specific Customer Article Numbers (Company specific)
+- Order Data
 # Running the Application
 Clone the repo and make sure you have Node.js installed on your machine. Use *npm i* to install the necessary modules. Use *node index.js* to run the application on your localhost server.
 
