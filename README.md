@@ -15,7 +15,7 @@ The application stores:
 - Article Data
 - Specific Customer Article Numbers (Company specific)
 - Order Data
-**Customer Article Numbers are Customer-Specific. They are linked to Company Article IDs. These customer article numbers are used while creating invoices.**
+- **Customer Article Numbers are Customer-Specific. They are linked to Company Article IDs. These customer article numbers are used while creating invoices.**-
 To generate an invoice, the user should:
 - Store Customer Data. (Add Customer)
 - Store Product Data. (Add Article)
