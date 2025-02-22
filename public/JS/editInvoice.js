@@ -27,6 +27,8 @@ fetch("http://localhost:3000/api/selectInvoice")
             const mainDiv = document.querySelector('.form');
             mainDiv.innerHTML = '';
             if(selectedInvoice != 'select'){
+                editForm.innerHTML = ''; // Also clear the form before adding new data
+                mainDiv.appendChild(editForm);
                 fetch(`http://localhost:3000/api/invoiceDetails?invoice_number=${selectedInvoice}`)
                     .then(response=>response.json())
                     .then(data=>{
@@ -72,7 +74,7 @@ fetch("http://localhost:3000/api/selectInvoice")
                         //generating shipment date input
                         const shipmentDateLabel = document.createElement('label');
                         shipmentDateLabel.htmlFor = 'shippingDate';
-                        shipmentDateLabel.innerText = 'shipping Date: ';
+                        shipmentDateLabel.innerText = 'Shipping Date: ';
                         const shipmentDateInput = document.createElement('input');
                         shipmentDateInput.name = `shipmentDate`;
                         shipmentDateInput.className = 'shipmentDate';
@@ -82,7 +84,7 @@ fetch("http://localhost:3000/api/selectInvoice")
                         //generating shipment port input
                         const shipmentPortLabel = document.createElement('label');
                         shipmentPortLabel.htmlFor = 'shippingPort';
-                        shipmentPortLabel.innerText = 'shipping Port: ';
+                        shipmentPortLabel.innerText = 'Shipping Port: ';
                         const shipmentPortInput = document.createElement('input');
                         shipmentPortInput.name = `shippingPort`;
                         shipmentPortInput.className = 'shippingPort';
@@ -105,7 +107,7 @@ fetch("http://localhost:3000/api/selectInvoice")
 
                         //adding a new order
                         const newOrderButton = document.createElement('button');
-                        newOrderButton.id = 'addnewOrder';
+                        newOrderButton.id = 'addNewOrder';
                         newOrderButton.innerText = 'New Order';
                         newOrderButton.type = 'button';
                         newOrderButton.addEventListener('click',()=>{

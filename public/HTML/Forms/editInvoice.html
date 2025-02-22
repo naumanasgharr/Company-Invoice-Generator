@@ -5,26 +5,182 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Invoice</title>
     <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f9f9f9;
+            color: black;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #283593;
+            font-size: 28px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
         .orderSection{
-            border: 2px solid black;
-            padding: 3px;
-            margin: 5px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 1180px;
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+        }
+        .invoiceDetails {
+            display: flex;
+            gap: 15px 20px; /* Adds spacing between inputs */
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+            max-width: 1100px;
+            margin: auto;
+        }
+        .invoiceDetails input {
+            width: 80px;
+            padding: 2px;
+            border: 1px solid #ccc;
             border-radius: 5px;
         }
-        .invoiceDetails{
-            border: 2px solid black;
-            padding: 3px;
-            margin: 5px;
+        #addNewOrder{
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #283593, #1a237e);
+            color: white;
+            border: none;
             border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
         }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+        }
+
+        .productContainer {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start; /* Aligns everything to the left */
+            margin-top: 30px;
+            padding: 10px;
+        }
+
+        .orderNumber{
+            width: 120px;
+            padding: 6px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 12px;
+        }   
+
+        .removeOrder,.addProduct {
+            padding: 6px 12px;
+            font-size: 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+            background: #d32f2f;
+            color: white;
+        }
+
+        .addProduct {
+            background: #388e3c;
+        }
+
+        .removeOrder:hover {
+            background: #b71c1c;
+        }
+
+        .addProduct:hover {
+            background: #2e7d32;
+        }
+
+        .productRow {
+            display: flex; /* Makes all inputs align in one row */
+            flex-wrap: wrap; /* Ensures it adjusts for smaller screens */
+            gap: 10px; /* Adds spacing between inputs */
+            align-items: center; /* Align elements properly */
+            justify-content: space-between; /* Distributes inputs evenly */
+            background: #fff;
+            padding: 5px;
+            border-radius: 5px;
+            box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.1);
+            width: 100%;
+        }
+
+        .productRow label {
+            font-size: 12px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        /* Inputs and select elements - Smaller size */
+        .productRow input,.productRow select {
+            padding: 6px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 100px; /* Smaller width */
+            font-size: 14px;
+        }
+
+        .removeProduct {
+            padding: 8px 12px;
+            background: #d32f2f;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.3s;
+            grid-column: span 2; /* Ensures button takes up full width in the grid */
+            justify-self: center; /* Centers button */
+        }
+
+        .removeProduct:hover {
+            background: #b71c1c;
+        }
+
+        #save{
+            background-color: #1a237e;
+            color: white;
+            text-transform: uppercase;
+        }
+        #viewInvoice{
+            background-color: #1a237e;
+            color: white;
+        }
+
     </style>
 </head>
 <body>
     <h1>Edit Invoice</h1>
-    <label for="invoiceNum">Invoice Number: </label>
-    <select name="invoiceNum" id="selectInvoiceNumber">
-        <option class="invoiceNumber" value = 'select'>Select</option>
-    </select>
+    <div class="selectInvoice">
+        <label for="invoiceNum">Invoice Number: </label>
+        <select name="invoiceNum" id="selectInvoiceNumber">
+            <option class="invoiceNumber" value = 'select'>Select</option>
+        </select>
+    </div>
     <div class="form"></div>
 
 

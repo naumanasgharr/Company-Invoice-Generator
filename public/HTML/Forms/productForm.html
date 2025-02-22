@@ -6,10 +6,11 @@
     <title>Add Product</title>
     <style>
         body {
-            margin: 20px;
             font-family: 'Arial', sans-serif;
-            background-color:  #f9f9f9;   
-            color: #333;
+            background-color: #f9f9f9;
+            color: black;
+            margin: 0;
+            padding: 20px;
         }
         table {
             width: 100%;
@@ -27,7 +28,7 @@
         }
 
         thead {
-            background-color: #333;
+            background-color: #283593;
             color: white;
             text-transform: uppercase;
             font-weight: bold;
@@ -41,28 +42,67 @@
         tbody tr:hover {
             background-color: #ddd;
         }
-        .productDetails{
-            margin: 5px;
-        }
-        #prodDesc{
-            width: 25%;
-        }
-        .prodInput{
-            margin: 5px;
-        }
-        h2{
+
+        h2 {
             text-align: center;
-            margin: 30px;
-            border: 0;
+            margin-bottom: 20px;
+            padding: 10px;
+            color: #283593;
+            font-size: 24px;
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 1px;
+            border-bottom: 2px solid #283593;
+            display: inline-block;
         }
         .button{
-            margin: auto ;
+            margin: auto;
             width: 10%;
             border: 0;
             padding: 10px;
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
         }
-        input{
-            margin: 5px;
+        input, select{
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        label{
+            margin: 10px;
+            padding: 5px;
+            font-weight: bold;
+            display: block;
+        }
+        .productDetails {
+            display: grid;
+            grid-template-columns: repeat(4,1fr); /* Two columns */
+            gap: 15px 20px; /* Spacing between inputs */
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+            max-width: 900px;
+            margin: auto;
+        }
+        .productDetails div {
+            display: flex;
+            flex-direction: column;
+        }
+        button {
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #283593, #1a237e);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button:hover {
+            background: linear-gradient(135deg, #1a237e, #283593);
+            transform: scale(1.05);
         }
     </style>
 </head>
@@ -70,33 +110,61 @@
     <h2><strong>PRODUCT DETAILS</strong></h2>
     <form id="productForm" action="/productForm" method="post">
         <div class="productDetails">
+            <div>
             <label for="articleNumber">Article No: </label>
             <input type="number" name="articleNumber" id="articleNumber" value="000000">
-            <label for="productCode">HS code: </label>
-            <input type="text" name="productCode" id="productCode">
-            <label for ="productName">Product name: </label>
-            <input class = "prodInput" id="productName" type="text" name = "productName">
-            <label for="prodDesc">Description: </label>
-            <input class = "prodInput" id = "prodDesc" type="text" name="productDesc">
-            <br>
-            <label for="productWeight">Weight: </label>
-            <input type="number" name="productWeight" id="productWeight">
-            <select><option>per piece</option><option>per dozen</option><option>per pair</option></select>
-            <label for="productSize">Size: </label>
-            <input type="text" name="productSize" id="productSize">
-        </div>
-        <div class="packingDetails">
-            <label for="unitPacking">Unit packing: </label>
-            <input type="text" name="unitPacking" id="unitPacking">
-            <label for="cartonPacking">Carton Packing: </label>
-            <input type="text" name="cartonPacking" id="cartonPacking">
-            <label for="cartonLength">Carton length: </label>
-            <input type="number" name="cartonLength" id="cartonLength">
-            <label for="cartonWidth">Carton width: </label>
-            <input type="number" name="cartonWidth" id="cartonWidth">
-            <br>
-            <label for="cartonHeight">Carton Height: </label>
-            <input type="number" name="cartonHeight" id="cartonHeight">
+            </div>
+            
+            <div>
+                <label for="productCode">HS code: </label>
+                <input type="text" name="productCode" id="productCode">
+            </div>
+            
+            <div>
+                <label for ="productName">Product name: </label>
+                <input class = "prodInput" id="productName" type="text" name = "productName">
+            </div>
+            
+            <div>
+                <label for="prodDesc">Description: </label>
+                <input class = "prodInput" id = "prodDesc" type="text" name="productDesc">
+            </div>
+            
+            <div>
+                <label for="productWeight">Weight: </label>
+                <input type="number" name="productWeight" id="productWeight">
+                <select><option>per piece</option><option>per dozen</option><option>per pair</option></select>
+            </div>
+            
+            <div>
+                <label for="productSize">Size: </label>
+                <input type="text" name="productSize" id="productSize">
+            </div>
+            
+            <div>
+                <label for="unitPacking">Unit packing: </label>
+                <input type="text" name="unitPacking" id="unitPacking">
+            </div>
+            
+            <div>
+                <label for="cartonPacking">Carton Packing: </label>
+                <input type="text" name="cartonPacking" id="cartonPacking">
+            </div>
+            
+            <div>
+                <label for="cartonLength">Carton length: </label>
+                <input type="number" name="cartonLength" id="cartonLength">
+            </div>
+            
+            <div>
+                <label for="cartonWidth">Carton width: </label>
+                <input type="number" name="cartonWidth" id="cartonWidth">
+            </div>
+            
+            <div>
+                <label for="cartonHeight">Carton Height: </label>
+                <input type="number" name="cartonHeight" id="cartonHeight">
+            </div>
         </div>
         <div class="button">
             <button type="submit" id="submitButton">Add Article</button>
