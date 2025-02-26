@@ -6,12 +6,13 @@ import { fileURLToPath, pathToFileURL } from "url";
 import methodOverride from "method-override";
 import session from "express-session";
 import { group } from "console";
-
+import dotenv from "dotenv";
+dotenv.config();
 const db = mysql2.createPool({
-    host: "127.0.0.1",     
-    user: "root",           // Replace with your MySQL username
-    password: "Pak275jb-",   // Enter your MySQL password
-    database: "database1" // Name of database
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME
 });
 db.getConnection((err, connection) => {
     if (err) {
@@ -82,8 +83,8 @@ app.post("/saveInvoice",async (req,res)=>{
         const [invoiceResult] =  await connection.query('INSERT INTO invoice_table(customer_id,order_date,shipping_date,loading_port,shipping_port,total) VALUES (?,?,?,?,?,?)',[customerID, orderDate, shipmentDate, loadingPort,shippingPort, total]);
         const invoiceNumber = invoiceResult.insertId;
         
-        const orderQueries = orderNumberArray.map(orderNumber=>{
-            connection.query('INSERT INTO order_table(invoice_number,order_number) VALUES (?,?)',[invoiceNumber,orderNumber]);
+        const orderQueries = orderNumberArray.map(async orderNumber=>{
+            await connection.query('INSERT INTO order_table(invoice_number,order_number) VALUES (?,?)',[invoiceNumber,orderNumber]);
         });
         await Promise.all(orderQueries);
         
