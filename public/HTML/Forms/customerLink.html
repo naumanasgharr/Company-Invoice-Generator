@@ -49,6 +49,7 @@
             padding: 8px;
             border: 1px solid #ccc;
             border-radius: 5px;  
+            width: 8%;
         }
 
         .button{
@@ -76,6 +77,12 @@
             background: linear-gradient(135deg, #1a237e, #283593);
             transform: scale(1.05);
         }
+        select{
+            width: 15%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
 
     </style>
 </head>
@@ -83,12 +90,16 @@
     <form id= 'linkForm' name="linkForm">
         <div class="main">
             <div>
-                <label for="customerId">Customer ID: </label>
-                <input name="customerId" id="customerId" type="text">
+                <label for="customerId">Customer Name: </label>
+                <select name="customerId" id="customerId">
+
+                </select>
                 <label for="articleNumber">Customer Article Number: </label>
                 <input name="articleNumber" id="articleNumber" type="text">
                 <label for="productNumber">Product number: </label>
-                <input name="productNumber" id="productNumber" type="text">
+                <select name="productNumber" id="productNumber">
+
+                </select>
             </div>
         </div>
         <div class="button">
@@ -107,6 +118,7 @@
                 productNumber: form.productNumber.value
             };
             console.log(formData);
+            
             fetch('/articleLink',{
                 method: 'POST',
                 headers: {
@@ -125,6 +137,31 @@
                 input.value = '';
             });
        });
+       
+       fetch("http://localhost:3000/api/customerNames")
+       .then(response=>response.json())
+       .then(data=>{
+            data.forEach(object=>{
+                const select = document.querySelector('#customerId');
+                const option = document.createElement('option');
+                option.value = object.id;
+                option.textContent = object.name;
+                select.appendChild(option);
+            });
+       }).catch(error=>console.log('error fetching customer names',error));
+       
+       fetch("http://localhost:3000/api/productIdAndDesc")
+       .then(response=>response.json())
+       .then(data=>{
+            data.forEach(obj=>{
+                const select = document.querySelector('#productNumber');
+                const option = document.createElement('option');
+                option.textContent = `${obj.id}-${obj.description}`;
+                option.value = obj.id;
+                select.appendChild(option);
+            });
+       }).catch(error=>console.log('error fetching product numbers',error));
+
     </script>
 </body>
 </html>

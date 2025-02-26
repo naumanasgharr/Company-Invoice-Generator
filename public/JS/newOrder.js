@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded",()=>{
       productRow.innerHTML =`
         <label for="productNumber">Article ID: </label>
         <input class = "prodInput" type="text" id="productNumber" name = "productNumber">
-        <label for="productAmount">Article Amount (pieces): </label>
+        <label for="productAmount">Order Qty: </label>
         <input class = "prodInput" id ="productAmount" name ="productAmount" min="0" step="1" value="0" />               
         <label for="unitPrice">Unit Price: </label>
         <input class="unitPrice" type="number" name="unitPrice" min="0" step="0.01">
@@ -62,7 +62,6 @@ document.addEventListener("DOMContentLoaded",()=>{
     event.preventDefault();
     const formData = {
       orderDate: form.orderDate.value,
-      invoiceNum: form.invoiceNum.value,
       customerID: form.customerID.value,
       loadingPort: form.loadingPort.value,
       shippingPort: form.shippingPort.value,

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <link href="https://fonts.cdnfonts.com/css/nimbus-roman-no9l" rel="stylesheet">
     <style>
         body {
             margin: 20px;
@@ -19,6 +20,9 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             background-color: #fff;
         }
+        .mainTable{
+            font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+        }
 
         th, td {
             border: 1px solid #ddd;
@@ -32,6 +36,7 @@
             text-transform: uppercase;
             font-weight: bold;
             font-size: 14px;
+            text-align: center;
         }
 
         tr:nth-child(even) {
@@ -81,6 +86,10 @@
         button:hover {
             background-color: #555;
         }
+        .categoryRow td{
+            text-align: center;
+            text-decoration: underline;
+        }
     </style>
 </head>
 
@@ -96,40 +105,55 @@
             </colgroup>
             <tr>
                 <td colspan="1" ><img src="../../images/logo.png" crossorigin="anonymous"  style="width: 63px; height: 63px;"></td>
-                <td colspan="3" class="title" style="font-weight: bold; text-decoration: underline;"> F.M TEXTILES (PVT) LTD</td>
+                <td colspan="3" class="title" style="color: #000;;font-weight: bold; text-decoration: underline;"> F.M TEXTILES (PVT) LTD</td>
                 <td colspan="1"></td>
             </tr>
             <tr>
                 <td colspan="1"></td>
-                <td colspan="2" class="heading" style="text-decoration: underline;">PERFORMA INVOICE</td>
+                <td colspan="2" class="heading" style="color: #000;;text-decoration: underline; text-align: center;">PERFORMA INVOICE</td>
                 <td colspan="2"></td>
             </tr>
             <tr>
                 <td colspan="5"></td>
             </tr>
             <tr>
-                
-                <td colspan="2" style="font-weight: bolder;"><u>Office # 1, Haji Nazir Center, Lal Mill Chowk,<br> Factory Area, Faisalabad, Pakistan</u></td>
-                <td colspan="1"></td>
-                <td colspan="1" id="customerAddress" style="border: 1.5px dotted black; font-weight: bolder;">CUSTOMER ADDRESS</td>
-            </tr>
-            <tr>
-                
-                <td colspan="2"><strong>Phone</strong>: 0092 41 2638529</td>
-                <td colspan="1"></td>
+                <td colspan="1" ></td>
                 <td colspan="2"></td>
+                <td colspan="1" style="font-weight: bolder;"><u>Office # 1, Haji Nazir Center, Lal Mill Chowk,<br> Factory Area, Faisalabad, Pakistan</u></td>
+                
             </tr>
             <tr>
-                <td colspan="2"><strong>Fax</strong>: 0092 41 2617467</td>
+                
+                <td colspan="2"></td>
+                <td colspan="1"></td>
+                <td colspan="1"><strong>Phone</strong>: 0092 41 2638529</td>
+            </tr>
+            <tr>
+                <td colspan="1"></td>
+                <td colspan="1"></td>
+                <td colspan="1"></td>
+                <td colspan="1"><strong>Fax</strong>: 0092 41 2617467</td>
+                
+            </tr>
+            <tr>
+                <td colspan="1" id="customerName" style="font-weight: bolder; text-decoration: underline; font-size: 20px;">CUSTOMER NAME</td>
+                <td colspan="1"></td>
+                <td colspan="1"></td>
+                <td colspan="1"><strong>Email</strong>: <a href="mailto:fmtex@fmtextiles.net">fmtex@fmtextiles.net</a></td>
+                
+            </tr>
+            <tr>
+                <td colspan="1" id= 'customerAddress' style="font-weight: bolder; font-size: 15px;">CUSTOMER ADDRESS</td>
+                <td colspan="1"></td>
                 <td colspan="1"></td>
                 <td colspan="1" style="border: dotted black; border-bottom: 0;"><strong>National Tax NO</strong>: 2570651-9</td>
-                <td colspan="1"></td>
+                
             </tr>
             <tr>
-                <td colspan="2"><strong>Email</strong>: <a href="mailto:fmtex@fmtextiles.net">fmtex@fmtextiles.net</a></td>
+                <td colspan="1"></td>
+                <td colspan="1"></td>
                 <td colspan="1"></td>
                 <td colspan="1" style="border: dotted black; border-top: 0;"><strong>REX NO</strong>: PKREXPK25706519</td>
-                <td colspan="1"></td>
             </tr>
             <tr>
                 <td colspan="5"></td>
@@ -140,14 +164,6 @@
                 <td colspan="1"  style="font-weight: bolder;">DATE</td>
                 <td colspan="2" class="date" style="text-decoration: underline;">28/02/2022</td>
             </tr>
-        <!--    <tr>
-                <td colspan="1" style="font-weight: bolder;">To,</td>
-                <td colspan="4" class="customerName" style="font-weight: 700 ;">Address/name</td>
-            </tr>
-            <tr>
-                <td colspan="1"></td>
-                <td class="customerAddress" colspan="4"></td>
-            </tr>-->
             <tr style="height: 50px; border: 1px solid black; border-top: 0;">
                 <td colspan="1" style="font-weight: bolder;">Shipment From: </td>
                 <td colspan="1" class="shipmentFrom" style="text-decoration: underline;">Karachi, Pakistan</td>

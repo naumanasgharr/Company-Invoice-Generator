@@ -32,6 +32,14 @@ fetch('http://localhost:3000/api/performa')
             unitPriceArray.push(order.unitPrice);
             currencyArray.push(order.currency);
         });
+        const productCategorySet = new Set();
+
+        products.forEach(product => {
+            productCategorySet.add(product.category);
+        });
+
+        const productCategoryArray = [...productCategorySet];
+        console.log(productCategoryArray);
 
         if(form.source == 'editInvoice')
         {
@@ -40,27 +48,44 @@ fetch('http://localhost:3000/api/performa')
         document.querySelector(".shipmentFrom").textContent = form.loadingPort; 
         document.querySelector(".shipmentDestination").textContent = form.shippingPort;
         document.querySelector(".date").textContent = form.orderDate;
-        document.querySelector(".invoiceNumber").textContent = form.invoiceNum;
+        document.querySelector(".invoiceNumber").textContent = data.invoiceNumber;
         document.querySelector("#shipmentDate").textContent =form.shipmentDate;
-        document.querySelector("#customerAddress").textContent = customer.address;
+        document.querySelector("#customerName").innerHTML = `To, <br> ${customer.name}`;
+        document.querySelector('#customerAddress').innerHTML = `${customer.address}<br>${customer.country}`;
         
         total = 0;
-        products.forEach((product,index) => {
+        productCategoryArray.forEach(Maincategory=>{
             const mainTable = document.querySelector(".dynamicTableBody");
-            const articleNumber =  articleNumberArray[index];
-            const productAmount = productAmountArray[index];
-            const unitPrice =  unitPriceArray[index];
-            const currency =  currencyArray[index];
-            total += (unitPrice*productAmount);
-            const newRow = document.createElement('tr');
-            newRow.innerHTML = `
-                <td>${articleNumber}</td>
-                <td>${product.name}<br>${productAmount}<br>${product.description}</td>
-                <td>${unitPrice}${currency}</td>
-                <td>${unitPrice*productAmount}${currency}</td>
-            `;   
-            mainTable.appendChild(newRow);
+            const categoryRow = document.createElement('tr');
+            categoryRow.className = 'categoryRow';
+            categoryRow.innerHTML = `
+                <td></td>
+                <td><strong>${Maincategory}<strong></td>
+                <td></td>
+                <td></td>
+            `;
+            mainTable.appendChild(categoryRow);
+            products.forEach((product,index) => {
+                if(product.category == Maincategory){
+                    const articleNumber =  articleNumberArray[index];
+                    const productAmount = productAmountArray[index];
+                    const unitPrice =  unitPriceArray[index];
+                    const currency =  currencyArray[index];
+                    const cartons = Math.ceil(productAmount / product.carton_packing);
+                    total += (unitPrice*productAmount);
+                    const newRow = document.createElement('tr');
+                    newRow.innerHTML = `
+                        <td>  <strong>${articleNumber}</strong><br>1 - ${cartons}<br>${product.carton_packing} ${product.carton_packing_type}</td>
+                        <td><strong>${product.description}</strong><br>${cartons} CARTONS --- ${productAmount} ${product.carton_packing_type}</td>
+                        <td>${unitPrice}${currency}</td>
+                        <td>${(unitPrice*productAmount).toFixed(2)}${currency}</td>
+                    `;   
+                    mainTable.appendChild(newRow);
+                }
+            });
         });
+        total = total.toFixed(2);
+        
         document.getElementById('totalValue').innerHTML=`Total: <strong>${total} ${currencyArray[0]}<strong>`;      
     }).catch(error =>{
         console.log('error fetching data,', error);
@@ -75,12 +100,11 @@ document.addEventListener("DOMContentLoaded",()=>{
             return;
         }
         try{
-            const response = await fetch('http://localhost:3000/api/saveInvoice',{
+            const response = await fetch('http://localhost:3000/saveInvoice',{
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     invoiceData: invoiceData.performa,
-                    productData: invoiceData.products,
                     total: total
                 })
             });

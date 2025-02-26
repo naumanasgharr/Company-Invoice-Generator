@@ -210,6 +210,29 @@
         button:hover {
             transform: scale(1.05);
         }
+        select{
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        ul{
+            font-size: 10px;
+            font-weight: bold;
+            font-family: Arial, sans-serif;
+            text-align: left;
+        }
+        .articleNumberList{
+            background: white;
+            padding: 2px;
+            border-radius: 8px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+            width: 33%;
+            margin: auto;
+            
+        }
+        h5{
+            color: #1a237e;
+        }
 
        
     </style>
@@ -225,30 +248,27 @@
                 </div>
 
                 <div>
-                    <label for="invoiceNum">Invoice number: </label>
-                    <input type="text" id="invoiceNum" name="invoiceNum">
-                </div>
-
-                <div>
-                    <label for="customerID">Customer ID: </label>
-                    <input name="customerID" type="text" id="customerID">
+                    <label for="customerID">Customer Name: </label>
+                    <select name="customerID" id="customerID">
+                        <option>--SELECT--</option>
+                    </select>
                 </div>
 
                 <div>
                     <label for="loadingPort">Loading Port: </label>
                     <input type="text" name="loadingPort" id="loadingPort">
                 </div>
-                
                 <div>
                     <label for="shippingPort">Shipping Port: </label>
                     <input name="shippingPort" type="text" id="shippingPort">
                 </div>
-
                 <div>
                     <label for="shipmentDate">Shipment date: </label>
                     <input type="date" id="shipmentDate" name="shipmentDate">
                 </div>    
             </div>
+            <br>
+            <div class="articleNumberList"></div>
             
             <div class="productContainer">
                 <button id="addOrderButton" type="button">add order</button>
@@ -262,5 +282,50 @@
     </div>
 
     <script src="../../JS/newOrder.js"></script>
+    <script>
+        fetch("http://localhost:3000/api/customerNames")
+        .then(response=>response.json())
+        .then(data=>{ 
+            data.forEach(object => {
+                const select = document.getElementById('customerID');
+                const option = document.createElement('option');
+                option.value = object.id;
+                option.textContent = object.name;
+                select.appendChild(option);
+            });
+        }).catch(error=>console.log('error fetching customer data',error));
+
+        document.getElementById('customerID').addEventListener('change', function() {
+            const customerId = this.value;
+            const div = document.querySelector('.articleNumberList');
+            const shippingPortInput = document.querySelector('#shippingPort');
+            shippingPortInput.value = '';
+            div.innerHTML = '';
+            if(customerId != '--SELECT--'){
+                fetch(`http://localhost:3000/api/articleNumbersAndNames?customerID=${customerId}`)
+                .then(response => response.json())
+                .then(data => {
+                    const divHeading = document.createElement('h5');
+                    divHeading.textContent = 'ARTICLE NUMBERS LIST';
+                    div.appendChild(divHeading);
+                    const list = document.createElement('ul');
+                    data.forEach(obj=>{
+                        const newLine = document.createElement('li');
+                        newLine.textContent = `${obj.article_number} - ${obj.description}`;
+                        list.appendChild(newLine);
+                    });
+                    div.appendChild(list);
+                })
+                .catch(error => console.log('Error fetching article numbers:', error));
+
+                fetch(`http://localhost:3000/api/customerShippingPort?customerID=${customerId}`)
+                .then(response=>response.json())
+                .then(data=>{
+                    shippingPortInput.value = data[0].shipping_port;
+                }).catch(error=>console.log('error fetching customer data',error));
+            }
+        });
+        
+    </script>
 </body>
 </html>

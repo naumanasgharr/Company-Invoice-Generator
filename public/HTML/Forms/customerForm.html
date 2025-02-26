@@ -148,7 +148,11 @@
             </div>
             <div>
                 <label for="website">Website: </label>
-                <input type="url" name="website" id="website">
+                <input type="text" name="website" id="website">
+            </div>
+            <div>
+                <label for="shippingPort">Shipping Port: </label>
+                <input name="shippingPort" type="text" id="shippingPort">
             </div>
         </div>
         <div class="button">
@@ -169,6 +173,8 @@
                 <col id="vatCol">
                 <col id="poCol">
                 <col id="websiteCol">
+                <col id="shippingPortCol">
+
             </colgroup>
             <thead style="border: 1px solid black;">
                 <td colspan="1">ID</td>
@@ -181,6 +187,7 @@
                 <td colspan="1">OFFICE NO.</td>
                 <td colspan="1">WEBSITE</td>
                 <td colspan="1">PO BOX</td>
+                <td colspan="1">SHIP PORT</td>
             </thead>
             <tbody id="customerTableBody">
             </tbody>
@@ -189,5 +196,42 @@
 
 
     <script src="../../JS/customerForm.js"></script>
+    <script>
+        const form = document.getElementById('customerForm');
+        const inputs = form.querySelectorAll('input');
+        form.addEventListener('submit',function(event){
+            event.preventDefault();
+            const formData = {
+                customerName: form.customerName.value,
+                customerAddress: form.customerAddress.value,
+                country: form.country.value,
+                phoneNumber: form.phoneNumber.value,
+                officeNumber: form.officeNumber.value,
+                email: form.email.value,
+                VATnumber: form.VATnumber.value,
+                PObox: form.PObox.value,
+                website: form.website.value,
+                shippingPort: form.shippingPort.value
+            };
+            console.log(formData);
+            fetch('/customerForm',{
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data=>{
+                console.log(data.message);
+                alert(data.message);
+            })
+            .catch(error=>{console.error('Error submitting the form:', error);alert('Could not link! ❌❌')});
+
+            inputs.forEach(input=>{
+                input.value = '';
+            });
+       });
+    </script>
 </body>
 </html>

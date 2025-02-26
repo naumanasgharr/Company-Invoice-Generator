@@ -31,7 +31,7 @@ fetch("http://localhost:3000/api/orderList")
                         <td colspan="1" id="shippingDate">${invoice.shipping_date}</td>
                         <td colspan="1" id="loadingPort">${invoice.loading_port}</td>
                         <td colspan="1" id="shippingPort">${invoice.shipping_port}</td>
-                        <td colspan="1" id="invoiceTotal">${invoice.total}$</td>
+                        <td colspan="1" id="invoiceTotal">${invoice.total} ${orders[0].articles[0].currency}</td>
                     </tr>
                 </tbody>
             </table>    
@@ -55,7 +55,7 @@ fetch("http://localhost:3000/api/orderList")
                 orderTable.innerHTML = `
                     <thead id="orderHead">
                         <th>ARTICLE NO</th>
-                        <th>ARTICLE NAME</th>
+                        <th>ARTICLE CATEGORY</th>
                         <th>ARTICLE SIZE</th>
                         <th>AMOUNT</th>
                         <th>UNIT PRICE</th>
@@ -68,7 +68,7 @@ fetch("http://localhost:3000/api/orderList")
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td id = "articleNo">${article.article_number}</td>
-                        <td id = "articleName">${article.product.name}</td>
+                        <td id = "articleName">${article.product.category}</td>
                         <td id = "articleSize">${article.product.size}</td>
                         <td id = "articleAmount">${article.article_amount}</td>
                         <td id = "articleUnitPrice">${article.unit_price}</td>

@@ -57,49 +57,53 @@ app.get("/",(req,res)=>{
 // GENERATING PERFORMA INVOICE
 var performaData = null;
 app.post("/performaInvoice",(req,res)=>{
-    console.log("Request received at performaInvoice");
+    //console.log("Request received at performaInvoice",req.body);
     req.session.pData = req.body;
     res.json({ message: "Order processed successfully"});
 });
 
 // saving invoice to db
-app.post("/api/saveInvoice",async (req,res)=>{
-
-    const {invoiceData, productData, total} = req.body;
-    const invoiceNumber = invoiceData.invoiceNum;
-    const customerID = invoiceData.customerID;
-    const orderDate = invoiceData.orderDate;
-    const loadingPort = invoiceData.loadingPort;
-    const shippingPort = invoiceData.shippingPort;
-    const shipmentDate = invoiceData.shipmentDate;
-    const orderNumberArray =[]; 
-    invoiceData.orders.forEach(order=>{
-        orderNumberArray.push(order.orderNumber);
-    });
-
+app.post("/saveInvoice",async (req,res)=>{
+    console.log(JSON.stringify(req.body,null,4));
+    const {invoiceData, total} = req.body;
+    //const invoiceNumber = invoiceData.invoiceNum;
+    const { customerID, orderDate, loadingPort, shippingPort, shipmentDate, orders } = invoiceData;
+    const orderNumberArray = orders.map(order => order.orderNumber); 
+    const articleNumberArray = orders.map(order =>order.products.map(product=>product.productNumber));
+    const flatArticleNumberArray = articleNumberArray.flat();
+    console.log(orderNumberArray);
+    console.log(flatArticleNumberArray);
     const connection = await db.promise().getConnection();
     try{
         await connection.beginTransaction();
 
-        const query1 = 'INSERT INTO invoice_table(invoice_number,customer_id,order_date,shipping_date,loading_port,shipping_port,total) VALUES (?,?,?,?,?,?,?)';
-        const query2 = 'INSERT INTO order_table(invoice_number,order_number) VALUES (?,?)';
-        const query3 = 'INSERT INTO orderDetail_table(order_number,article_number,article_amount,unit_price,currency) VALUES (?,?,?,?,?)';
-    
-        await connection.query(query1,[invoiceNumber,customerID, orderDate, shipmentDate, loadingPort,shippingPort, total]);
+        const [articleIdArray] = await connection.query('SELECT id,article_number FROM customer_article WHERE customer_id = ? AND article_number IN (?)',[customerID,flatArticleNumberArray]);
+        const articleIDMap = Object.fromEntries(articleIdArray.map(article => [article.article_number, article.id]));
+        const [invoiceResult] =  await connection.query('INSERT INTO invoice_table(customer_id,order_date,shipping_date,loading_port,shipping_port,total) VALUES (?,?,?,?,?,?)',[customerID, orderDate, shipmentDate, loadingPort,shippingPort, total]);
+        const invoiceNumber = invoiceResult.insertId;
         
-        for(var i = 0; i<orderNumberArray.length;i++){
-            await connection.query(query2,[invoiceNumber,orderNumberArray[i]]);
-        }
-
-        invoiceData.orders.forEach(async order=>{
-            const orderNo = order.orderNumber;
-            order.products.forEach(async product=>{
-                await connection.query(query3,[orderNo,product.productNumber,product.productAmount,product.unitPrice,product.currency]);
-            });
+        const orderQueries = orderNumberArray.map(orderNumber=>{
+            connection.query('INSERT INTO order_table(invoice_number,order_number) VALUES (?,?)',[invoiceNumber,orderNumber]);
         });
+        await Promise.all(orderQueries);
+        
+        const [orderRows] = await connection.query('SELECT id, order_number FROM order_table WHERE invoice_number = ?',[invoiceNumber]);
+        const orderIDMap = Object.fromEntries(orderRows.map(order => [order.order_number, order.id]));
+        let index = 0; 
+        const orderDetailQueries = orders.flatMap(order =>{
+            const orderID = orderIDMap[order.orderNumber]; // Assign correct order_id
+            return order.products.map(product =>
+                connection.query(
+                    'INSERT INTO orderDetail_table(order_id, article_id, article_amount, unit_price, currency) VALUES (?, ?, ?, ?, ?)',
+                    [orderID, articleIDMap[product.productNumber], product.productAmount, product.unitPrice, product.currency]
+                )
+            );
+        });
+        await Promise.all(orderDetailQueries);
 
         await connection.commit();
         res.status(200).json({message:"invoice saved successfully!"});
+
     } catch(error){
         await connection.rollback();
         console.error("Error inserting data, rolling back:", error.message);
@@ -113,27 +117,16 @@ app.post("/api/saveInvoice",async (req,res)=>{
 
 app.post("/customerForm",(req,res)=>{
     console.log(req.body);
-    const {customerName, customerAddress, country, phoneNumber, officeNumber, email, VATnumber, PObox, website} = req.body;   
-    const query = 'INSERT INTO customer_table (name, phone_number, email, address, country, VAT_number, office_number, website, PO_box) VALUES (?,?,?,?,?,?,?,?,?)';
-    db.query(query, [customerName, phoneNumber, email, customerAddress, country, VATnumber, officeNumber, website, PObox], (err, result) => {
+    const {customerName, customerAddress, country, phoneNumber, officeNumber, email, VATnumber, PObox, website, shippingPort} = req.body;   
+    const query = 'INSERT INTO customer_table (name, phone_number, email, address, country, VAT_number, office_number, website, PO_box, shipping_port) VALUES (?,?,?,?,?,?,?,?,?,?)';
+    db.query(query, [customerName, phoneNumber, email, customerAddress, country, VATnumber, officeNumber, website, PObox,shippingPort], (err, result) => {
         if (err) {
           console.error('Error inserting data:', err);
           res.status(500).send('Failed to insert data');
           return;
         }
         console.log('customer added!');
-      //res.status(200).send('Customer added successfully!');
-        res.send(`
-            <html>
-                <head><title>Form Submitted</title></head>
-                <body>
-                    <script>
-                        alert("Customer Added to Database");
-                        window.location.href = "/"; // Redirect after the alert
-                    </script>
-                </body>
-            </html>
-        `);
+        res.status(200).json({message: 'Customer added successfully!'});
     });      
 });
 
@@ -149,32 +142,54 @@ app.get("/api/customerReport",(req,res)=>{
     });
 });
 
+// SENDING CUSTOMER NAMES AND IDs TO FORMS
+app.get("/api/customerNames",(req,res)=>{
+    db.query('SELECT id,name FROM customer_table',(err,names)=>{
+        if(err){
+            res.status(500).send({error: 'error fetching data'});
+        } else{
+            res.json(names);
+        } 
+    });
+});
+
+// SENDING CUSTOMER SHIPPING PORT TO NEWORDER
+app.get('/api/customerShippingPort',(req,res)=>{
+    const customerID = req.query.customerID;
+    db.query('SELECT shipping_port FROM customer_table WHERE id = ?;',[customerID],(err,result)=>{
+        if(err){
+            res.status(500).send({error: 'error fetching data'});
+        } else{
+            res.json(result);
+        } 
+    });
+});
+
+// SENDING PRODUCT ID AND DESC TO ARTICLE LINK FORM
+app.get("/api/productIdAndDesc",(req,res)=>{
+    db.query('SELECT id, description FROM product_table',(err,results)=>{
+        if(err){
+            res.status(500).send({error: 'error fetching data'});
+        } else{
+            res.json(results);
+        } 
+    });
+});
+
  // INSERTING PRODUCT DATA INTO DB
 
 app.post("/productForm",(req,res)=>{
-    console.log(req.body);
-    const {productName, articleNumber, productCode, productDesc, productWeight, productSize, cartonLength, cartonHeight, cartonWidth} = req.body;
-    const query = 'INSERT INTO product_table (article_number, name, description, hs_code, size, carton_length, carton_width, carton_height, weight) VALUES (?,?,?,?,?,?,?,?,?)';
-    db.query(query, [articleNumber,productName,productDesc,productCode,productSize,cartonLength,cartonWidth,cartonHeight,productWeight], (err, result) => {
+    const {productName, productDesc, materialComposition, productWeight, weightUnit, weightPacking, productSize, productCode, cartonLength, cartonHeight, cartonWidth, unitPackingType, cartonPackingType, unitPacking, cartonPacking} = req.body;
+    
+    const query = 'INSERT INTO product_table (category, description, hs_code, size, carton_length, carton_width, carton_height, weight, material_composition, weight_units, unit_packing_type, carton_packing_type, weight_packing_type, unit_packing, carton_packing) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)';
+    db.query(query, [productName,productDesc,productCode,productSize,cartonLength,cartonWidth,cartonHeight,productWeight, materialComposition, weightUnit, unitPackingType, cartonPackingType, weightPacking, unitPacking, cartonPacking], (err, result) => {
         if (err) {
           console.error('Error inserting data:', err);
           res.status(500).send('Failed to insert data');
           return;
         }
-        if(req){
-            res.send(`
-                <html>
-                    <head><title>Form Submitted</title></head>
-                    <body>
-                        <script>
-                            alert("Article Added to Database");
-                            window.location.href = "/"; // Redirect after the alert
-                        </script>
-                    </body>
-                </html>
-            `);
-        }
-    });      
+        res.status(200).json({message: 'Product Added!'});
+    });
 });
 
 // ADDING CUSTOMER ARTICLE NUMBERS INTO DB (customer_article TABLE)
@@ -191,6 +206,18 @@ app.post("/articleLink",(req,res)=>{
         }
         
             res.status(200).json({message:'Article linked Successfully! ✅✅'});    
+    });
+});
+
+app.get('/api/articleNumbersAndNames',(req,res)=>{
+    const customerID = req.query.customerID;
+    const query = `SELECT customer_article.article_number, product_table.description FROM customer_article INNER JOIN product_table ON customer_article.product_id = product_table.id WHERE customer_article.customer_id = ?;`;
+    db.query(query,[customerID],(err,result)=>{
+        if (err) {
+            console.error('Database query error:', err);
+            return res.status(500).send('Database query failed');
+        }
+        res.json(result);
     });
 });
 
@@ -213,59 +240,79 @@ app.get("/api/performa",(req,res)=>{
         });
     }); 
 
-    // SQL query for retrieving customer data related to customerid recieved from form data/ used nested queries (3)
-    const query1 = 'SELECT * FROM customer_table WHERE id = ?'; 
-    db.query(query1,[customerID],(err1,customerResult)=>{
-        if(err1){
+    const query = 'SELECT invoice_number FROM invoice_table;'
+    db.query(query,(err,invoiceNum)=>{
+        if(err){
             console.log('error fetching data');
             res.status(500).json({error: 'error fetching data'});
         }
         
-        //created an empty products array for storing product_ids and a global parameter
-        const products = [];
-        let completedQuerries = 0;
+            console.log(invoiceNum);           
         
-        //forEach loop on article_numbers array to get related product_ids one by one, and pushing them into products array
-        articleNumbersArray.forEach(productNumber => {
+        // SQL query for retrieving customer data related to customerid recieved from form data/ used nested queries (3)
+        const query1 = 'SELECT * FROM customer_table WHERE id = ?'; 
+        db.query(query1,[customerID],(err1,customerResult)=>{
+            if(err1){
+                console.log('error fetching data');
+                res.status(500).json({error: 'error fetching data'});
+            }
             
-            //second query for getting product ids
-            const query2 = 'SELECT product_id FROM customer_article WHERE customer_id = ? AND article_number = ?';
-            db.query(query2,[customerID,productNumber],(err2,articleResult)=>{
-                if (err2) {
-                    console.error("Error fetching product data:", err2);
-                    return res.status(500).json({ error: "Database error (products)" });
-                }
-                if (articleResult.length === 0) {
-                    console.log(`No product found for article number ${productNumber}`);
-                    return res.status(404).json({ error: "No articles found for this customer." }); // Skip if no product is found for this article number
-                }
-                const product_number = articleResult[0].product_id;
-                // last query for retrieving product data for each product id
-                const query3 = 'SELECT * FROM product_table WHERE article_number = ?';
-                db.query(query3, [product_number], (err3, productResult) => {
-                    if (err3) {
-                        console.error(`Error fetching product data for product number ${product_number}:`, err3);
-                        return res.status(500).json({ error: "Error fetching product data" });
+            //created an empty products array for storing product_ids and a global parameter
+            const products = [];
+            let completedQuerries = 0;
+            
+            //forEach loop on article_numbers array to get related product_ids one by one, and pushing them into products array
+            articleNumbersArray.forEach(productNumber => {
+                
+                //second query for getting product ids
+                const query2 = 'SELECT product_id FROM customer_article WHERE customer_id = ? AND article_number = ?';
+                db.query(query2,[customerID,productNumber],(err2,articleResult)=>{
+                    if (err2) {
+                        console.error("Error fetching product data:", err2);
+                        return res.status(500).json({ error: "Database error (products)" });
                     }
-
-                    if (productResult.length === 0) {
-                        console.log(`No product found for product number ${product_number}`);
-                        return; // Skip if no product is found
+                    if (articleResult.length === 0) {
+                        console.log(`No product found for article number ${productNumber}`);
+                        return res.status(404).json({ error: "No articles found for this customer." }); // Skip if no product is found for this article number
                     }
+                    const product_number = articleResult[0].product_id;
+                    // last query for retrieving product data for each product id
+                    const query3 = 'SELECT * FROM product_table WHERE id = ?';
+                    db.query(query3, [product_number], (err3, productResult) => {
+                        if (err3) {
+                            console.error(`Error fetching product data for product number ${product_number}:`, err3);
+                            return res.status(500).json({ error: "Error fetching product data" });
+                        }
 
-                    // Add the product data to the products array
-                    products.push(productResult[0]);
+                        if (productResult.length === 0) {
+                            console.log(`No product found for product number ${product_number}`);
+                            return; // Skip if no product is found
+                        }
 
-                    completedQuerries++;
-                    //console.log(products);
-                    // Once all queries are completed, send the response
-                    if (completedQuerries === articleNumbersArray.length) {
-                        res.json({
-                            performa: performaData,
-                            customer: customerResult[0],
-                            products: products
-                        });
-                    }
+                        // Add the product data to the products array
+                        products.push(productResult[0]);
+
+                        completedQuerries++;
+                        //console.log(customerResult[0]);
+                        // Once all queries are completed, send the response
+                        if (completedQuerries === articleNumbersArray.length) {
+                            if(invoiceNum.length != 0){
+                                res.json({
+                                    performa: performaData,
+                                    customer: customerResult[0],
+                                    products: products,
+                                    invoiceNumber: invoiceNum[invoiceNum.length-1].invoice_number + 1
+                                });
+                            }else{
+                                res.json({
+                                    performa: performaData,
+                                    customer: customerResult[0],
+                                    products: products,
+                                    invoiceNumber: 1500
+                                });
+                            }
+                        }
+                    });
                 });
             });
         });
@@ -285,18 +332,18 @@ app.get('/api/productList',(req,res)=>{
 });
 
 // sending data for order bank
-app.get('/api/orderList',(req,res)=>{
-    const query1 = 'SELECT id,name FROM customer_table INNER JOIN invoice_table ON customer_table.id = invoice_table.customer_id';
+app.get('/api/orderList', async (req,res)=>{
+   /* const query1 = 'SELECT id,name FROM customer_table INNER JOIN invoice_table ON customer_table.id = invoice_table.customer_id';
     const query2 = 'SELECT * FROM order_table INNER JOIN invoice_table ON order_table.invoice_number = invoice_table.invoice_number';
-    const query3 = 'SELECT * FROM orderDetail_table INNER JOIN order_table ON orderDetail_table.order_number = order_table.order_number';
-    const query4 = 'SELECT * FROM customer_article INNER JOIN orderDetail_table ON customer_article.article_number = orderDetail_table.article_number';
-    const query5 = 'SELECT * FROM product_table INNER JOIN customer_article ON product_table.article_number = customer_article.product_id';
+    const query3 = 'SELECT * FROM orderDetail_table INNER JOIN order_table ON orderDetail_table.order_id = order_table.id';
+    const query4 = 'SELECT * FROM customer_article INNER JOIN orderDetail_table ON customer_article.id = orderDetail_table.article_id';
+    const query5 = 'SELECT * FROM product_table INNER JOIN customer_article ON product_table.id = customer_article.product_id';
     db.query(query1,(err1,customerData)=>{
         if(err1){
             res.status(500).send({error: 'error fetching data'});
         }
-       // console.log("customer data: ");
-       // console.log(customerData);
+        console.log("customer data: ");
+        console.log(customerData);
         db.query(query2,(err2,invoiceData)=>{
             if(err2){
                 res.status(500).send({error: 'error fetching data'});
@@ -307,25 +354,25 @@ app.get('/api/orderList',(req,res)=>{
                 if(err3){
                     res.status(500).send({error: 'error fetching data'});
                 }
-               // console.log("order details: ");
-               // console.log(orderData);
+                console.log("order details: ");
+                console.log(orderData);
                 db.query(query4,(err4,articleData)=>{
                     if(err4){
                         res.status(500).send({error: 'error fetching data'});
                     }
-                    //console.log("article data: ");
-                    //console.log(articleData);
+                    console.log("article data: ");
+                    console.log(articleData);
                     db.query(query5,(err5,productData)=>{
                         if(err4){
                             res.status(500).send({error: 'error fetching data'});
                         }
-                        //console.log("product data: ");
-                        //console.log(productData);
+                        console.log("product data: ");
+                        console.log(productData);
 
                         const invoicesMap = {};
 
                         orderData.forEach(order => {
-                            const invoice = invoiceData.find(inv => inv.order_number === order.order_number);
+                            const invoice = invoiceData.find(inv => inv.id === order.id);
                             if (!invoice) return; // Skip if no invoice is found
 
                             if (!invoicesMap[invoice.invoice_number]) {
@@ -359,11 +406,11 @@ app.get('/api/orderList',(req,res)=>{
                             }
 
                             // Step 3: Find matching article details
-                            const articleDetails = articleData.find(a => a.order_number === order.order_number && a.article_number === order.article_number);
+                            const articleDetails = articleData.find(a => a.order_id === order.id && a.id === order.article_id);
                             if (!articleDetails) return;
 
                             // Step 4: Find corresponding product details
-                            const productDetails = productData.find(p => p.article_number === articleDetails.article_number);
+                            const productDetails = productData.find(p => p.id === articleDetails.product_id);
                             if (!productDetails) return;
 
                             // Step 5: Push article and product details inside the order
@@ -388,7 +435,103 @@ app.get('/api/orderList',(req,res)=>{
                 });
             });
         });
-    });                  
+    });*/
+    
+    try {
+        const connection = await db.promise().getConnection();
+
+        // ✅ 1. Fetch Invoice Data with Customer Names
+        const [invoiceData] = await connection.query(
+            `SELECT invoice_table.invoice_number, invoice_table.customer_id, 
+                    invoice_table.order_date, invoice_table.shipping_date, 
+                    invoice_table.loading_port, invoice_table.shipping_port, 
+                    invoice_table.total, customer_table.name AS customer_name
+            FROM invoice_table
+            INNER JOIN customer_table ON invoice_table.customer_id = customer_table.id`
+        );
+
+        // ✅ 2. Fetch Orders for Each Invoice
+        const [orderData] = await connection.query(
+            `SELECT order_table.id AS order_id, order_table.invoice_number, order_table.order_number
+            FROM order_table`
+        );
+
+        // ✅ 3. Fetch Order Details (Products in Each Order)
+        const [orderDetailData] = await connection.query(
+            `SELECT orderDetail_table.order_id, orderDetail_table.article_id, orderDetail_table.article_amount,
+                    orderDetail_table.unit_price, orderDetail_table.currency, 
+                    customer_article.article_number, customer_article.product_id
+            FROM orderDetail_table
+            INNER JOIN customer_article ON orderDetail_table.article_id = customer_article.id`
+        );
+
+        // ✅ 4. Fetch Product Data (Description, HS Code, etc.)
+        const [productData] = await connection.query(`SELECT product_table.id AS product_id, product_table.description, product_table.hs_code, product_table.size, product_table.category FROM product_table`);
+
+        connection.release();
+
+        // ✅ 5. Construct the Response Object
+        const invoicesMap = {};
+
+        orderData.forEach(order => {
+            const invoice = invoiceData.find(inv => inv.invoice_number === order.invoice_number);
+            if (!invoice) return;
+
+            if (!invoicesMap[invoice.invoice_number]) {
+                invoicesMap[invoice.invoice_number] = {
+                    invoice_number: invoice.invoice_number,
+                    customer: {
+                        id: invoice.customer_id,
+                        name: invoice.customer_name
+                    },
+                    order_date: invoice.order_date,
+                    shipping_date: invoice.shipping_date,
+                    loading_port: invoice.loading_port,
+                    shipping_port: invoice.shipping_port,
+                    total: invoice.total,
+                    orders: []
+                };
+            }
+
+            let existingOrder = invoicesMap[invoice.invoice_number].orders.find(o => o.order_number === order.order_number);
+
+            if (!existingOrder) {
+                existingOrder = {
+                    order_number: order.order_number,
+                    articles: []
+                };
+                invoicesMap[invoice.invoice_number].orders.push(existingOrder);
+            }
+
+            // ✅ 6. Add Articles to the Order
+            const orderDetails = orderDetailData.filter(od => od.order_id === order.order_id);
+            orderDetails.forEach(detail => {
+                const product = productData.find(p => p.product_id === detail.product_id);
+                if (!product) return;
+
+                existingOrder.articles.push({
+                    article_number: detail.article_number,
+                    article_amount: detail.article_amount,
+                    unit_price: detail.unit_price,
+                    currency: detail.currency,
+                    product: {
+                        description: product.description,
+                        hs_code: product.hs_code,
+                        size: product.size,
+                        category: product.category
+                    }
+                });
+            });
+        });
+
+        // ✅ 7. Convert to Array and Send Response
+        const invoicesArray = Object.values(invoicesMap);
+        res.json(invoicesArray);
+
+    } catch (error) {
+        console.error("Error fetching order list:", error);
+        res.status(500).json({ error: "Server error fetching order list" });
+    }
 });
 
 // select invoice number for edit invoice page
@@ -512,6 +655,29 @@ app.put("/EditPerformaInvoice",async (req,res)=>{
         connection.release(); // Release connection back to the pool
     }
     
+});
+
+app.post("/productCategory",(req,res)=>{
+    const {prodCategory} = req.body;
+    db.query('INSERT INTO productCategory_table(product_category) VALUES (?);',[prodCategory],(err,result)=>{
+        if(err){
+            console.error('Error inserting data:', err);
+            res.status(500).send('Failed to insert data');
+            return;
+        }
+        res.status(200).json({message: "Category Added!"});
+    });
+});
+app.get("/api/productCategoryGet",(req,res)=>{
+    db.query('SELECT product_category FROM productCategory_table;',(err,result)=>{
+        if(err){
+            console.error('Error inserting data:', err);
+            res.status(500).send('Failed to insert data');
+            return;
+        }
+        console.log(result);
+        res.json(result);
+    });
 });
 
 app.listen(port,()=>{

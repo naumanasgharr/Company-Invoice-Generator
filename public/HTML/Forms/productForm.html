@@ -104,36 +104,51 @@
             background: linear-gradient(135deg, #1a237e, #283593);
             transform: scale(1.05);
         }
+        #categoryForm div{
+            display: flex;
+        }
+
+        #categoryForm div input,label{
+            padding: 2px;
+
+        }
     </style>
 </head>
 <body>
+
+    <form id="categoryForm" action="/productCategory" method="post">
+        <div>
+        <label for="prodCategory">Add Product Category: </label>
+        <input type="text" name="prodCategory" id="prodCategory">
+        <button type="submit">Add</button>
+        </div>
+    </form>
     <h2><strong>PRODUCT DETAILS</strong></h2>
     <form id="productForm" action="/productForm" method="post">
         <div class="productDetails">
             <div>
-            <label for="articleNumber">Article No: </label>
-            <input type="number" name="articleNumber" id="articleNumber" value="000000">
-            </div>
-            
-            <div>
-                <label for="productCode">HS code: </label>
-                <input type="text" name="productCode" id="productCode">
-            </div>
-            
-            <div>
-                <label for ="productName">Product name: </label>
-                <input class = "prodInput" id="productName" type="text" name = "productName">
+                <label for ="productName">Product Category: </label>
+               <!-- <input class = "prodInput" id="productName" type="text" name = "productName">-->
+                <select class = "prodInput" id="productName" name = "productName">
+
+                </select>
             </div>
             
             <div>
                 <label for="prodDesc">Description: </label>
                 <input class = "prodInput" id = "prodDesc" type="text" name="productDesc">
             </div>
+
+            <div>
+                <label for="materialComposition">Material Composition: </label>
+                <input class = "prodInput" id = "materialComposition" type="text" name="materialComposition">
+            </div>
             
             <div>
                 <label for="productWeight">Weight: </label>
                 <input type="number" name="productWeight" id="productWeight">
-                <select><option>per piece</option><option>per dozen</option><option>per pair</option></select>
+                <select name="weightUnit"><option>grams</option><option>kilograms</option></select>
+                <select name="weightPacking"><option>piece</option><option>dzn</option><option>pair</option></select>
             </div>
             
             <div>
@@ -144,26 +159,33 @@
             <div>
                 <label for="unitPacking">Unit packing: </label>
                 <input type="text" name="unitPacking" id="unitPacking">
+                <select name="unitPackingType"><option>piece</option><option>dzn</option><option>pair</option></select>
             </div>
             
             <div>
                 <label for="cartonPacking">Carton Packing: </label>
                 <input type="text" name="cartonPacking" id="cartonPacking">
+                <select name="cartonPackingType"><option>piece</option><option>dzn</option><option>pair</option></select>
             </div>
             
             <div>
-                <label for="cartonLength">Carton length: </label>
+                <label for="cartonLength">Carton length(inches): </label>
                 <input type="number" name="cartonLength" id="cartonLength">
             </div>
             
             <div>
-                <label for="cartonWidth">Carton width: </label>
+                <label for="cartonWidth">Carton width(inches): </label>
                 <input type="number" name="cartonWidth" id="cartonWidth">
             </div>
             
             <div>
-                <label for="cartonHeight">Carton Height: </label>
+                <label for="cartonHeight">Carton Height(inches): </label>
                 <input type="number" name="cartonHeight" id="cartonHeight">
+            </div>
+
+            <div>
+                <label for="productCode">HS code: </label>
+                <input type="text" name="productCode" id="productCode">
             </div>
         </div>
         <div class="button">
@@ -177,25 +199,37 @@
                 <col id="IDCol">
                 <col id="nameCol">
                 <col id="descriptionCol">
+                <col id="materialCompositionCol">
                 <col id="hsCodeCol">
                 <col id="sizeCol">
+                <col id="unitPackingCol">
+                <col id="unitPackingTypeCol">
+                <col id="cartonPackingCol">
+                <col id="cartonPackingTypeCol">
                 <col id="cartonLengthCol">
                 <col id="cartonWidthCol">
                 <col id="cartonHeightCol">
                 <col id="weightCol">
+                <col id="weightUnitCol">
+                <col id="weightPackingCol">
             </colgroup>
             <thead>
                 <th colspan="1">PRODUCT ID</th>
-                <th colspan="1">PRODUCT NAME</th>
+                <th colspan="1">CATEGORY</th>
                 <th colspan="1">DESCRIPTION</th>
+                <th colspan="1">MATERIAL COMP</th>
                 <th colspan="1">HS CODE</th>
                 <th colspan="1">SIZE</th>
-                <!--<th colspan="1">UNIT PACKING</th>
-                <th colspan="1">CARTON PACKING</th>-->
+                <th colspan="1">UNIT PACKING</th>
+                <th colspan="1"></th>
+                <th colspan="1">CARTON PACKING</th>
+                <th colspan="1"></th>
                 <th colspan="1">CARTON LENGTH</th>
                 <th colspan="1">CARTON WIDTH</th>
                 <th colspan="1">CARTON HEIGHT</th>
                 <th colspan="1">WEIGHT</th>
+                <th colspan="1"></th>
+                <th colspan="1"></th>
             </thead>
             <tbody id="productTableBody">
             </tbody>
@@ -204,5 +238,74 @@
 
 
     <script src="../../JS/productForm.js"></script>
+    <script>
+        const form = document.getElementById('categoryForm');
+        const inputs = form.querySelectorAll('input');
+        form.addEventListener('submit',function(event){
+            event.preventDefault();
+            const formData = {
+                prodCategory: form.prodCategory.value
+            };
+            console.log(formData);
+            fetch('/productCategory',{
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data=>{
+                console.log(data.message);
+                alert(data.message);
+            })
+            .catch(error=>{console.error('Error submitting the form:', error);alert('Could not link! ❌❌')});
+
+            inputs.forEach(input=>{
+                input.value = '';
+            });
+       });
+
+        const productForm = document.getElementById('productForm');
+        const productInputs = productForm.querySelectorAll('input');
+        productForm.addEventListener('submit',function(event){
+            event.preventDefault();
+            const formData = {
+                productName: productForm.productName.value,
+                productDesc: productForm.prodDesc.value,
+                materialCompostion: productForm.materialComposition.value,
+                productWeight: productForm.productWeight.value,
+                productSize: productForm.productSize.value,
+                unitPacking: productForm.unitPacking.value,
+                weightUnit: productForm.weightUnit.value,
+                weightPacking: productForm.weightPacking.value,
+                unitPackingType: productForm.unitPackingType.value,
+                cartonPacking: productForm.cartonPacking.value,
+                cartonPackingType: productForm.cartonPackingType.value,
+                cartonLength: productForm.cartonLength.value,
+                cartonWidth: productForm.cartonWidth.value,
+                cartonHeight: productForm.cartonHeight.value,
+                productCode: productForm.productCode.value
+            };
+            console.log(formData);
+            fetch('/productForm',{
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data=>{
+                console.log(data.message);
+                alert(data.message);
+            })
+            .catch(error=>{console.error('Error submitting the form:', error);alert('Could not Add! ❌❌')});
+
+            productInputs.forEach(input=>{
+                input.value = '';
+            });
+       });
+    </script>
 </body>
 </html>
