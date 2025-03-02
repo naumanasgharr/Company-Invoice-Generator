@@ -33,7 +33,7 @@ fetch("http://localhost:3000/api/selectInvoice")
                     .then(response=>response.json())
                     .then(data=>{
                         originalData = JSON.parse(JSON.stringify(data));
-                        //console.log(data);
+                        console.log(data);
                         const invoiceData = data.invoiceData;
                         const orderData = data.orders;
                         const invoiceDiv = document.createElement('div');
@@ -60,6 +60,7 @@ fetch("http://localhost:3000/api/selectInvoice")
                         invoiceNumberInput.id = 'invoiceNum';
                         invoiceNumberInput.type = 'text';
                         invoiceNumberInput.value = `${invoiceData.invoice_number}`;
+                        invoiceNumberInput.disabled = true;
 
                         //generating customer ID input
                         const customerIDLabel = document.createElement('label');
@@ -115,11 +116,11 @@ fetch("http://localhost:3000/api/selectInvoice")
                             orderSection.className = 'orderSection';
                             orderSection.innerHTML = `
                             <label for = 'orderNumber'>PO Number:</label>
-                            <input type='text' name='orderNumber' id='orderNumber'>
+                            <input type='text' name='orderNumber' class='orderNumber'>
                             `;
                             const removeOrderButton = document.createElement('button');
                             removeOrderButton.innerText = 'Remove order';
-                            removeOrderButton.id = 'removeOrderButton';
+                            removeOrderButton.className = 'removeOrder';
                             removeOrderButton.type = 'button';
                             removeOrderButton.addEventListener('click',()=>{
                             orderSection.remove();  
@@ -129,7 +130,7 @@ fetch("http://localhost:3000/api/selectInvoice")
 
                             const addProductButton = document.createElement('button');
                             addProductButton.type = 'button';
-                            addProductButton.id = 'addProductButton';
+                            addProductButton.className = 'addProduct';
                             addProductButton.innerText = 'add product';
                             orderSection.appendChild(addProductButton);
                             addProductButton.addEventListener('click',()=>{
@@ -151,7 +152,7 @@ fetch("http://localhost:3000/api/selectInvoice")
                                 </select>
                             `;
                             const removeProductButton = document.createElement('button');
-                            removeProductButton.id = 'RemoveProductButton';
+                            removeProductButton.className = 'removeProduct';
                             removeProductButton.type = 'button';
                             removeProductButton.innerText = 'Remove Product';
                             removeProductButton.addEventListener('click',()=>{
@@ -175,6 +176,12 @@ fetch("http://localhost:3000/api/selectInvoice")
                             orderNumberInput.className = 'orderNumber';
                             orderNumberInput.type = 'text';
                             orderNumberInput.value = `${order.orderNumber}`;
+
+                            //hidden order_id input
+                            const orderIdInput = document.createElement('input');
+                            orderIdInput.value = `${order.order_id}`;
+                            orderIdInput.hidden = true;
+                            orderIdInput.name = 'orderID';
 
                             //add new product row
                             const newProductButton = document.createElement("button");
@@ -217,14 +224,21 @@ fetch("http://localhost:3000/api/selectInvoice")
                             removeOrderButton.className = "removeOrder";
                             removeOrderButton.addEventListener('click',()=>{
                                 orderSection.remove();
-                                deletedOrders.push(order.orderNumber);
+                                deletedOrders.push(order.order_id);
                                 console.log("deleted orders: ",deletedOrders);
                             });
-                            orderSection.append(orderNumberLabel,orderNumberInput,removeOrderButton,newProductButton);
+                            orderSection.append(orderNumberLabel, orderIdInput, orderNumberInput,removeOrderButton,newProductButton);
                             //ORDERS
                             order.orderDetails.forEach(detail=>{
                                 const productRow = document.createElement('div');
                                 productRow.className = 'productRow';
+                                
+                                //hidden orderDetail id input
+                                const detailIdInput = document.createElement('input');
+                                detailIdInput.name = 'detailId';
+                                detailIdInput.value =`${detail.detailId}`;
+                                detailIdInput.hidden = true;
+                                
                                 //product number
                                 const productNumberLabel = document.createElement('label');
                                 productNumberLabel.htmlFor = 'productNumber';
@@ -234,6 +248,12 @@ fetch("http://localhost:3000/api/selectInvoice")
                                 productNumberInput.className = 'productNumber';
                                 productNumberInput.type = 'text';
                                 productNumberInput.value = `${detail.article_number}`;
+
+                                //hidden product id input
+                                const productIdInput = document.createElement('input');
+                                productIdInput.name = 'productId';
+                                productIdInput.value = `${detail.article_id}`;
+                                productIdInput.hidden = true;
 
                                 //product amount 
                                 const productAmountLabel = document.createElement('label');
@@ -278,13 +298,13 @@ fetch("http://localhost:3000/api/selectInvoice")
 
                                 removeProductButton.addEventListener("click", function () {
                                     productRow.remove(); // Remove row from UI
-                                    deletedOrderDetails.push({orderNumber: order.orderNumber,articleId:detail.article_number});
+                                    deletedOrderDetails.push(detail.detailId);
                                     // Track order for deletion
                                     //updateRowIndices(); // Update field names after deletion
                                     console.log("deleted order details: ",deletedOrderDetails);
                                 });
 
-                                productRow.append(productNumberLabel,productNumberInput,productAmountLabel,productAmountInput,unitPriceLabel,unitPriceInput,currencyLabel,currencySelect,removeProductButton);
+                                productRow.append(detailIdInput,productNumberLabel,productNumberInput,productIdInput,productAmountLabel,productAmountInput,unitPriceLabel,unitPriceInput,currencyLabel,currencySelect,removeProductButton);
                                 orderSection.appendChild(productRow);
                             });
                             index++;
@@ -411,7 +431,6 @@ function hideViewButtonOnChange() {
 async function editFormSubmitHandler(event){
     event.preventDefault();
     const formData={
-        old: originalData,
         new:{
             orderDate: editForm.orderDate.value,
             invoiceNum: editForm.invoiceNum.value,
@@ -419,16 +438,37 @@ async function editFormSubmitHandler(event){
             loadingPort: editForm.loadingPort.value,
             shippingPort: editForm.shippingPort.value,
             shipmentDate: editForm.shipmentDate.value,
+            deletedOrders: deletedOrders,
+            deletedOrderDetails: deletedOrderDetails,
             orders: []
         }
     };
     document.querySelectorAll('.orderSection').forEach(orderDiv=>{
+        let orderId = null;
+        const orderIdInput = orderDiv.querySelector('[name="orderID"]');
+        if(orderIdInput){
+            orderId = orderIdInput.value;
+        }
         const order = {
             orderNumber: orderDiv.querySelector('.orderNumber').value,
+            orderId: orderId,
             products: []
         };
         orderDiv.querySelectorAll('.productRow').forEach(row=>{
+            let detailId = null;
+            let productId = null;
+            const productIdInput = row.querySelector('[name="productId"]');
+            const detailIdInput = row.querySelector('[name="detailId"]');
+            if(detailIdInput){
+                detailId = detailIdInput.value;
+            }
+            if(productIdInput){
+                productId = productIdInput.value;
+            }
             const product = {
+                orderid: orderId,
+                detailId: detailId,
+                productId: productId,
                 productNumber: row.querySelector('[name="productNumber"]').value,
                 productAmount: row.querySelector('[name="productAmount"]').value,
                 unitPrice: row.querySelector('[name="unitPrice"]').value,

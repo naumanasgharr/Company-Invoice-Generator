@@ -7,6 +7,7 @@ import methodOverride from "method-override";
 import session from "express-session";
 import { group } from "console";
 import dotenv from "dotenv";
+import { connect } from "http2";
 dotenv.config();
 const db = mysql2.createPool({
     host: process.env.DB_HOST,
@@ -549,26 +550,54 @@ app.get("/api/selectInvoice",(req,res)=>{
 // send selected invoice data to edit invoice page
 app.get("/api/invoiceDetails",async (req,res)=>{
     const invoiceNumber = req.query.invoice_number;
+    
     try{
+        const connection = await db.promise().getConnection();
         const [invoiceData] = await db.promise().query('SELECT * FROM invoice_table WHERE invoice_number = ?',[invoiceNumber]);
         if (invoiceData.length === 0){
             return res.status(404).json({ error: "Invoice not found" });
         }
 
-        const [orderNumbers] = await db.promise().query('SELECT * FROM order_table WHERE invoice_number = ?',[invoiceNumber]);
+        /*const [orderNumbers] = await db.promise().query('SELECT * FROM order_table WHERE invoice_number = ?',[invoiceNumber]);
         if(orderNumbers.length == 0){
             res.status(500).json({ invoiceData: invoiceData[0], orders: [] });
         }
 
         const orderDetailsArray = await Promise.all(
             orderNumbers.map(async (order) => {
-                const [orderDetails] = await db.promise().query("SELECT * FROM orderDetail_table WHERE order_number = ?",[order.order_number]);
+                const [orderDetails] = await db.promise().query("SELECT * FROM orderDetail_table WHERE order_id = ?",[order.id]);
                 return {orderDetails};
             })
         );
-        const groupedOrders = orderDetailsArray.reduce((acc,order)=>{
+        const articleIdsArray = [];
+            orderDetailsArray.forEach(order=>{
+                order.orderDetails.forEach(detail=>articleIdsArray.push(detail.article_id));
+            });
+
+        //console.log("article numbers,",articleNumbersArray);
+        const articleNumbersArray = await Promise.all(
+            articleIdsArray.map(async (id) => {
+                const [articleNumbers] = await db.promise().query("SELECT * FROM customer_article WHERE id = ?",[id]);
+                return articleNumbers;
+            })
+        );
+        const flatArticleArray = articleNumbersArray.flat();
+
+        let index = 0;
+        orderDetailsArray.forEach(order=>{
+            order.orderDetails.forEach(detail =>{
+                detail.article_number = flatArticleArray[index].article_number;
+                index++;
+            })
+        });
+        
+        console.log(JSON.stringify(orderDetailsArray,null,4));
+        const groupedOrders = orderDetailsArray.reduce((acc,order,index)=>{
             order.orderDetails.forEach(detail=>{
-                const orderNumber = detail.order_number;
+                if(orderNumbers[index].id == detail.order_id){
+                    var orderNumber = orderNumbers[index].order_number;
+                    
+                }     
                 if (!acc[orderNumber]) {
                     acc[orderNumber] = {
                         orderNumber: orderNumber,
@@ -592,6 +621,44 @@ app.get("/api/invoiceDetails",async (req,res)=>{
         res.json({
             invoiceData: invoiceData[0],
             orders: groupedOrderObjects,
+        });*/
+        const [orderDetails] = await connection.query(
+            `SELECT od.id AS orderDetailId, od.order_id, od.article_id, od.article_amount, 
+                od.unit_price, od.currency, o.order_number, o.id AS orderId, 
+                ca.article_number
+            FROM orderDetail_table od
+            INNER JOIN order_table o ON od.order_id = o.id
+            INNER JOIN customer_article ca ON od.article_id = ca.id
+            WHERE o.invoice_number = ?`,
+        [invoiceNumber]);
+        
+        connection.release();
+        console.log(orderDetails);    
+        const groupedOrders = orderDetails.reduce((acc, detail) => {
+            if (!acc[detail.order_number]) {
+                acc[detail.order_number] = {
+                    orderNumber: detail.order_number,
+                    order_id: detail.order_id,
+                    orderDetails: [],
+                };
+            }
+            acc[detail.order_number].orderDetails.push({
+                detailId: detail.orderDetailId,
+                article_id: detail.article_id,
+                article_amount: detail.article_amount,
+                unit_price: detail.unit_price,
+                currency: detail.currency,
+                article_number: detail.article_number,
+            });
+            return acc;
+        }, {});
+
+        // Convert object to an array
+        const groupedOrderObjects = Object.values(groupedOrders);
+
+        res.json({
+            invoiceData: invoiceData[0],
+            orders: groupedOrderObjects,
         });
         
     }catch(error){
@@ -607,47 +674,125 @@ app.put("/EditPerformaInvoice",async (req,res)=>{
     console.log("request recieved at editinvoice");
 
     try{
-       await connection.beginTransaction();
-       const newData = req.body.new;
-       //const originalData = req.body.originalData;
-       const oldInvoiceData = req.body.old.invoiceData;
-       const oldOrderData = req.body.old.orders;
-       const oldOrderNumbers = oldOrderData.map(order=>order.orderNumber);
-       const newOrders = newData.orders;
-       let newTotal = 0;
-        newOrders.forEach(order=>{
+        await connection.beginTransaction();
+        const newData = req.body.new;
+        const invoiceNumber = newData.invoiceNum;
+        const orders = newData.orders;
+        const deletedOrders = newData.deletedOrders;
+        const deletedOrderDetails = newData.deletedOrderDetails;
+
+        //CALCULATING NEW TOTAL
+        let newTotal = 0;
+        orders.forEach(order=>{
             order.products.forEach(product=>{
                 newTotal += product.productAmount*product.unitPrice;
             });
         });
-        const newOrderNumbers = [];
-        newData.orders.forEach(order=>{
-             newOrderNumbers.push(order.orderNumber);     
-        }); 
-       console.log(newOrderNumbers);
-       if(newOrders.length>0){
-       await connection.query('DELETE FROM orderDetail_table WHERE order_number IN (?)',[oldOrderNumbers]);
-       await connection.query('DELETE FROM order_table WHERE order_number IN (?)',[oldOrderNumbers]);
-       await connection.query('DELETE FROM invoice_table WHERE invoice_number =?',[oldInvoiceData.invoice_number]);
-       }
 
-       await connection.query('INSERT INTO invoice_table(invoice_number, customer_id, order_date, shipping_date, loading_port, shipping_port, total) VALUES (?, ?, ?, ?, ?, ?, ?)',[newData.invoiceNum, newData.customerID, newData.orderDate, newData.shipmentDate, newData.loadingPort, newData.shippingPort, newTotal]); 
+        const UpdatedOrders = [];
+        const newOrders = [];
+        orders.forEach(order=>{
+            if(order.orderId != null){
+                UpdatedOrders.push(order);
+            }else{
+                newOrders.push(order);
+            }
+        });
+        const orderDetailsArray = UpdatedOrders.map(order=>order.products);
+        const orderDetails = orderDetailsArray.flat();
+        const oldOrderDetails = [];
+        const newOrderDetails = [];
+        orderDetails.forEach(detail=>{
+            if(detail.detailId != null){
+                oldOrderDetails.push(detail);
+            }else{
+                newOrderDetails.push(detail);
+            }
+        });
+        console.log(orderDetails);
+        //console.log("updated orders: ",UpdatedOrders);
+        //console.log("new orders", JSON.stringify(UpdatedOrders,null,4));
+
+        // DELETING ORDERS IF ANY
+        if(deletedOrders.length>0){
+            deletedOrders.map(async order=>{
+                await connection.query('DELETE FROM order_table WHERE id = ?',[order]);
+            })  
+        }
+        if(deletedOrderDetails.length>0){
+            deletedOrderDetails.map(async detail=>{
+                await connection.query('DELETE FROM orderDetail_table WHERE id = ?',[detail]);
+            });
+        }
         
-       await Promise.all(newOrderNumbers.map(async number => {
-            await connection.query('INSERT INTO order_table(invoice_number, order_number) VALUES (?, ?)', [newData.invoiceNum, number]);
-       }));
+        // UPDATING INVOICE DETAILS
+        await connection.query('UPDATE invoice_table SET customer_id = ?, order_date = ?, shipping_date = ?, loading_port = ?, total = ?, shipping_port = ? WHERE invoice_number= ?;',[newData.customerID, newData.orderDate, newData.shippingDate, newData.loadingPort, newTotal, newData.shippingPort,  newData.invoiceNum]);
 
-        await Promise.all(newData.orders.map(async order => {
-            await Promise.all(order.products.map(async product => {
-                await connection.query(
-                    'INSERT INTO orderDetail_table(order_number, article_number, article_amount, unit_price, currency) VALUES (?, ?, ?, ?, ?)',
-                    [order.orderNumber, product.productNumber, product.productAmount, product.unitPrice, product.currency]
+        //UPDATING ORDER_TABLE
+        const updateOrderTable = UpdatedOrders.map(order=>
+            connection.query('UPDATE order_table SET order_number = ? WHERE id = ?',[order.orderNumber,order.orderId])
+        );
+        await Promise.all(updateOrderTable);
+        
+        //UPDATING orderDetail_table
+        const updateOrderDetails = oldOrderDetails.map(detail=>
+            connection.query('UPDATE orderDetail_table SET order_id = ?,  article_id = ?, article_amount = ?, unit_price = ?, currency = ? WHERE id = ?',[detail.orderid,detail.productId,detail.productAmount,detail.unitPrice,detail.currency,detail.detailId])
+        );
+        await Promise.all(updateOrderDetails);
+
+        if(newOrderDetails.length>0){
+            const articleNum = newOrderDetails.map(detail=>detail.productNumber);
+            const [articleRows] = await connection.query(
+                'SELECT id, article_number FROM customer_article WHERE article_number IN (?)',[articleNum]
+            );
+            const articleIdMap = Object.fromEntries(articleRows.map(article => [article.article_number, article.id]));
+            const insertNewOrderDetails = newOrderDetails.map(detail=>
+                connection.query('INSERT INTO orderDetail_table(order_id,article_id,article_amount,unit_price,currency) VALUES (?,?,?,?,?)',[detail.orderid,articleIdMap[detail.productNumber],detail.productAmount,detail.unitPrice,detail.currency])
+            )
+            await Promise.all(insertNewOrderDetails);
+        }
+
+        //ADDING NEW ORDERS IF ANY
+        if (newOrders.length > 0) {
+            // ✅ Step 1: Insert into order_table and retrieve order IDs
+            const orderInserts = newOrders.map(async (order) => {
+                const [orderResult] = await connection.query(
+                    'INSERT INTO order_table(invoice_number, order_number) VALUES (?, ?)',
+                    [invoiceNumber, order.orderNumber]
                 );
-            }));
-        }));
+                return { orderId: orderResult.insertId, order }; // Save orderId for later use
+            });
+        
+            // Wait for all orders to be inserted and fetch their IDs
+            const insertedOrders = await Promise.all(orderInserts);
+        
+            // Retrieve article IDs from customer_article
+            const articleNumbers = newOrders.flatMap(order => order.products.map(product => product.productNumber));
+            const [articleRows] = await connection.query(
+                'SELECT id, article_number FROM customer_article WHERE article_number IN (?)',
+                [articleNumbers]
+            );
+        
+            // Create a mapping of article_number → article_id
+            const articleIdMap = Object.fromEntries(articleRows.map(article => [article.article_number, article.id]));
+        
+            // Insert into orderDetail_table
+            const orderDetailInserts = insertedOrders.flatMap(({ orderId, order }) =>
+                order.products.map(product =>
+                    connection.query(
+                        'INSERT INTO orderDetail_table(order_id, article_id, article_amount, unit_price, currency) VALUES (?, ?, ?, ?, ?)',
+                        [orderId, articleIdMap[product.productNumber], product.productAmount, product.unitPrice, product.currency]
+                    )
+                )
+            );
+        
+            // Execute all order detail inserts
+            await Promise.all(orderDetailInserts);
+        }
 
         await connection.commit();
         res.json({message: 'INVOICE UPDATED SUCCESSFULLY'});
+
     } catch (err){
         await connection.rollback(); // Rollback if any error occurs
         console.error("Error updating invoice:", err);
