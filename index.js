@@ -92,16 +92,25 @@ app.post("/saveInvoice",async (req,res)=>{
         const [orderRows] = await connection.query('SELECT id, order_number FROM order_table WHERE invoice_number = ?',[invoiceNumber]);
         const orderIDMap = Object.fromEntries(orderRows.map(order => [order.order_number, order.id]));
         let index = 0; 
-        const orderDetailQueries = orders.flatMap(order =>{
-            const orderID = orderIDMap[order.orderNumber]; // Assign correct order_id
-            return order.products.map(product =>
-                connection.query(
+        const orderDetailQueries = orders.map(order =>{
+            return order.products.map(async product =>{
+                const orderID = orderIDMap[order.orderNumber];
+                const [result] = await connection.query(
                     'INSERT INTO orderDetail_table(order_id, article_id, article_amount, unit_price, currency) VALUES (?, ?, ?, ?, ?)',
                     [orderID, articleIDMap[product.productNumber], product.productAmount, product.unitPrice, product.currency]
-                )
-            );
+                );
+                return { orderDetailID: result.insertId, orderID, articleID: articleIDMap[product.productNumber],articleAmount: product.productAmount }; 
+            
+            }); 
         });
-        await Promise.all(orderDetailQueries);
+        const insertedOrderDetails = await Promise.all(orderDetailQueries.flat());
+
+        //adding into balance table
+        console.log(insertedOrderDetails);
+        const balanceQueries = insertedOrderDetails.map(async detail=>{
+            return connection.query('INSERT INTO balance_table(order_detail_id, article_id, balance) VALUES (?,?,?)',[detail.orderDetailID,detail.articleID,detail.articleAmount]);
+        });
+        await Promise.all(balanceQueries);
 
         await connection.commit();
         res.status(200).json({message:"invoice saved successfully!"});
@@ -211,6 +220,8 @@ app.post("/articleLink",(req,res)=>{
     });
 });
 
+//sending article names and numbers to newOrder.html
+
 app.get('/api/articleNumbersAndNames',(req,res)=>{
     const customerID = req.query.customerID;
     const query = `SELECT customer_article.article_number, product_table.description FROM customer_article INNER JOIN product_table ON customer_article.product_id = product_table.id WHERE customer_article.customer_id = ?;`;
@@ -220,6 +231,51 @@ app.get('/api/articleNumbersAndNames',(req,res)=>{
             return res.status(500).send('Database query failed');
         }
         res.json(result);
+    });
+});
+
+//sending articleNumbers to shippingInvoice.html
+
+app.get('/api/articleNumbersAndNamesForShipmentInvoice',(req,res)=>{
+    const customerID = req.query.customerId;
+    console.log(customerID);
+    const query = `SELECT customer_article.id AS customer_article_id, customer_article.*, product_table.id AS product_id, product_table.* FROM customer_article INNER JOIN product_table ON customer_article.product_id = product_table.id WHERE customer_article.customer_id = ?`;
+    db.query(query,[customerID],(err,result)=>{
+        if (err) {
+            console.error('Database query error:', err);
+            return res.status(500).send('Database query failed');
+        }
+        res.json(result);
+    });
+});
+
+//sending invoice and order numbers to shippingInvoice
+
+app.get('/api/invoiceAndOrderNumbers',(req,res)=>{
+    const articleNumber = req.query.articleNumber;
+    const query = 'SELECT * FROM invoice_table INNER JOIN order_table ON invoice_table.invoice_number = order_table.invoice_number  INNER JOIN orderDetail_table ON order_table.id = orderDetail_table.order_id INNER JOIN customer_article ON orderDetail_table.article_id = customer_article.id INNER JOIN product_table ON customer_article.product_id = product_table.id INNER JOIN balance_table ON orderDetail_table.id = balance_table.order_detail_id WHERE customer_article.id = ? AND balance_table.balance > 0 ORDER BY invoice_table.timestamp_column ASC';
+    db.query(query,[articleNumber],(err,results)=>{
+        if(err){
+            res.status(500).json({message: 'error fetching orders'});
+        }
+        console.log(results);
+        res.status(200).json(results);
+    });
+});
+
+//sending orderDetails to shippingInvoice
+
+app.get('/api/orderDetailsShippingInvoiceDisplay',(req,res)=>{
+    const orderId = req.query.order_id;
+    const articleId = req.query.article_id;
+    console.log(orderId,articleId);
+    const query = 'SELECT * FROM orderDetail_table INNER JOIN customer_article ON orderDetail_table.article_id = customer_article.id INNER JOIN product_table ON product_table.id = customer_article.product_id INNER JOIN balance_table ON orderDetail_table.id = balance_table.order_detail_id WHERE orderDetail_table.order_id = ? AND orderDetail_table.article_id = ? AND balance > 0';
+    db.query(query,[orderId,articleId],(err,results)=>{
+        if(err){
+            res.status(500).json({message: 'error fetching Order Details'});
+        }
+        console.log(results);
+        res.status(200).json(results);
     });
 });
 
@@ -335,109 +391,6 @@ app.get('/api/productList',(req,res)=>{
 
 // sending data for order bank
 app.get('/api/orderList', async (req,res)=>{
-   /* const query1 = 'SELECT id,name FROM customer_table INNER JOIN invoice_table ON customer_table.id = invoice_table.customer_id';
-    const query2 = 'SELECT * FROM order_table INNER JOIN invoice_table ON order_table.invoice_number = invoice_table.invoice_number';
-    const query3 = 'SELECT * FROM orderDetail_table INNER JOIN order_table ON orderDetail_table.order_id = order_table.id';
-    const query4 = 'SELECT * FROM customer_article INNER JOIN orderDetail_table ON customer_article.id = orderDetail_table.article_id';
-    const query5 = 'SELECT * FROM product_table INNER JOIN customer_article ON product_table.id = customer_article.product_id';
-    db.query(query1,(err1,customerData)=>{
-        if(err1){
-            res.status(500).send({error: 'error fetching data'});
-        }
-        console.log("customer data: ");
-        console.log(customerData);
-        db.query(query2,(err2,invoiceData)=>{
-            if(err2){
-                res.status(500).send({error: 'error fetching data'});
-            }
-          //  console.log("invoice data: ");
-          //  console.log(invoiceData);
-            db.query(query3,(err3,orderData)=>{
-                if(err3){
-                    res.status(500).send({error: 'error fetching data'});
-                }
-                console.log("order details: ");
-                console.log(orderData);
-                db.query(query4,(err4,articleData)=>{
-                    if(err4){
-                        res.status(500).send({error: 'error fetching data'});
-                    }
-                    console.log("article data: ");
-                    console.log(articleData);
-                    db.query(query5,(err5,productData)=>{
-                        if(err4){
-                            res.status(500).send({error: 'error fetching data'});
-                        }
-                        console.log("product data: ");
-                        console.log(productData);
-
-                        const invoicesMap = {};
-
-                        orderData.forEach(order => {
-                            const invoice = invoiceData.find(inv => inv.id === order.id);
-                            if (!invoice) return; // Skip if no invoice is found
-
-                            if (!invoicesMap[invoice.invoice_number]) {
-                                // Find the corresponding customer data
-                                const customer = customerData.find(cust => cust.id === invoice.customer_id);
-
-                                invoicesMap[invoice.invoice_number] = {
-                                    invoice_number: invoice.invoice_number,
-                                    customer: {
-                                        id: customer.id,
-                                        name: customer.name
-                                    },
-                                    order_date: invoice.order_date,
-                                    shipping_date: invoice.shipping_date,
-                                    loading_port: invoice.loading_port,
-                                    shipping_port: invoice.shipping_port,
-                                    total: invoice.total,
-                                    orders: []
-                                };
-                            }
-
-                            // Step 2: Check if order already exists inside the invoice
-                            let existingOrder = invoicesMap[invoice.invoice_number].orders.find(o => o.order_number === order.order_number);
-
-                            if (!existingOrder) {
-                                existingOrder = {
-                                    order_number: order.order_number,
-                                    articles: []
-                                };
-                                invoicesMap[invoice.invoice_number].orders.push(existingOrder);
-                            }
-
-                            // Step 3: Find matching article details
-                            const articleDetails = articleData.find(a => a.order_id === order.id && a.id === order.article_id);
-                            if (!articleDetails) return;
-
-                            // Step 4: Find corresponding product details
-                            const productDetails = productData.find(p => p.id === articleDetails.product_id);
-                            if (!productDetails) return;
-
-                            // Step 5: Push article and product details inside the order
-                            existingOrder.articles.push({
-                                article_number: order.article_number,
-                                article_amount: order.article_amount,
-                                unit_price: order.unit_price,
-                                currency: order.currency,
-                                product: {
-                                    article_number: productDetails.article_number,
-                                    name: productDetails.name,
-                                    hs_code: productDetails.hs_code,
-                                    size: productDetails.size
-                                }
-                            });
-                        });
-
-                        // Step 6: Convert object to array and send response
-                        const invoicesArray = Object.values(invoicesMap);
-                        res.json(invoicesArray);
-                    });
-                });
-            });
-        });
-    });*/
     
     try {
         const connection = await db.promise().getConnection();
@@ -558,70 +511,6 @@ app.get("/api/invoiceDetails",async (req,res)=>{
             return res.status(404).json({ error: "Invoice not found" });
         }
 
-        /*const [orderNumbers] = await db.promise().query('SELECT * FROM order_table WHERE invoice_number = ?',[invoiceNumber]);
-        if(orderNumbers.length == 0){
-            res.status(500).json({ invoiceData: invoiceData[0], orders: [] });
-        }
-
-        const orderDetailsArray = await Promise.all(
-            orderNumbers.map(async (order) => {
-                const [orderDetails] = await db.promise().query("SELECT * FROM orderDetail_table WHERE order_id = ?",[order.id]);
-                return {orderDetails};
-            })
-        );
-        const articleIdsArray = [];
-            orderDetailsArray.forEach(order=>{
-                order.orderDetails.forEach(detail=>articleIdsArray.push(detail.article_id));
-            });
-
-        //console.log("article numbers,",articleNumbersArray);
-        const articleNumbersArray = await Promise.all(
-            articleIdsArray.map(async (id) => {
-                const [articleNumbers] = await db.promise().query("SELECT * FROM customer_article WHERE id = ?",[id]);
-                return articleNumbers;
-            })
-        );
-        const flatArticleArray = articleNumbersArray.flat();
-
-        let index = 0;
-        orderDetailsArray.forEach(order=>{
-            order.orderDetails.forEach(detail =>{
-                detail.article_number = flatArticleArray[index].article_number;
-                index++;
-            })
-        });
-        
-        console.log(JSON.stringify(orderDetailsArray,null,4));
-        const groupedOrders = orderDetailsArray.reduce((acc,order,index)=>{
-            order.orderDetails.forEach(detail=>{
-                if(orderNumbers[index].id == detail.order_id){
-                    var orderNumber = orderNumbers[index].order_number;
-                    
-                }     
-                if (!acc[orderNumber]) {
-                    acc[orderNumber] = {
-                        orderNumber: orderNumber,
-                        orderDetails: []
-                    };
-                }   
-                acc[orderNumber].orderDetails.push(detail);
-            });
-            return acc;
-        },{});
-        const groupedOrderObjects = Object.values(groupedOrders);
-        groupedOrderObjects.forEach(obj=>{
-            obj.orderDetails.forEach(detail=>{
-                delete detail.order_number;
-            });
-        });
-        //console.log("grouped orders", JSON.stringify(groupedOrderObjects,null,4));
-        
-        
-        
-        res.json({
-            invoiceData: invoiceData[0],
-            orders: groupedOrderObjects,
-        });*/
         const [orderDetails] = await connection.query(
             `SELECT od.id AS orderDetailId, od.order_id, od.article_id, od.article_amount, 
                 od.unit_price, od.currency, o.order_number, o.id AS orderId, 

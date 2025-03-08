@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shipment Invoice</title>
+
+    <style>
+        div{
+            margin-left: 0;
+            margin: 20px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+        }
+    #subDiv{
+        box-shadow: 0 !important; 
+    }
+    </style>
+</head>
+<body>
+    <div id="mainDiv">
+        <div>
+            <select id="customerName"><option>--SELECT--</option></select>
+        </div>
+        <select hidden id="articleNumbers"><option>--SELECT--</option></select>
+        <select hidden id="order-invoiceNumbers"></select>
+        <label hidden for="cartonsValueInput" id="cartonsValueLabel">cartons: <input hidden required name="cartonsValueInput" type="text" id="cartonsValueInput"></label>        
+        <label hidden id="cartonPackingLabel" for="cartonPacking">Carton Packing:<input hidden required name="cartonPacking" type="text" id="cartonPackingInput"></label>
+        <select hidden id="cartonPackingUnits">
+            <option>pcs</option>
+            <option>prs</option>
+            <option>dzn</option>
+        </select>
+        <button hidden id="addButton" type="button">Add</button>
+    </div>
+
+    <div id="display"></div>
+
+    <div id="formDiv">
+        <form id="form" action="/shippingInvoice" method="post">
+            <label for="fiNo">FI number: <input name="fiNo" id="fiNo" type="text"></label>
+            <label for="blNo">BL number: <input name="blNo" id="blNo" type="text"></label>        
+            <div id="subDiv"></div>
+            <button id="submitButton" type="submit">Submit</button>
+        </form>
+    </div>
+ 
+    <script src="../../JS/shippingInvoice.js"></script>
+</body>
+</html>

@@ -33,3 +33,9 @@ document.getElementById('edit-invoice').addEventListener('click', function (even
     event.preventDefault();
     window.location.href = "../HTML/Forms/editInvoice.html"; 
 });
+
+//shipment invoice
+document.getElementById('shippingInvoice').addEventListener('click', function (event){
+    event.preventDefault();
+    window.location.href = "../HTML/Forms/shippingInvoice.html"; 
+});
