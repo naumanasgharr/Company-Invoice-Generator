@@ -202,7 +202,7 @@
                     <tr>
                         <th>Marks & No</th>
                         <th>Product Description</th>
-                        <th>Dozen/Pcs</th>
+                        <th>Dzn/Pcs</th>
                         <th>Unit Price</th>
                         <th>Total Amount</th>
                     </tr>
@@ -210,7 +210,7 @@
                 <tbody class="dynamicTableBody">
                     <!-- Add rows here based on your table data -->
                 </tbody>
-                <tbody>
+                <tbody id="totalValuetBody">
                     <tr>
                         <td></td>
                         <td></td>
@@ -220,12 +220,12 @@
                     </tr>
                 </tbody>
             </table>
-            <table>
+           <!-- <table>
                 <tr>
                     <td style="font-weight: bolder;">Shipment Date: </td>
                     <td id="shipmentDate"></td>
                 </tr>
-            </table>
+            </table>-->
         </div>
         <div>
             <button type="button" onclick="downloadPDF()">Download PDF</button>
@@ -237,6 +237,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js "></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
     <script src="../../JS/commercial.js"></script>
 </body>
 </html>

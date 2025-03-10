@@ -49,7 +49,7 @@ fetch('http://localhost:3000/api/performa')
         document.querySelector(".shipmentDestination").textContent = form.shippingPort;
         document.querySelector(".date").textContent = form.orderDate;
         document.querySelector(".invoiceNumber").textContent = data.invoiceNumber;
-        document.querySelector("#shipmentDate").textContent =form.shipmentDate;
+        //document.querySelector("#shipmentDate").textContent = form.shipmentDate;
         document.querySelector("#customerName").innerHTML = `To, <br> ${customer.name}`;
         document.querySelector('#customerAddress').innerHTML = `${customer.address}<br>${customer.country}`;
         
@@ -85,8 +85,18 @@ fetch('http://localhost:3000/api/performa')
             });
         });
         total = total.toFixed(2);
+        const table = document.querySelector('#totalValuetBody');
+        const shipmentRow = document.createElement('tr');
+        shipmentRow.innerHTML = `
+            <td></td>
+            <td><strong>SHIPMENT DATE:</strong> ${form.shipmentDate}</td>
+            <td></td>
+            <td></td>
+            <td></td>
+        `;  
         
-        document.getElementById('totalValue').innerHTML=`Total: <strong>${total} ${currencyArray[0]}<strong>`;      
+        document.getElementById('totalValue').innerHTML=`Total: <strong>${total} ${currencyArray[0]}<strong>`;
+        table.appendChild(shipmentRow);     
     }).catch(error =>{
         console.log('error fetching data,', error);
         alert(error.message || "Failed to load invoice data!");
@@ -121,14 +131,7 @@ document.addEventListener("DOMContentLoaded",()=>{
 });
     
 
-       
-        
-
-
-
-
-
-
+//excel file button
 
 function exportToExcel() {
     // Get the header table and main table
@@ -209,15 +212,126 @@ function exportToExcel() {
 }
 
 
-window.jsPDF = window.jspdf.jsPDF;
+//pdf file button
+const { jsPDF } = window.jspdf;
 
-    function downloadPDF() {
-        var elementHTML = document.querySelector("#contentToConvert");
-        html2canvas(elementHTML).then(canvas => {
-            const imgData = canvas.toDataURL('image/png');
-            const pdf = new jsPDF(); // Create a new jsPDF instance
-            pdf.addImage(imgData, 'PNG', 10, 10, 190, 0); // Add the canvas as an image
-            pdf.save('performa.pdf'); // Save the PDF
-        });
-    }       
+function downloadPDF() {
+    var elementHTML = document.querySelector("#contentToConvert");
+    html2canvas(elementHTML, { scale: 4 }).then(canvas => {
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        const canvasWidth = canvas.width;
+        const canvasHeight = canvas.height;
+        const pageHeight = Math.floor(canvasWidth * (pdfHeight / pdfWidth));
+        
+        let pdfY = 0;
+        let pageNumber = 0;
+        const minSegmentHeight = 100; // Minimum segment height to avoid too small segments being pushed
 
+        while (pdfY < canvasHeight) {
+            let segmentHeight = Math.min(pageHeight, canvasHeight - pdfY);
+
+            // If it's the first page, don't detect rows - render header as-is
+            if (pageNumber > 0) {
+                const rowEnd = findRowEnd(canvas, pdfY, segmentHeight);
+                
+                if (rowEnd < canvasHeight) {
+                    segmentHeight = rowEnd - pdfY;
+                }
+            }
+
+            // If the segment is very small, include it in the previous page if possible
+            if (segmentHeight < minSegmentHeight && pageNumber > 0) {
+                pdfY += segmentHeight;
+                continue; // Skip this segment as it will be merged with the previous one
+            }
+
+            // Create a temporary canvas for the current segment
+            const pageCanvas = document.createElement('canvas');
+            pageCanvas.width = canvasWidth;
+            pageCanvas.height = segmentHeight;
+            const context = pageCanvas.getContext('2d');
+
+            // Fill the canvas with a white background to avoid black areas
+            context.fillStyle = '#FFFFFF';
+            context.fillRect(0, 0, canvasWidth, segmentHeight);
+
+            // Draw the current segment of the original canvas
+            context.drawImage(canvas, 0, pdfY, canvasWidth, segmentHeight, 0, 0, canvasWidth, segmentHeight);
+
+            // Convert the segment to JPEG
+            const imgData = pageCanvas.toDataURL('image/jpeg', 0.8);
+            const imgHeight = (segmentHeight * pdfWidth) / canvasWidth;
+
+            // Check if the segment is not blank before adding
+            if (!isCanvasBlank(pageCanvas)) {
+                if (pageNumber > 0) pdf.addPage();
+                pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, imgHeight);
+                pageNumber++;
+            }
+
+            // Move to the next segment
+            pdfY += segmentHeight;
+        }
+
+        pdf.save('commercial_invoice.pdf');
+    }).catch(error => console.error("Error capturing HTML to canvas:", error));
+}
+
+// Function to find the end of a row to avoid splitting
+function findRowEnd(canvas, startY, segmentHeight) {
+    const context = canvas.getContext('2d');
+    const imageData = context.getImageData(0, startY, canvas.width, segmentHeight).data;
+    const rowHeightThreshold = 30; // Minimum height considered as a row
+    const whiteThreshold = 250; // Pixel value threshold to detect white background
+    let lastRowEnd = startY;
+    let isRow = false;
+
+    for (let y = 0; y < segmentHeight; y++) {
+        let isLineEmpty = true;
+
+        for (let x = 0; x < canvas.width; x++) {
+            const pixelIndex = (y * canvas.width + x) * 4;
+            const r = imageData[pixelIndex];
+            const g = imageData[pixelIndex + 1];
+            const b = imageData[pixelIndex + 2];
+
+            if (r < whiteThreshold || g < whiteThreshold || b < whiteThreshold) {
+                isLineEmpty = false;
+                break;
+            }
+        }
+
+        if (!isLineEmpty) {
+            isRow = true;
+            lastRowEnd = startY + y;
+        } else if (isRow && y - (lastRowEnd - startY) >= rowHeightThreshold) {
+            return lastRowEnd + 1;
+        }
+    }
+
+    return lastRowEnd + 1;
+}
+
+// Improved function to check if a canvas is blank
+function isCanvasBlank(canvas) {
+    const context = canvas.getContext('2d');
+    const imageData = context.getImageData(0, 0, canvas.width, canvas.height).data;
+    const totalPixels = canvas.width * canvas.height;
+    let whitePixels = 0;
+    const whiteThreshold = 250;
+
+    for (let i = 0; i < imageData.length; i += 4) {
+        const r = imageData[i];
+        const g = imageData[i + 1];
+        const b = imageData[i + 2];
+
+        if (r >= whiteThreshold && g >= whiteThreshold && b >= whiteThreshold) {
+            whitePixels++;
+        }
+    }
+
+    const blankRatio = whitePixels / totalPixels;
+    return blankRatio > 0.99; // Consider the canvas blank if 99% of pixels are white
+}
