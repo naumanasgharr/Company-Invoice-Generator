@@ -57,7 +57,7 @@ app.get("/",(req,res)=>{
 });
 
 // GENERATING PERFORMA INVOICE
-var performaData = null;
+
 app.post("/performaInvoice",(req,res)=>{
     //console.log("Request received at performaInvoice",req.body);
     req.session.pData = req.body;
@@ -714,6 +714,120 @@ app.get("/api/productCategoryGet",(req,res)=>{
         res.json(result);
     });
 });
+
+
+// recieving data from shipping invoice and redirecting to commercial.html (client-side)
+app.post('/shippingInvoice', (req,res)=>{
+    req.session.shippingData = req.body;
+    //console.log(req.session.shippingData);
+    if(!req.body){
+        res.status(500).json({message: 'failed to receive data!'});
+    }
+    res.status(200).json({message: 'successfully received data!'});
+});
+
+//sending data for display on commercial.html
+app.get('/api/commercialInvoice',async (req,res)=>{
+    const data = req.session.shippingData;
+    console.log(data);
+    const invoiceData = data.invoiceData;
+    const products = data.products;
+    const connection = await db.promise().getConnection();
+    try{
+        const [r] = await connection.query('SELECT name,address,country,PO_box FROM customer_table WHERE id = ?',[invoiceData.customerID]);
+        const customerDetails = r[0];
+        const [rows] = await connection.query('SELECT invoice_number FROM commercial_invoice_table ORDER BY invoice_number DESC LIMIT 1');
+        if(rows.length>0){
+            var invoiceNumber = rows[0]?.invoice_number + 1;
+        }else{
+            var invoiceNumber = 222222;
+        }
+        
+        const productDetails = await Promise.all(
+            data.products.map(async product=>{ 
+                const [rows] = await connection.query('SELECT customer_article.id, customer_article.article_number, product_table.description,product_table.size,product_table.category FROM product_table INNER JOIN customer_article ON product_table.id = customer_article.product_id WHERE customer_article.id = ?',[product.productID])
+                return rows;
+            })
+        );
+        //console.log('product details: ',productDetails.flat());
+        const productDetailsFlat = productDetails.flat();
+        products.map(product=>{
+            for(var index = 0;index<productDetailsFlat.length; index++){
+                if(product.productID == productDetailsFlat[index].id){
+                    product.description = productDetailsFlat[index].description;
+                    product.size = productDetailsFlat[index].size;
+                    product.category = productDetailsFlat[index].category;
+                    product.article_number = productDetailsFlat[index].article_number;
+                }
+            }
+        });
+        invoiceData.invoiceNumber = invoiceNumber;
+
+        await connection.commit();
+        res.status(200).json({
+            customer: customerDetails,
+            invoiceData: invoiceData,
+            products: products
+        });
+    }
+    catch(err){
+        await connection.rollback(); // Rollback if any error occurs
+        console.error("Error updating invoice:", err);
+        res.status(500).json({ error: "Server error updating invoice" });
+    }
+    finally{
+        connection.release();
+    }
+});
+
+// saving commercial invoice
+app.get('/SaveCommercialInvoice',async (req,res)=>{
+    const data = req.session.shippingData;
+    const invoiceData = data.invoiceData;
+    
+    const connection = await db.promise().getConnection();
+    try{
+        await connection.beginTransaction();
+        
+        let totalNetWeight = 0;
+        let totalGrossWeight = 0;
+        let total = 0;
+        const products = [];
+
+        //calculating total net and gross weights
+        data.products.forEach(product=>{
+            totalNetWeight += (product.cartonNetWeight*product.cartons);
+            totalGrossWeight += (product.cartonGrossWeight*product.cartons);
+            products.push({id:product.productID, orderId: product.orderId, amount: (product.cartons * product.cartonPacking), unitPrice: product.unitPrice, currency: product.currency, cartons: product.cartons, cartonPacking: product.cartonPacking, unit: product.cartonPackingUnit, net: product.cartonNetWeight, gross: product.cartonGrossWeight});
+        });
+
+        //calculating invoice total
+        products.forEach(obj=>{
+            total += (obj.amount * obj.unitPrice);
+        });
+
+        //insert into invoice_table
+        const [result] = await connection.query('INSERT INTO commercial_invoice_table(customer_id,fiNo,blNo,fiNoDate,blNoDate,loadingPort,shippingPort,total,total_net_weight,total_gross_weight,shipment_terms) VALUES (?,?,?,?,?,?,?,?,?,?,?)',[invoiceData.customerID, invoiceData.fiNo, invoiceData.blNo, invoiceData.fiNoDate, invoiceData.blNoDate, invoiceData.loadingPort, invoiceData.shippingPort, total, totalNetWeight, totalGrossWeight, invoiceData.shipmentTerms]);
+        const invoiceNumber = result.insertId;
+        
+        const insertOrderQueries = products.map(async product=>
+            await connection.query('INSERT INTO commercial_invoice_article_table(invoice_number,article_id,article_amount,cartons,unit_price,carton_gross_weight,carton_net_weight,currency,carton_packing,carton_packing_unit) VALUES (?,?,?,?,?,?,?,?,?,?)',[invoiceNumber, product.id, product.amount, product.cartons, product.unitPrice, product.gross, product.net, product.currency, product.cartonPacking, product.unit])
+        );
+        await Promise.all(insertOrderQueries);
+
+        await connection.commit();
+        res.status(200).json({message: 'Invoice Saved', invoiceNumber});
+
+    }catch(err){
+        await connection.rollback(); // Rollback if any error occurs
+        console.error("Error updating invoice:", err);
+        res.status(500).json({ error: "Server error updating invoice" });
+    }
+    finally{
+        connection.release();
+    }
+
+}); 
 
 app.listen(port,()=>{
     console.log("server is running on port " + port);

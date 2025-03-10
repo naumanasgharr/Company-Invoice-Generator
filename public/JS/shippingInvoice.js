@@ -11,22 +11,29 @@ fetch('http://localhost:3000/api/customerNames')
     document.querySelector('#customerName').addEventListener('change',()=>{
         const orderNumberSelect = document.querySelector('#order-invoiceNumbers');
         const cartonPackingLabel = document.querySelector('#cartonPackingLabel');
-        const cartonPackingInput = document.querySelector('#cartonPackingInput');
         const cartonPackingUnit = document.querySelector('#cartonPackingUnits');
         const addButton = document.querySelector('#addButton');
         const cartonsValueLabel = document.querySelector('#cartonsValueLabel');
-        const cartonsValueInput = document.querySelector('#cartonsValueInput');
-        //orderNumberSelect.innerHTML = '';
+        const netWeightLabel = document.querySelector('#cartonNetWeightLabel');
+        const grossWeightLabel = document.querySelector('#cartonGrossWeightLabel');
+        const articleNumberSelect = document.querySelector('#articleNumbers');
+        netWeightLabel.hidden = true;
+        grossWeightLabel.hidden = true;
         orderNumberSelect.hidden = true;
         cartonsValueLabel.hidden = true;
-        cartonsValueInput.hidden = true;
         addButton.hidden = true;
         cartonPackingUnit.hidden = true;
-        cartonPackingInput.hidden = true;
         cartonPackingLabel.hidden = true;
-        const articleNumberSelect = document.querySelector('#articleNumbers');
+        const unitPriceLabel = document.querySelector('#unitPriceLabel');
+        const currencyLabel = document.querySelector('#currencyLabel');
+        currencyLabel.hidden = true;
+        unitPriceLabel.hidden = true;
+        netWeightLabel.querySelector('input').value = '';
+        grossWeightLabel.querySelector('input').value = '';
+        cartonsValueLabel.querySelector('input').value = '';
         articleNumberSelect.innerHTML = '';
         articleNumberSelect.hidden = true;
+
         if(customerNameSelect.value !== '--SELECT--'){
             orderNumberSelect.innerHTML = '';
             articleNumberSelect.hidden = false;
@@ -44,25 +51,30 @@ fetch('http://localhost:3000/api/customerNames')
                 });
                 articleNumberSelect.addEventListener('change',()=>{
                     const cartonPackingLabel = document.querySelector('#cartonPackingLabel');
-                    const cartonPackingInput = document.querySelector('#cartonPackingInput');
                     const cartonPackingUnit = document.querySelector('#cartonPackingUnits');
                     const addButton = document.querySelector('#addButton');
                     const cartonsValueLabel = document.querySelector('#cartonsValueLabel');
-                    const cartonsValueInput = document.querySelector('#cartonsValueInput');
+                    const netWeightLabel = document.querySelector('#cartonNetWeightLabel');
+                    const grossWeightLabel = document.querySelector('#cartonGrossWeightLabel');
+                    const unitPriceLabel = document.querySelector('#unitPriceLabel');
+                    const currencyLabel = document.querySelector('#currencyLabel');
+                    currencyLabel.hidden = true;
+                    unitPriceLabel.hidden = true;
+                    netWeightLabel.hidden = true;
+                    grossWeightLabel.hidden = true;
                     cartonsValueLabel.hidden = true;
-                    cartonsValueInput.hidden = true;
                     addButton.hidden = true;
                     cartonPackingUnit.hidden = true;
-                    cartonPackingInput.hidden = true;
                     cartonPackingLabel.hidden = true;
+                    netWeightLabel.querySelector('input').value = '';
+                    grossWeightLabel.querySelector('input').value = '';
+                    cartonsValueLabel.querySelector('input').value = '';
                     const orderNumberSelect = document.querySelector('#order-invoiceNumbers');
                     orderNumberSelect.hidden = true;
                     const displayDiv = document.querySelector('#display');
                     displayDiv.innerHTML = '';
                     orderNumberSelect.innerHTML = '';
-                    //const selectOption = document.createElement('option');
-                    //selectOption.innerText = '--SELECT--';
-                    //orderNumberSelect.appendChild(selectOption);
+
                     if(articleNumberSelect.value !='--SELECT--'){
                         orderNumberSelect.hidden = false;
                         orderNumberSelect.innerHTML = '';
@@ -101,17 +113,28 @@ function handleOrderNumberChange() {
     const articleNumberSelect = document.querySelector('#articleNumbers');
     const displayDiv = document.querySelector('#display');
     const cartonPackingLabel = document.querySelector('#cartonPackingLabel');
-    const cartonPackingInput = document.querySelector('#cartonPackingInput');
     const cartonPackingUnit = document.querySelector('#cartonPackingUnits');
     const cartonsValueLabel = document.querySelector('#cartonsValueLabel');
-    const cartonsValueInput = document.querySelector('#cartonsValueInput');
+    const netWeightLabel = document.querySelector('#cartonNetWeightLabel');
+    const grossWeightLabel = document.querySelector('#cartonGrossWeightLabel');
+    const unitPriceLabel = document.querySelector('#unitPriceLabel');
+    const currencyLabel = document.querySelector('#currencyLabel');
+    const cartonPackingInput = document.querySelector('#cartonPackingInput');
+    const unitPriceInput = document.querySelector('#unitPrice');
+    const currencyInput = document.querySelector('#currency');
+    currencyLabel.hidden = true;
+    unitPriceLabel.hidden = true;
+    netWeightLabel.hidden = true;
+    grossWeightLabel.hidden = true;
     const addButton = document.querySelector('#addButton');
     cartonPackingLabel.hidden = true;
-    cartonsValueInput.hidden = true;
     addButton.hidden = true;
-    cartonPackingInput.hidden = true;
-    cartonPackingLabel.hidden = true;
+    cartonsValueLabel.hidden = true;
     cartonPackingUnit.hidden = true;
+    netWeightLabel.querySelector('input').value = '';
+    grossWeightLabel.querySelector('input').value = '';
+    cartonsValueLabel.querySelector('input').value = '';
+
 
     displayDiv.innerHTML = ''; 
 
@@ -136,6 +159,8 @@ function handleOrderNumberChange() {
                 balanceInput.disabled = true;
                 balanceInput.value = `${data[0].balance}-${data[0].carton_packing_type}`;
                 cartonPackingInput.value = `${data[0].carton_packing}`;
+                unitPriceInput.value = `${data[0].unit_price}`;
+                currencyInput.value = `${data[0].currency}`;
 
                 switch(data[0].carton_packing_type){
                     case 'pcs':
@@ -152,12 +177,15 @@ function handleOrderNumberChange() {
                         break;
                 }
 
-                cartonPackingInput.hidden = false;
+                
                 cartonPackingLabel.hidden = false;
                 cartonPackingUnit.hidden = false;
                 cartonsValueLabel.hidden = false;
-                cartonsValueInput.hidden = false;
+                netWeightLabel.hidden = false;
+                grossWeightLabel.hidden = false;
                 addButton.hidden = false;
+                currencyLabel.hidden = false;
+                unitPriceLabel.hidden = false;
 
 
 
@@ -170,39 +198,67 @@ function handleOrderNumberChange() {
 document.querySelector('#addButton').addEventListener('click',()=>{
     const subDiv = document.querySelector('#subDiv');
     const productDiv = document.createElement('div');
-    productDiv.id = 'productDiv';
+    productDiv.className = 'productDiv';
     const mainDiv = document.querySelector('#mainDiv');
     
-    const header = document.createElement('h5');
+    const header = document.createElement('p');
     const selectedOptionText = mainDiv.querySelector('#articleNumbers').options[mainDiv.querySelector('#articleNumbers').selectedIndex].innerText;
-    header.innerHTML = `<br>${selectedOptionText}`;
+    header.innerHTML = `
+        <br>
+        <strong>${selectedOptionText}</strong>
+        <br>
+        Cartons: ${mainDiv.querySelector('#cartonsValueInput').value}
+        <br>
+        Carton Packing: ${mainDiv.querySelector('#cartonPackingInput').value} - ${mainDiv.querySelector('#cartonPackingUnits').value}
+        <br>
+        Net WT: ${mainDiv.querySelector('#cartonNetWeight').value} - Gross WT: ${mainDiv.querySelector('#cartonGrossWeight').value}
+        <br>
+        Unit Price: ${mainDiv.querySelector('#unitPrice').value} ${mainDiv.querySelector('#currency').value}`;
     
     const articleIdInput = document.createElement('input');
-    articleIdInput.disabled = true;
     articleIdInput.hidden = true;
     articleIdInput.value = mainDiv.querySelector('#articleNumbers').value;
     articleIdInput.name = 'articleId';
 
+    const unitPriceInput = document.createElement('input');
+    unitPriceInput.name = 'unitPrice';
+    unitPriceInput.hidden = true;
+    unitPriceInput.value = mainDiv.querySelector('#unitPrice').value;
+
+    const currencyInput = document.createElement('input');
+    currencyInput.hidden = true;
+    currencyInput.name = 'currency';
+    currencyInput.value = mainDiv.querySelector('#currency').value;
+   
     const orderIdInput = document.createElement('input');
-    orderIdInput.disabled = true;
     orderIdInput.hidden = true;
     orderIdInput.value = mainDiv.querySelector('#order-invoiceNumbers').value;
     orderIdInput.name = 'orderId';
-
+   
     const cartons = document.createElement('input');
-    cartons.disabled = true;
+    cartons.hidden = true;
     cartons.value = mainDiv.querySelector('#cartonsValueInput').value;
     cartons.name = 'cartons';
 
     const cartonPacking = document.createElement('input');
-    cartonPacking.disabled = true;
+    cartonPacking.hidden = true;
     cartonPacking.value = mainDiv.querySelector('#cartonPackingInput').value;
     cartonPacking.name = 'cartonPacking';
 
     const cartonPackingUnit = document.createElement('input');
-    cartonPackingUnit.disabled = true;
+    cartonPackingUnit.hidden = true;
     cartonPackingUnit.value = mainDiv.querySelector('#cartonPackingUnits').value;
     cartonPackingUnit.name = 'cartonPackingUnit';
+
+    const cartonNetWeight = document.createElement('input');
+    cartonNetWeight.hidden = true;
+    cartonNetWeight.value = mainDiv.querySelector('#cartonNetWeight').value;
+    cartonNetWeight.name = 'cartonNetWeight';
+
+    const cartonGrossWeight = document.createElement('input');
+    cartonGrossWeight.hidden = true;
+    cartonGrossWeight.value = mainDiv.querySelector('#cartonGrossWeight').value;
+    cartonGrossWeight.name = 'cartonGrossWeight';
 
     const removeButton = document.createElement('button');
     removeButton.id = 'removeProductButton';
@@ -211,7 +267,69 @@ document.querySelector('#addButton').addEventListener('click',()=>{
         productDiv.remove();
     });
 
-    productDiv.append(header, articleIdInput, orderIdInput, cartons, cartonPacking, cartonPackingUnit, removeButton);
+    productDiv.append(header, articleIdInput, orderIdInput, cartons, cartonPacking, cartonPackingUnit, cartonNetWeight, cartonGrossWeight, unitPriceInput, currencyInput, removeButton);
     
     subDiv.appendChild(productDiv);
+});
+
+document.querySelector('#form').addEventListener('submit',async function (event){
+    event.preventDefault();
+    const formData = {
+      invoiceData:{
+        invoiceDate: form.invoiceDate.value,
+        customerID: form.customerID.value,
+        fiNo: form.fiNo.value,
+        blNo: form.blNo.value,
+        fiNoDate: form.fiNoDate.value,
+        blNoDate: form.blNoDate.value,
+        shipmentTerms: form.shipmentTerms.value,
+        loadingPort: form.loadingPort.value,
+        shippingPort: form.shippingPort.value,
+        shipmentDate: form.shipmentDate.value,
+      },
+      products: []
+    };
+    document.querySelector('#subDiv').querySelectorAll('.productDiv').forEach(row=>{
+      
+        const product = {
+          productID: row.querySelector('[name="articleId"]').value,
+          orderId: row.querySelector('[name="orderId"]').value,
+          unitPrice: row.querySelector('[name="unitPrice"]').value,
+          currency: row.querySelector('[name="currency"]').value,
+          cartons: row.querySelector('[name="cartons"]').value,
+          cartonPacking: row.querySelector('[name="cartonPacking"]').value,
+          cartonPackingUnit: row.querySelector('[name="cartonPackingUnit"]').value,
+          cartonNetWeight: row.querySelector('[name="cartonNetWeight"]').value,
+          cartonGrossWeight: row.querySelector('[name="cartonGrossWeight"]').value,
+        };
+        formData.products.push(product);
+
+    });
+    console.log("Collected Order Data:", formData);
+    try{
+    const response = await fetch("/shippingInvoice",{
+      method: 'POST',
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(formData)
+    });
+    if (response.ok) {
+      const result = await response.json();
+      console.log("Response:", result);
+      if(result.message == 'successfully received data!')
+      {
+        alert('success!');
+        window.location.href = "../Invoices/commercial.html";
+      }
+      else{
+        alert('failure');
+      }
+
+      // Redirect user to the URL returned by the backend
+    }
+    }catch (error) {
+      console.error("Fetch Error:", error);
+      alert("An error occurred while submitting the order.");
+    }
 });

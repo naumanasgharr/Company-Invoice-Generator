@@ -23,13 +23,17 @@
         </div>
         <select hidden id="articleNumbers"><option>--SELECT--</option></select>
         <select hidden id="order-invoiceNumbers"></select>
-        <label hidden for="cartonsValueInput" id="cartonsValueLabel">cartons: <input hidden required name="cartonsValueInput" type="text" id="cartonsValueInput"></label>        
-        <label hidden id="cartonPackingLabel" for="cartonPacking">Carton Packing:<input hidden required name="cartonPacking" type="text" id="cartonPackingInput"></label>
+        <label hidden for="cartonsValueInput" id="cartonsValueLabel">cartons: <input required name="cartonsValueInput" type="text" id="cartonsValueInput"></label>        
+        <label hidden id="cartonPackingLabel" for="cartonPacking">Carton Packing:<input required name="cartonPacking" type="text" id="cartonPackingInput"></label>
         <select hidden id="cartonPackingUnits">
             <option>pcs</option>
             <option>prs</option>
             <option>dzn</option>
         </select>
+        <label hidden id="cartonNetWeightLabel" for="cartonNetWeight">Carton Net WT: <input  name="cartonNetWeight" id="cartonNetWeight" type="number" min="0" step="0.001"></label>
+        <label hidden id="cartonGrossWeightLabel" for="cartonGrossWeight">Carton Gross WT: <input name="cartonGrossWeight" id="cartonGrossWeight" type="number" min="0" step="0.001"></label>
+        <label hidden id='unitPriceLabel' for="unitPrice">Unit Price: <input id="unitPrice" name="unitPrice" type="number" min="0" step="0.01"></label>
+        <label hidden id='currencyLabel' for="currency">Currency: <input id="currency" name="currency" type="text"></label>
         <button hidden id="addButton" type="button">Add</button>
     </div>
 
@@ -37,13 +41,43 @@
 
     <div id="formDiv">
         <form id="form" action="/shippingInvoice" method="post">
+            <label for="customerID">Customer Name: <select id="customerID" name="customerID"><option>--SELECT--</option></select></label>
+            <label for="invoiceDate">Date: <input type="date" id="invoiceDate" name="invoiceDate"></label>
             <label for="fiNo">FI number: <input name="fiNo" id="fiNo" type="text"></label>
-            <label for="blNo">BL number: <input name="blNo" id="blNo" type="text"></label>        
+            <label for="fiNoDate">Date: <input name="fiNoDate" id="fiNoDate" type="date"></label>
+            <label for="blNo">BL number: <input name="blNo" id="blNo" type="text"></label>
+            <label for="blNoDate">Date: <input name="blNoDate" id="blNoDate" type="date"></label>
+            <label for="shipmentTerms">SHIPMENT TERMS: <select name="shipmentTerms" id="shipmentTerms"><option>C&F</option><option>FOB</option><option>CIF</option></select></label>  
+            <label for="loadingPort">Loading Port: <input name="loadingPort" id="loadingPort" type="text"></label>
+            <label for="shippingPort">Shipping Port: <input name="shippingPort" id="shippingPort" type="text"></label> 
+            <label for="shipmentDate">Shipment Date: <input name="shipmentDate" id="shipmentDate" type="date"></label>
             <div id="subDiv"></div>
             <button id="submitButton" type="submit">Submit</button>
         </form>
     </div>
  
     <script src="../../JS/shippingInvoice.js"></script>
+    <script>
+        fetch("http://localhost:3000/api/customerNames")
+        .then(response=>response.json())
+        .then(data=>{ 
+            data.forEach(object => {
+                const select = document.getElementById('customerID');
+                const option = document.createElement('option');
+                option.value = object.id;
+                option.textContent = object.name;
+                select.appendChild(option);
+            });
+        }).catch(error=>console.log('error fetching customer data',error));
+        document.querySelector('#customerID').addEventListener('change',()=>{
+            if(document.querySelector('#customerID').value != '--SELECT--'){
+                fetch(`http://localhost:3000/api/customerShippingPort?customerID=${document.querySelector('#customerID').value}`)
+                .then(response=>response.json())
+                .then(data=>{
+                    document.querySelector('#shippingPort').value = data[0].shipping_port;
+                }).catch(error=>console.log('error fetching customer data',error));
+            }
+        })
+        </script>
 </body>
 </html>

@@ -9,7 +9,7 @@
         body {
             margin: 100px;
             font-family: 'Arial', sans-serif;
-            background-color: #f9f9f9;
+            background-color: #fff;
             color: #333;
         }
         #head{
@@ -105,7 +105,7 @@
                 <colgroup>
                     <col width="25%">
                     <col>
-                    <col>
+                    <col width="25%">
                     <col width="20%">
                     <col width="4%">
                 </colgroup>
@@ -116,7 +116,7 @@
                 </tr>
                 <tr>
                     <td colspan="1"></td>
-                    <td colspan="2" class="heading" style="color: #000;;text-decoration: underline; text-align: center;">PERFORMA INVOICE</td>
+                    <td colspan="2" class="heading" style="color: #000;;text-decoration: underline; text-align: center;">COMMERCIAL INVOICE</td>
                     <td colspan="2"></td>
                 </tr>
                 <tr>
@@ -142,7 +142,7 @@
                     
                 </tr>
                 <tr>
-                    <td colspan="1" id="customerName" style="color: #000; font-weight: bolder; text-decoration: underline; font-size: 20px;">CUSTOMER NAME</td>
+                    <td colspan="1" id="customerName" style=" color: #000; font-weight: bolder; text-decoration: underline; font-size: 20px;">CUSTOMER NAME</td>
                     <td colspan="1"></td>
                     <td colspan="1"></td>
                     <td colspan="1"><strong>Email</strong>: <a href="mailto:fmtex@fmtextiles.net">fmtex@fmtextiles.net</a></td>
@@ -152,37 +152,57 @@
                     <td colspan="1" id= 'customerAddress' style="font-weight: bolder; font-size: 15px;">CUSTOMER ADDRESS</td>
                     <td colspan="1"></td>
                     <td colspan="1"></td>
-                    <td colspan="1" style="border: dotted black; border-bottom: 0;"><strong>National Tax NO</strong>: 2570651-9</td>
+                    <td colspan="1"><strong>National Tax NO</strong>: 2570651-9</td>
                     
                 </tr>
                 <tr>
                     <td colspan="1"></td>
                     <td colspan="1"></td>
+                    <td colspan="1" id="shipmentTerms" style="border: dotted black; "><strong>Shipment Terms: </strong></td>
+                    <td colspan="1" style="border: dotted black; "><strong>REX NO</strong>: PKREXPK25706519</td>
+                </tr>
+                <tr>
                     <td colspan="1"></td>
-                    <td colspan="1" style="border: dotted black; border-top: 0;"><strong>REX NO</strong>: PKREXPK25706519</td>
+                    <td colspan="1"></td>
+                    <td colspan="1" id='fiNo' style="border: dotted black; "><strong>FI NO: </strong>MBL-EXP079578-12022025</td>
+                    <td colspan="1" id="fiNoDate" style="border: dotted black; "><strong>Date:</strong></td>
+                </tr>
+                <tr>
+                    <td colspan="1"></td>
+                    <td colspan="1"></td>
+                    <td colspan="1" id="blNo" style="border: dotted black; border-top: 0;"><strong>BL NO: </strong>CCLFSDJEA416925</td>
+                    <td colspan="1" id="blNoDate" style="border: dotted black; "><strong>Date:</strong></td>
                 </tr>
                 <tr>
                     <td colspan="5"></td>
                 </tr>
                 <tr style="border: 1px solid black; border-bottom: 0; height: 50px;">
                     <td colapan="1"  style="font-weight: bolder;">INVOICE NO</td>
-                    <td colspan="1"  class="invoiceNumber" style="color: #000; text-decoration: underline;">FMT/1703/22</td>
+                    <td colspan="1"  id="invoiceNumber" style="color: #000; text-decoration: underline;">FMT/1703/22</td>
                     <td colspan="1"  style="font-weight: bolder;">DATE</td>
-                    <td colspan="2" class="date" style="color: #000; text-decoration: underline;">28/02/2022</td>
+                    <td colspan="2" id="date" style="color: #000; text-decoration: underline;">28/02/2022</td>
                 </tr>
                 <tr style="height: 50px; border: 1px solid black; border-top: 0;">
                     <td colspan="1" style="font-weight: bolder;">Shipment From: </td>
-                    <td colspan="1" class="shipmentFrom" style="color: #000; text-decoration: underline;">Karachi, Pakistan</td>
+                    <td colspan="1" id="shipmentFrom" style="color: #000; text-decoration: underline;">Karachi, Pakistan</td>
                     <td colspan="1" style="font-weight: bolder;">To:</td>
-                    <td colspan="2" class="shipmentDestination" style="color: #000; text-decoration: underline;">Hamberg,Germany</td>
+                    <td colspan="2" id="shipmentDestination" style="color: #000; text-decoration: underline;">Hamberg,Germany</td>
                 </tr>
             </table>
 
             <table class="mainTable">
+                <colgroup>
+                    <col width="12%">
+                    <col>
+                    <col width="10%">
+                    <col width="10%">
+                    <col width="15%">
+                </colgroup>
                 <thead>
                     <tr>
                         <th>Marks & No</th>
                         <th>Product Description</th>
+                        <th>Dozen/Pcs</th>
                         <th>Unit Price</th>
                         <th>Total Amount</th>
                     </tr>
@@ -192,6 +212,7 @@
                 </tbody>
                 <tbody>
                     <tr>
+                        <td></td>
                         <td></td>
                         <td></td>
                         <td></td>
@@ -211,13 +232,11 @@
             <button type="button" onclick="exportToExcel()">Download Excel</button>
             <button type="button" id="saveButton">SAVE</button>
         </div>
-    </div>    
-    
-    
-    
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js "></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="../../JS/performa1.js"></script>
+    <script src="../../JS/commercial.js"></script>
 </body>
 </html>
