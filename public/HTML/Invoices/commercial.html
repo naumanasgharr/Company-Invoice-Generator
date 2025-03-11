@@ -12,11 +12,23 @@
             background-color: #fff;
             color: #333;
         }
-        #head{
+
+        #contentToConvert1{
+            padding: 3px;
+            margin-bottom: 20px;
+        }
+
+        #contentToConvert2{
+            padding: 3px;
+        }
+        
+        #head1, #head2{
             background-color: white;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             padding-bottom: 10px;
             padding-left: 2px;
+            border-bottom: 1px solid black;
+            margin-bottom: 40px;
         }
 
         table {
@@ -25,7 +37,7 @@
             margin-bottom: 20px;
             background-color: #fff;
         }
-        .mainTable{
+        .mainTable1, .mainTable2{
             font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
         }
 
@@ -52,17 +64,23 @@
             background-color: #ddd;
         }
 
-        .header-table {
+        .header-table1, .header-table2 {
             border: none;
         }
 
-        .header-table td {
+        .header-table1 td {
             border: none;
             text-align: left;
             font-size: 14px;
             color: #555;
         }
 
+        .header-table2 td {
+            border: none;
+            text-align: left;
+            font-size: 14px;
+            color: #555;
+        }
         .heading {
             font-family: 'Times New Roman', Times, serif;
             text-align: center;
@@ -100,8 +118,8 @@
 
 <body>
     <div id="head">
-        <div id="contentToConvert">
-            <table class="header-table">
+        <div id="contentToConvert1">
+            <table class="header-table1">
                 <colgroup>
                     <col width="25%">
                     <col>
@@ -190,7 +208,7 @@
                 </tr>
             </table>
 
-            <table class="mainTable">
+            <table class="mainTable1">
                 <colgroup>
                     <col width="12%">
                     <col>
@@ -207,7 +225,7 @@
                         <th>Total Amount</th>
                     </tr>
                 </thead>
-                <tbody class="dynamicTableBody">
+                <tbody class="dynamicTableBody1">
                     <!-- Add rows here based on your table data -->
                 </tbody>
                 <tbody id="totalValuetBody">
@@ -220,12 +238,130 @@
                     </tr>
                 </tbody>
             </table>
-           <!-- <table>
+        </div>
+    </div>
+    
+
+    <!--PACKING LIST-->
+
+    <div id="head2">
+        <div id="contentToConvert2">
+            <table class="header-table2">
+                <colgroup>
+                    <col width="25%">
+                    <col>
+                    <col width="25%">
+                    <col width="20%">
+                    <col width="4%">
+                </colgroup>
                 <tr>
-                    <td style="font-weight: bolder;">Shipment Date: </td>
-                    <td id="shipmentDate"></td>
+                    <td colspan="1" ><img src="../../images/logo.png" crossorigin="anonymous"  style="width: 63px; height: 63px;"></td>
+                    <td colspan="3" class="title" style="color: #000;;font-weight: bold; text-decoration: underline;"> F.M TEXTILES (PVT) LTD</td>
+                    <td colspan="1"></td>
                 </tr>
-            </table>-->
+                <tr>
+                    <td colspan="1"></td>
+                    <td colspan="2" class="heading" style="color: #000;;text-decoration: underline; text-align: center;">PACKING LIST</td>
+                    <td colspan="2"></td>
+                </tr>
+                <tr>
+                    <td colspan="5"></td>
+                </tr>
+                <tr>
+                    <td colspan="1" ></td>
+                    <td colspan="2"></td>
+                    <td colspan="1" style="font-weight: bolder;"><u>Office # 1, Haji Nazir Center, Lal Mill Chowk,<br> Factory Area, Faisalabad, Pakistan</u></td>
+                    
+                </tr>
+                <tr>
+                    
+                    <td colspan="2"></td>
+                    <td colspan="1"></td>
+                    <td colspan="1"><strong>Phone</strong>: 0092 41 2638529</td>
+                </tr>
+                <tr>
+                    <td colspan="1"></td>
+                    <td colspan="1"></td>
+                    <td colspan="1"></td>
+                    <td colspan="1"><strong>Fax</strong>: 0092 41 2617467</td>
+                    
+                </tr>
+                <tr>
+                    <td colspan="1" id="customerNameP" style=" color: #000; font-weight: bolder; text-decoration: underline; font-size: 20px;">CUSTOMER NAME</td>
+                    <td colspan="1"></td>
+                    <td colspan="1"></td>
+                    <td colspan="1"><strong>Email</strong>: <a href="mailto:fmtex@fmtextiles.net">fmtex@fmtextiles.net</a></td>
+                    
+                </tr>
+                <tr>
+                    <td colspan="1" id= 'customerAddressP' style="font-weight: bolder; font-size: 15px;">CUSTOMER ADDRESS</td>
+                    <td colspan="1"></td>
+                    <td colspan="1"></td>
+                    <td colspan="1"><strong>National Tax NO</strong>: 2570651-9</td>
+                    
+                </tr>
+                <tr>
+                    <td colspan="1"></td>
+                    <td colspan="1"></td>
+                    <td colspan="1" id="shipmentTermsP" style="border: dotted black; "><strong>Shipment Terms: </strong></td>
+                    <td colspan="1" style="border: dotted black; "><strong>REX NO</strong>: PKREXPK25706519</td>
+                </tr>
+                <tr>
+                    <td colspan="1"></td>
+                    <td colspan="1"></td>
+                    <td colspan="1" id='fiNoP' style="border: dotted black; "><strong>FI NO: </strong>MBL-EXP079578-12022025</td>
+                    <td colspan="1" id="fiNoDateP" style="border: dotted black; "><strong>Date:</strong></td>
+                </tr>
+                <tr>
+                    <td colspan="1"></td>
+                    <td colspan="1"></td>
+                    <td colspan="1" id="blNoP" style="border: dotted black; border-top: 0;"><strong>BL NO: </strong>CCLFSDJEA416925</td>
+                    <td colspan="1" id="blNoDateP" style="border: dotted black; "><strong>Date:</strong></td>
+                </tr>
+                <tr>
+                    <td colspan="5"></td>
+                </tr>
+                <tr style="border: 1px solid black; border-bottom: 0; height: 50px;">
+                    <td colapan="1"  style="font-weight: bolder;">INVOICE NO</td>
+                    <td colspan="1"  id="invoiceNumberP" style="color: #000; text-decoration: underline;">FMT/1703/22</td>
+                    <td colspan="1"  style="font-weight: bolder;">DATE</td>
+                    <td colspan="2" id="dateP" style="color: #000; text-decoration: underline;">28/02/2022</td>
+                </tr>
+                <tr style="height: 50px; border: 1px solid black; border-top: 0;">
+                    <td colspan="1" style="font-weight: bolder;">Shipment From: </td>
+                    <td colspan="1" id="shipmentFromP" style="color: #000; text-decoration: underline;">Karachi, Pakistan</td>
+                    <td colspan="1" style="font-weight: bolder;">To:</td>
+                    <td colspan="2" id="shipmentDestinationP" style="color: #000; text-decoration: underline;">Hamberg,Germany</td>
+                </tr>
+            </table>
+
+            <table class="mainTable2">
+                <colgroup>
+                    <col width="12%">
+                    <col>
+                    <col width="10%">
+                    <col width="10%">
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th>Marks & No</th>
+                        <th>Product Description</th>
+                        <th>net weight</th>
+                        <th>gross weight</th>
+                    </tr>
+                </thead>
+                <tbody class="dynamicTableBody2">
+                    <!-- Add rows here based on your table data -->
+                </tbody>
+                <tbody id="totalWeighttBody">
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td id="totalNetWeight"></td>
+                        <td id="totalGrossWeight"></td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
         <div>
             <button type="button" onclick="downloadPDF()">Download PDF</button>

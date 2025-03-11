@@ -9,7 +9,7 @@ fetch('http://localhost:3000/api/commercialInvoice')
     document.querySelector('#customerName').textContent = data.customer.name;
     document.querySelector('#customerAddress').textContent = `${data.customer.address},PO- ${data.customer.address},${data.customer.country} `;
     document.querySelector('#fiNo').innerHTML =`<strong>FI NO:</strong> ${data.invoiceData.fiNo}`;
-    document.querySelector('#shipmentTerms').innerHTML = `<strong>Shipment Terms: ${data.invoiceData.shipmentTerms}`;
+    document.querySelector('#shipmentTerms').innerHTML = `<strong>Shipment Terms: ${data.invoiceData.shipmentTerms}</strong>`;
     document.querySelector('#fiNoDate').textContent = data.invoiceData.fiNoDate;
     document.querySelector('#blNo').innerHTML = `<strong>BL NO:</strong> ${data.invoiceData.blNo}`;
     document.querySelector('#blNoDate').textContent = data.invoiceData.blNoDate;
@@ -27,7 +27,7 @@ fetch('http://localhost:3000/api/commercialInvoice')
     let cartonNumber = 1;
     let total = 0;
     productCategory.forEach(category=>{
-        const table = document.querySelector('.dynamicTableBody');
+        const table = document.querySelector('.dynamicTableBody1');
         const categoryRow = document.createElement('tr');
         categoryRow.innerHTML = `
             <td></td>
@@ -45,7 +45,7 @@ fetch('http://localhost:3000/api/commercialInvoice')
                 const price = (amount*product.unitPrice).toFixed(2);
                 row.innerHTML = `
                     <td>${cartonNumber} - ${(Number(product.cartons) + (cartonNumber - 1))}</td>
-                    <td>${product.cartons} CTN ${amount} ${product.cartonPackingUnit} ${product.description}</td>
+                    <td>${product.cartons} CTN ${amount} ${product.cartonPackingUnit} ${product.description} --<strong>${product.article_number}</strong></td>
                     <td>${amount}</td>
                     <td>${product.unitPrice} ${product.currency}</td>
                     <td>${price} ${product.currency}</td>
@@ -71,6 +71,69 @@ fetch('http://localhost:3000/api/commercialInvoice')
     document.querySelector('#totalValue').innerHTML = `<strong>TOTAL:</strong> ${total} ${data.products[0].currency}`;
     table.appendChild(shipmentRow);
 
+
+
+
+
+    // PACKING LIST
+    document.querySelector('#invoiceNumberP').textContent = data.invoiceData.invoiceNumber;
+    document.querySelector('#dateP').textContent = data.invoiceData.invoiceDate;
+    document.querySelector('#customerNameP').textContent = data.customer.name;
+    document.querySelector('#customerAddressP').textContent = `${data.customer.address},PO- ${data.customer.address},${data.customer.country} `;
+    document.querySelector('#fiNoP').innerHTML =`<strong>FI NO:</strong> ${data.invoiceData.fiNo}`;
+    document.querySelector('#shipmentTermsP').innerHTML = `<strong>Shipment Terms: ${data.invoiceData.shipmentTerms}</strong>`;
+    document.querySelector('#fiNoDateP').textContent = data.invoiceData.fiNoDate;
+    document.querySelector('#blNoP').innerHTML = `<strong>BL NO:</strong> ${data.invoiceData.blNo}`;
+    document.querySelector('#blNoDateP').textContent = data.invoiceData.blNoDate;
+    document.querySelector('#shipmentFromP').textContent = data.invoiceData.loadingPort;
+    document.querySelector('#shipmentDestinationP').textContent = data.invoiceData.shippingPort;
+
+    let cartonNumber2 = 1;
+    let totalNetWeight = 0;
+    let totalGrossWeight = 0;
+    productCategory.forEach(category=>{
+        const table = document.querySelector('.dynamicTableBody2');
+        const categoryRow = document.createElement('tr');
+        categoryRow.innerHTML = `
+            <td></td>
+            <td style='text-align:center; text-decoration: underline;'><strong>${category}</strong></td>
+            <td></td>
+            <td></td>
+        `;
+        table.appendChild(categoryRow);
+
+        data.products.forEach(product=>{
+            if(product.category == category){
+                const row = document.createElement('tr');
+                const amount = product.cartons*product.cartonPacking;
+                row.innerHTML = `
+                    <td>${cartonNumber2} - ${(Number(product.cartons) + (cartonNumber2 - 1))}</td>
+                    <td>${product.cartons} CTN ${amount} ${product.cartonPackingUnit} ${product.description} --<strong>${product.article_number}</strong></td>
+                    <td>${product.cartonNetWeight*product.cartons}</td>
+                    <td>${product.cartonGrossWeight*product.cartons}</td>
+                `;
+                cartonNumber2 += Number(product.cartons);
+                console.log(cartonNumber2);
+                totalNetWeight += product.cartons * product.cartonNetWeight;
+                totalGrossWeight += product.cartons * product.cartonGrossWeight; 
+                table.appendChild(row);
+            } 
+        });
+
+    });
+    const table2 = document.querySelector('#totalWeighttBody');
+    const shipmentRow2 = document.createElement('tr');
+    shipmentRow2.innerHTML = `
+        <td></td>
+        <td><strong>SHIPMENT DATE:</strong> ${data.invoiceData.shipmentDate}</td>
+        <td></td>
+        <td></td>
+    `;  
+    document.querySelector('#totalGrossWeight').innerHTML = `<strong>TOTAL:</strong>${totalGrossWeight} `;
+    document.querySelector('#totalNetWeight').innerHTML = `<strong>TOTAL:</strong>${totalNetWeight} `;
+    table2.appendChild(shipmentRow2);
+
+
 })
 .catch(error=>console.log(error));
 
@@ -88,67 +151,49 @@ document.querySelector('#saveButton').addEventListener('click',()=>{
 const { jsPDF } = window.jspdf;
 
 function downloadPDF() {
-    var elementHTML = document.querySelector("#contentToConvert");
-    html2canvas(elementHTML, { scale: 4 }).then(canvas => {
-        const pdf = new jsPDF('p', 'mm', 'a4');
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = pdf.internal.pageSize.getHeight();
-        const canvasWidth = canvas.width;
-        const canvasHeight = canvas.height;
-        const pageHeight = Math.floor(canvasWidth * (pdfHeight / pdfWidth));
-        
-        let pdfY = 0;
-        let pageNumber = 0;
-        const minSegmentHeight = 100; // Minimum segment height to avoid too small segments being pushed
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
+    const minSegmentHeight = 100;
 
-        while (pdfY < canvasHeight) {
-            let segmentHeight = Math.min(pageHeight, canvasHeight - pdfY);
+    // Function to render a section to the PDF
+    function renderSection(element, pageNumber = 0) {
+        return html2canvas(element, { scale: 4 }).then(canvas => {
+            const canvasWidth = canvas.width;
+            const canvasHeight = canvas.height;
+            const pageHeight = Math.floor(canvasWidth * (pdfHeight / pdfWidth));
+            let pdfY = 0;
 
-            // If it's the first page, don't detect rows - render header as-is
-            if (pageNumber > 0) {
-                const rowEnd = findRowEnd(canvas, pdfY, segmentHeight);
-                
-                if (rowEnd < canvasHeight) {
-                    segmentHeight = rowEnd - pdfY;
-                }
-            }
-
-            // If the segment is very small, include it in the previous page if possible
-            if (segmentHeight < minSegmentHeight && pageNumber > 0) {
-                pdfY += segmentHeight;
-                continue; // Skip this segment as it will be merged with the previous one
-            }
-
-            // Create a temporary canvas for the current segment
-            const pageCanvas = document.createElement('canvas');
-            pageCanvas.width = canvasWidth;
-            pageCanvas.height = segmentHeight;
-            const context = pageCanvas.getContext('2d');
-
-            // Fill the canvas with a white background to avoid black areas
-            context.fillStyle = '#FFFFFF';
-            context.fillRect(0, 0, canvasWidth, segmentHeight);
-
-            // Draw the current segment of the original canvas
-            context.drawImage(canvas, 0, pdfY, canvasWidth, segmentHeight, 0, 0, canvasWidth, segmentHeight);
-
-            // Convert the segment to JPEG
-            const imgData = pageCanvas.toDataURL('image/jpeg', 0.8);
-            const imgHeight = (segmentHeight * pdfWidth) / canvasWidth;
-
-            // Check if the segment is not blank before adding
-            if (!isCanvasBlank(pageCanvas)) {
+            while (pdfY < canvasHeight) {
+                let segmentHeight = Math.min(pageHeight, canvasHeight - pdfY);
                 if (pageNumber > 0) pdf.addPage();
+
+                const pageCanvas = document.createElement('canvas');
+                pageCanvas.width = canvasWidth;
+                pageCanvas.height = segmentHeight;
+                const context = pageCanvas.getContext('2d');
+                context.fillStyle = '#FFFFFF';
+                context.fillRect(0, 0, canvasWidth, segmentHeight);
+                context.drawImage(canvas, 0, pdfY, canvasWidth, segmentHeight, 0, 0, canvasWidth, segmentHeight);
+
+                const imgData = pageCanvas.toDataURL('image/jpeg', 0.8);
+                const imgHeight = (segmentHeight * pdfWidth) / canvasWidth;
+
                 pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, imgHeight);
+                pageCanvas.remove();
+                pdfY += segmentHeight;
                 pageNumber++;
             }
+        });
+    }
 
-            // Move to the next segment
-            pdfY += segmentHeight;
-        }
+    const contentToConvert1 = document.querySelector("#contentToConvert1");
+    const contentToConvert2 = document.querySelector("#contentToConvert2");
 
-        pdf.save('commercial_invoice.pdf');
-    }).catch(error => console.error("Error capturing HTML to canvas:", error));
+    renderSection(contentToConvert1)
+        .then(() => renderSection(contentToConvert2, 1))
+        .then(() => pdf.save('commercial_invoice_and_packing_list.pdf'))
+        .catch(error => console.error("Error capturing HTML to canvas:", error));
 }
 
 // Function to find the end of a row to avoid splitting
@@ -211,8 +256,8 @@ function isCanvasBlank(canvas) {
 //excel button
 function exportToExcel() {
     // Get the header table and main table
-    const headerTable = document.querySelector('.header-table');
-    const mainTable = document.querySelector('.mainTable');
+    const headerTable = document.querySelector('.header-table1');
+    const mainTable = document.querySelector('.mainTable1');
 
     // Convert tables to worksheets
     const headerSheet = XLSX.utils.table_to_sheet(headerTable);

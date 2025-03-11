@@ -268,6 +268,7 @@ function downloadPDF() {
             if (!isCanvasBlank(pageCanvas)) {
                 if (pageNumber > 0) pdf.addPage();
                 pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, imgHeight);
+                pageCanvas.remove();
                 pageNumber++;
             }
 
