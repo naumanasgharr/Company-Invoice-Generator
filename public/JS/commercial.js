@@ -138,13 +138,21 @@ fetch('http://localhost:3000/api/commercialInvoice')
 .catch(error=>console.log(error));
 
 
-document.querySelector('#saveButton').addEventListener('click',()=>{
-    fetch('http://localhost:3000/SaveCommercialInvoice')
-    .then(response=>response.json())
-    .then(data=>{
-        alert(data.message);
-    })
-    .catch(error=>console.log(error));
+document.querySelector('#saveButton').addEventListener('click', async () => {
+    try {
+        const response = await fetch('http://localhost:3000/SaveCommercialInvoice');
+        
+        if (!response.ok) { 
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'An error occurred while saving the invoice.');
+        }
+        
+        const data = await response.json();
+        alert(data.message); // Show success message
+    } catch (error) {
+        console.error('Error:', error.message);
+        alert(error.message); // Show error message
+    }
 });
 
 //pdf button function

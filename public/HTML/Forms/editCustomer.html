@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Customer</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f9f9f9;
+            color: black;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            color: #283593;
+            font-size: 24px;
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 1px;
+            border-bottom: 2px solid #283593;
+            display: inline-block;
+        }
+        label{
+            margin: 10px;
+            padding: 5px;
+            font-weight: bold;
+            display: block;
+        }
+        .button{
+            margin: auto;
+            width: 10%;
+            border: 0;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .customerDetails {
+            display: grid;
+            grid-template-columns: repeat(4,1fr); 
+            gap: 15px 20px; /* Spacing between inputs */
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+            max-width: 900px;
+            margin: auto;
+        }
+        .customerDetails div {
+            display: flex;
+            flex-direction: column;
+        }
+
+        input {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;  
+        }
+
+        button {
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #283593, #1a237e);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, #1a237e, #283593);
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <h2><strong>EDIT CUSTOMER DETAILS</strong></h2>
+    <label for="customerId">Customer Name: <select name="customerId" id="customerId"><option>--SELECT--</option></select></label>
+    <form id="editCustomerForm" name="editCustomerForm">
+        <div class = "customerDetails">
+            <div>
+                <label for = "customerName">Customer Name: </label>
+                <input type = "text" id="customerName" name="customerName">    
+            </div>
+            <div>
+                <label for="customerAddress">Customer Address: </label>
+                <input type="text" name="customerAddress" id="customerAddress">
+                
+            </div>
+            <div>
+                <label for="country">Country: </label>
+                <input type="text" name="country" id="country">
+                
+            </div>
+            <div>
+                <label for="phoneNumber">Phone Number: </label>
+                <input type="text" id="phoneNumber" name="phoneNumber">
+                
+            </div>
+            <div>
+                <label for="officeNumber">Office Number: </label>
+                <input type="text" id="officeNumber" name="officeNumber">
+                
+            </div>
+            <div>
+                <label for="email">Email: </label>
+                <input type="email" id="email" name="email">
+                
+            </div>
+            <div>
+                <label for="VATnumber">VAT number: </label>
+                <input type="text" id="VATnumber" name="VATnumber">
+                
+            </div>
+            <div>
+                <label for="PObox">PO Box: </label>
+                <input type="text" name="PObox" id="PObox">
+                
+            </div>
+            <div>
+                <label for="website">Website: </label>
+                <input type="text" name="website" id="website">
+                
+            </div>
+            <div>
+                <label for="shippingPort">Shipping Port: </label>
+                <input name="shippingPort" type="text" id="shippingPort">  
+            </div>
+            <input hidden id="customerid" name="id" type="number">
+        </div>
+        <div class="button">
+            <button type="submit" id="submitCustomer">Submit</button>
+        </div>    
+    </form>
+
+    <script src="../../JS/editCustomer.js"></script>
+</body>
+</html>

@@ -95,7 +95,7 @@ document.addEventListener("DOMContentLoaded",()=>{
     });
     if (response.ok) {
       const result = await response.json();
-      console.log("Response:", result);
+      //console.log("Response:", result);
       if(result.message)
       {
         alert('success!');
@@ -104,8 +104,6 @@ document.addEventListener("DOMContentLoaded",()=>{
       else{
         alert('failure');
       }
-
-      // Redirect user to the URL returned by the backend
     }
     }catch (error) {
       console.error("Fetch Error:", error);

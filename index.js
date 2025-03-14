@@ -144,13 +144,60 @@ app.post("/customerForm",(req,res)=>{
 // GENERATING CUSTOMER LIST
 
 app.get("/api/customerReport",(req,res)=>{
-    db.query('SELECT * FROM customer_table',(err,results)=>{
+    const src = req.query.src;
+    console.log(src);
+    if(src == 'editCustomer'){
+        db.query('SELECT name,id FROM customer_table',(err,results)=>{
+            if(err){
+                res.status(500).send({error: 'error fetching data'});
+            } else{
+                res.status(200).json(results);
+            }    
+        });
+    }else{
+        db.query('SELECT * FROM customer_table',(err,results)=>{
+            if(err){
+                res.status(500).send({error: 'error fetching data'});
+            } else{
+                res.status(200).json(results);
+            }
+        });
+    }
+    
+});
+
+// sending customer data to edit customer
+app.get('/api/editCustomerData',(req,res)=>{
+    const id = req.query.id;
+    db.query('SELECT * FROM customer_table WHERE id = ?',[id],(err,results)=>{
         if(err){
             res.status(500).send({error: 'error fetching data'});
         } else{
-            res.json(results);
+            res.status(200).json(results);
         }
     });
+});
+
+// saving edited customer details
+app.put('/editCustomer',async (req,res)=>{
+    console.log(req.body);
+    const data = req.body;
+    const connection = await db.promise().getConnection();
+    try{
+        connection.beginTransaction();
+
+        await connection.query('UPDATE customer_table SET name=?,phone_number=?,email=?,address=?,country=?,VAT_number=?,office_number=?,website=?,PO_box=?,shipping_port=? WHERE id = ?',[data.name,data.phoneNumber,data.email,data.address,data.country,data.VATnumber,data.officeNumber,data.website,data.PObox,data.shippingPort,data.id]);
+        res.status(200).json({message: 'completed'});
+        await connection.commit();
+    }
+    catch{
+        await connection.rollback();
+        console.error("Error updating customer:", error);
+        res.status(500).json({ error: "Failed to update customer data" });
+    }
+    finally{
+        connection.release();
+    }
 });
 
 // SENDING CUSTOMER NAMES AND IDs TO FORMS
@@ -389,7 +436,7 @@ app.get('/api/productList',(req,res)=>{
     });
 });
 
-// sending data for order bank
+// sending data for performa order bank
 app.get('/api/orderList', async (req,res)=>{
     
     try {
@@ -598,7 +645,7 @@ app.put("/EditPerformaInvoice",async (req,res)=>{
                 newOrderDetails.push(detail);
             }
         });
-        console.log(orderDetails);
+        //console.log(orderDetails);
         //console.log("updated orders: ",UpdatedOrders);
         //console.log("new orders", JSON.stringify(UpdatedOrders,null,4));
 
@@ -628,6 +675,12 @@ app.put("/EditPerformaInvoice",async (req,res)=>{
             connection.query('UPDATE orderDetail_table SET order_id = ?,  article_id = ?, article_amount = ?, unit_price = ?, currency = ? WHERE id = ?',[detail.orderid,detail.productId,detail.productAmount,detail.unitPrice,detail.currency,detail.detailId])
         );
         await Promise.all(updateOrderDetails);
+        
+        //updating balance table
+        const updateBalanceTable = oldOrderDetails.map(detail=>{
+            connection.query('UPDATE balance_table SET balance =?, article_id=? WHERE order_detail_id =? ',[detail.productAmount,detail.productId,detail.detailId]);
+        });
+        await Promise.all(updateBalanceTable);
 
         if(newOrderDetails.length>0){
             const articleNum = newOrderDetails.map(detail=>detail.productNumber);
@@ -637,8 +690,14 @@ app.put("/EditPerformaInvoice",async (req,res)=>{
             const articleIdMap = Object.fromEntries(articleRows.map(article => [article.article_number, article.id]));
             const insertNewOrderDetails = newOrderDetails.map(detail=>
                 connection.query('INSERT INTO orderDetail_table(order_id,article_id,article_amount,unit_price,currency) VALUES (?,?,?,?,?)',[detail.orderid,articleIdMap[detail.productNumber],detail.productAmount,detail.unitPrice,detail.currency])
-            )
-            await Promise.all(insertNewOrderDetails);
+            );
+            const results = await Promise.all(insertNewOrderDetails);
+            const orderDetailIds = results.map(([result]) => result.insertId);
+
+            const insertBalanceQueries = newOrderDetails.map((detail,index)=>
+                connection.query('INSERT INTO balance_table(order_detail_id,article_id,balance) VALUES (?,?,?)',[orderDetailIds[index],articleIdMap[detail.productNumber],detail.productAmount])
+            );
+            await Promise.all(insertBalanceQueries);
         }
 
         //ADDING NEW ORDERS IF ANY
@@ -674,9 +733,19 @@ app.put("/EditPerformaInvoice",async (req,res)=>{
                     )
                 )
             );
-        
             // Execute all order detail inserts
-            await Promise.all(orderDetailInserts);
+            const results = await Promise.all(orderDetailInserts);
+            const insertIds = results.map(([result]) => result.insertId);
+            console.log('insertIds: ',insertIds);
+            const insertBalanceOrderDetails = insertedOrders.map(order=>order.order);
+            console.log(insertBalanceOrderDetails);
+            //insert into balance_table;
+            const balanceInserts  = insertBalanceOrderDetails.map(order=>{
+                order.products.map((product,index)=>{
+                    connection.query('INSERT INTO balance_table(order_detail_id,balance,article_id) VALUES (?,?,?)',[insertIds[index],product.productAmount,articleIdMap[product.productNumber]]);
+                });
+            });
+            await Promise.all(balanceInserts);
         }
 
         await connection.commit();
@@ -807,18 +876,106 @@ app.get('/SaveCommercialInvoice',async (req,res)=>{
         });
 
         //insert into invoice_table
-        const [result] = await connection.query('INSERT INTO commercial_invoice_table(customer_id,fiNo,blNo,fiNoDate,blNoDate,loadingPort,shippingPort,total,total_net_weight,total_gross_weight,shipment_terms) VALUES (?,?,?,?,?,?,?,?,?,?,?)',[invoiceData.customerID, invoiceData.fiNo, invoiceData.blNo, invoiceData.fiNoDate, invoiceData.blNoDate, invoiceData.loadingPort, invoiceData.shippingPort, total, totalNetWeight, totalGrossWeight, invoiceData.shipmentTerms]);
+        const [result] = await connection.query('INSERT INTO commercial_invoice_table(customer_id,fiNo,blNo,fiNoDate,blNoDate,loadingPort,shippingPort,total,total_net_weight,total_gross_weight,shipment_terms,date,shipment_date) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)',[invoiceData.customerID, invoiceData.fiNo, invoiceData.blNo, invoiceData.fiNoDate, invoiceData.blNoDate, invoiceData.loadingPort, invoiceData.shippingPort, total, totalNetWeight, totalGrossWeight, invoiceData.shipmentTerms,invoiceData.invoiceDate,invoiceData.shipmentDate]);
         const invoiceNumber = result.insertId;
         
+        //insert into commercial_invoice_table
         const insertOrderQueries = products.map(async product=>
             await connection.query('INSERT INTO commercial_invoice_article_table(invoice_number,article_id,article_amount,cartons,unit_price,carton_gross_weight,carton_net_weight,currency,carton_packing,carton_packing_unit) VALUES (?,?,?,?,?,?,?,?,?,?)',[invoiceNumber, product.id, product.amount, product.cartons, product.unitPrice, product.gross, product.net, product.currency, product.cartonPacking, product.unit])
         );
         await Promise.all(insertOrderQueries);
 
-        await connection.commit();
-        res.status(200).json({message: 'Invoice Saved', invoiceNumber});
+        //selecting balances for orderIds
+        const balancequeries = await Promise.all(
+            products.map(async product=>{
+                const [rows] = await connection.query('SELECT balance_table.id, balance_table.order_detail_id,balance_table.article_id,balance_table.balance,balance_table.balance,order_table.id AS order_id FROM balance_table INNER JOIN orderDetail_table ON balance_table.order_detail_id = orderDetail_table.id INNER JOIN order_table ON order_table.id = orderDetail_table.order_id WHERE order_table.id = ? AND balance_table.article_id = ?',[product.orderId,product.id])  
+                return rows;
+            })
+        );
+        const balanceFlat = balancequeries.flat();
+        
+        balanceFlat.map((object,index)=>{
+            if(object.article_id == products[index].id && object.order_id == products[index].orderId){
+                object.amount = products[index].amount;
+            }
+        });
+
+        //updating balances
+        const balanceOrderQueries = await Promise.all(
+            balanceFlat.map(async object=>{
+                const newBalance = object.balance - object.amount;
+                if(newBalance<0){
+                    await connection.rollback();
+                    throw new Error(`Article amount exceeds balance in database!`);
+                }
+                await connection.query('UPDATE balance_table SET balance = ? WHERE id =? AND order_detail_id = ?',[newBalance,object.id,object.order_detail_id]);
+            })
+        );  
+
+       await connection.commit();
+       res.status(200).json({message: 'Invoice Saved', invoiceNumber});
 
     }catch(err){
+        await connection.rollback(); // Rollback if any error occurs
+        console.error("Error updating invoice:", err);
+        res.status(500).json({ error: err.message});
+    }
+    finally{
+        connection.release();
+    }
+
+});
+
+app.get('/api/commercialInvoiceNumbers',(req,res)=>{
+    db.query('SELECT commercial_invoice_table.invoice_number,commercial_invoice_table.customer_id,customer_table.name FROM commercial_invoice_table INNER JOIN customer_table ON commercial_invoice_table.customer_id = customer_table.id',(err,results)=>{
+        if(err){
+            console.log(err);
+            return res.status(500).json({error: 'error fetching invoice Numbers'});
+        }
+        if (!results) { // Checking if results is null or undefined
+            return res.status(404).json({ error: 'No invoice numbers found' });
+        }
+        res.status(200).json(results);
+    });
+});
+
+app.get('/api/commercialOrderBank',async (req,res)=>{
+    const invoice_number = req.query.invoice_number;
+    const connection = await db.promise().getConnection();
+    
+    try{
+        const [invoiceDetails] = await connection.query('SELECT * FROM commercial_invoice_table WHERE invoice_number =?',[invoice_number]);
+        const [invoiceArticles] = await connection.query('SELECT * FROM commercial_invoice_article_table WHERE invoice_number =?',[invoice_number]);
+        const [customerName] = await connection.query('SELECT name FROM customer_table WHERE id =?',[invoiceDetails[0].customer_id]);
+        const articleIds = invoiceArticles.map(article=>article.article_id);
+
+        const articleData = await Promise.all(
+            articleIds.map(async id=>{
+                const [rows] = await  connection.query('SELECT customer_article.id, customer_article.article_number, product_table.description, product_table.category, product_table.size FROM customer_article INNER JOIN product_table ON customer_article.product_id = product_table.id WHERE customer_article.id =?',[id])
+                return rows;
+            })
+            
+        );
+        const articleDataFlat = articleData.flat();
+
+        invoiceArticles.forEach((article,index)=>{
+            if(article.article_id == articleDataFlat[index].id){
+                article.description = articleDataFlat[index].description;
+                article.category = articleDataFlat[index].category;
+                article.article_number = articleDataFlat[index].article_number;
+                article.size = articleDataFlat[index].size;
+            }
+        });        
+        
+        
+        res.json({
+            invoiceDetails: invoiceDetails[0],
+            articles: invoiceArticles,
+            name: customerName[0]
+        })
+        connection.commit();
+    }
+    catch(err){
         await connection.rollback(); // Rollback if any error occurs
         console.error("Error updating invoice:", err);
         res.status(500).json({ error: "Server error updating invoice" });
@@ -826,8 +983,9 @@ app.get('/SaveCommercialInvoice',async (req,res)=>{
     finally{
         connection.release();
     }
+    
 
-}); 
+});
 
 app.listen(port,()=>{
     console.log("server is running on port " + port);

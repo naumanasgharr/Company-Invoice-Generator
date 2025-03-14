@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color:  #e8eaf6;
+            margin: 20px;
+            padding: 20px;
+        }
+    
+        h1 {
+            text-align: center; 
+            font-size: 28px;
+            font-weight: bold;
+            color: #070F2B;
+            text-transform: uppercase;
+            background-color: #e0e0e0;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background-color: #fdfdfd;
+        }
+
+        /* Table headers */
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #283593;
+            color: white;
+            text-transform: uppercase;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        td {
+            font-size: 13px;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tbody tr:nth-child(odd) {
+            background-color: #ffffff;
+        }
+
+        #customerHead {
+            background-color: #333;
+            color: white;
+            text-transform: uppercase;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .orderDisplay {
+            width: 20%;
+            font-weight: bold;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .orderDisplay th {
+            background-color: #1a237e;
+            color: white;
+            font-size: 12px;
+            padding: 2px;
+            
+            text-align: center;
+            font-size: 10px;
+        }
+
+        .subDiv {
+            border: 2px solid #070F2B;
+            background-color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            border-radius: 8px;
+            padding: 5px;
+            margin-top: 30px;
+        }
+
+        .orderDisplay td {
+            background-color: #e0e0e0;
+            color: #333;
+            font-size: 12px;
+        }
+
+        .ordersTable th {
+            background-color: #3E5879;
+            color: white;
+            font-size: 13px;
+        }
+
+        .ordersTable td {
+            font-size: 12px;
+        }
+
+        tbody tr:hover {
+            background-color: #ddd;
+            cursor: pointer;
+        }
+
+    </style>
+</head>
+<body>
+    <h1>ORDER LIST</h1>
+    <div>
+        <label for="invoiceNum">Invoice Number: <select name="invoiceNum" id="invoiceNum"><option>--SELECT--</option></select></label>
+    </div>
+    <div id="mainDiv"></div>
+    <script src="../../JS/commercialReport.js"></script>
+</body>
+</html>
