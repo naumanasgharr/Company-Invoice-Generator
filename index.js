@@ -96,8 +96,8 @@ app.post("/saveInvoice",async (req,res)=>{
             return order.products.map(async product =>{
                 const orderID = orderIDMap[order.orderNumber];
                 const [result] = await connection.query(
-                    'INSERT INTO orderDetail_table(order_id, article_id, article_amount, unit_price, currency) VALUES (?, ?, ?, ?, ?)',
-                    [orderID, articleIDMap[product.productNumber], product.productAmount, product.unitPrice, product.currency]
+                    'INSERT INTO orderDetail_table(order_id, article_id, article_amount, unit_price, currency,status) VALUES (?, ?, ?, ?, ?,?)',
+                    [orderID, articleIDMap[product.productNumber], product.productAmount, product.unitPrice, product.currency,'PENDING']
                 );
                 return { orderDetailID: result.insertId, orderID, articleID: articleIDMap[product.productNumber],articleAmount: product.productAmount }; 
             
@@ -461,7 +461,7 @@ app.get('/api/orderList', async (req,res)=>{
         // ✅ 3. Fetch Order Details (Products in Each Order)
         const [orderDetailData] = await connection.query(
             `SELECT orderDetail_table.order_id, orderDetail_table.article_id, orderDetail_table.article_amount,
-                    orderDetail_table.unit_price, orderDetail_table.currency, 
+                    orderDetail_table.unit_price, orderDetail_table.currency, orderDetail_table.status,orderDetail_table.status, 
                     customer_article.article_number, customer_article.product_id
             FROM orderDetail_table
             INNER JOIN customer_article ON orderDetail_table.article_id = customer_article.id`
@@ -516,6 +516,7 @@ app.get('/api/orderList', async (req,res)=>{
                     article_amount: detail.article_amount,
                     unit_price: detail.unit_price,
                     currency: detail.currency,
+                    status: detail.status,
                     product: {
                         description: product.description,
                         hs_code: product.hs_code,
@@ -538,7 +539,7 @@ app.get('/api/orderList', async (req,res)=>{
 
 // select invoice number for edit invoice page
 app.get("/api/selectInvoice",(req,res)=>{
-    const query = 'SELECT invoice_number FROM invoice_table';
+    const query = 'SELECT invoice_table.invoice_number,customer_table.name FROM invoice_table INNER JOIN customer_table ON invoice_table.customer_id = customer_table.id';
     db.query(query,(err,invoiceNumbers)=>{
         if(err){
             res.status(500).send({error: 'error loading invoice numbers'});
@@ -662,7 +663,7 @@ app.put("/EditPerformaInvoice",async (req,res)=>{
         }
         
         // UPDATING INVOICE DETAILS
-        await connection.query('UPDATE invoice_table SET customer_id = ?, order_date = ?, shipping_date = ?, loading_port = ?, total = ?, shipping_port = ? WHERE invoice_number= ?;',[newData.customerID, newData.orderDate, newData.shippingDate, newData.loadingPort, newTotal, newData.shippingPort,  newData.invoiceNum]);
+        await connection.query('UPDATE invoice_table SET customer_id = ?, order_date = ?, shipping_date = ?, loading_port = ?, total = ?, shipping_port = ? WHERE invoice_number= ?;',[newData.customerID, newData.orderDate, newData.shipmentDate, newData.loadingPort, newTotal, newData.shippingPort,  newData.invoiceNum]);
 
         //UPDATING ORDER_TABLE
         const updateOrderTable = UpdatedOrders.map(order=>
@@ -672,7 +673,7 @@ app.put("/EditPerformaInvoice",async (req,res)=>{
         
         //UPDATING orderDetail_table
         const updateOrderDetails = oldOrderDetails.map(detail=>
-            connection.query('UPDATE orderDetail_table SET order_id = ?,  article_id = ?, article_amount = ?, unit_price = ?, currency = ? WHERE id = ?',[detail.orderid,detail.productId,detail.productAmount,detail.unitPrice,detail.currency,detail.detailId])
+            connection.query('UPDATE orderDetail_table SET order_id = ?,  article_id = ?, article_amount = ?, unit_price = ?, currency = ?,status=? WHERE id = ?',[detail.orderid,detail.productId,detail.productAmount,detail.unitPrice,detail.currency,'PENDING',detail.detailId])
         );
         await Promise.all(updateOrderDetails);
         
@@ -689,7 +690,7 @@ app.put("/EditPerformaInvoice",async (req,res)=>{
             );
             const articleIdMap = Object.fromEntries(articleRows.map(article => [article.article_number, article.id]));
             const insertNewOrderDetails = newOrderDetails.map(detail=>
-                connection.query('INSERT INTO orderDetail_table(order_id,article_id,article_amount,unit_price,currency) VALUES (?,?,?,?,?)',[detail.orderid,articleIdMap[detail.productNumber],detail.productAmount,detail.unitPrice,detail.currency])
+                connection.query('INSERT INTO orderDetail_table(order_id,article_id,article_amount,unit_price,currency,status) VALUES (?,?,?,?,?)',[detail.orderid,articleIdMap[detail.productNumber],detail.productAmount,detail.unitPrice,detail.currency,'PENDING'])
             );
             const results = await Promise.all(insertNewOrderDetails);
             const orderDetailIds = results.map(([result]) => result.insertId);
@@ -728,8 +729,8 @@ app.put("/EditPerformaInvoice",async (req,res)=>{
             const orderDetailInserts = insertedOrders.flatMap(({ orderId, order }) =>
                 order.products.map(product =>
                     connection.query(
-                        'INSERT INTO orderDetail_table(order_id, article_id, article_amount, unit_price, currency) VALUES (?, ?, ?, ?, ?)',
-                        [orderId, articleIdMap[product.productNumber], product.productAmount, product.unitPrice, product.currency]
+                        'INSERT INTO orderDetail_table(order_id, article_id, article_amount, unit_price, currency,status) VALUES (?, ?, ?, ?, ?,?)',
+                        [orderId, articleIdMap[product.productNumber], product.productAmount, product.unitPrice, product.currency,'PENDING']
                     )
                 )
             );
@@ -883,34 +884,7 @@ app.get('/SaveCommercialInvoice',async (req,res)=>{
         const insertOrderQueries = products.map(async product=>
             await connection.query('INSERT INTO commercial_invoice_article_table(invoice_number,article_id,article_amount,cartons,unit_price,carton_gross_weight,carton_net_weight,currency,carton_packing,carton_packing_unit) VALUES (?,?,?,?,?,?,?,?,?,?)',[invoiceNumber, product.id, product.amount, product.cartons, product.unitPrice, product.gross, product.net, product.currency, product.cartonPacking, product.unit])
         );
-        await Promise.all(insertOrderQueries);
-
-        //selecting balances for orderIds
-        const balancequeries = await Promise.all(
-            products.map(async product=>{
-                const [rows] = await connection.query('SELECT balance_table.id, balance_table.order_detail_id,balance_table.article_id,balance_table.balance,balance_table.balance,order_table.id AS order_id FROM balance_table INNER JOIN orderDetail_table ON balance_table.order_detail_id = orderDetail_table.id INNER JOIN order_table ON order_table.id = orderDetail_table.order_id WHERE order_table.id = ? AND balance_table.article_id = ?',[product.orderId,product.id])  
-                return rows;
-            })
-        );
-        const balanceFlat = balancequeries.flat();
-        
-        balanceFlat.map((object,index)=>{
-            if(object.article_id == products[index].id && object.order_id == products[index].orderId){
-                object.amount = products[index].amount;
-            }
-        });
-
-        //updating balances
-        const balanceOrderQueries = await Promise.all(
-            balanceFlat.map(async object=>{
-                const newBalance = object.balance - object.amount;
-                if(newBalance<0){
-                    await connection.rollback();
-                    throw new Error(`Article amount exceeds balance in database!`);
-                }
-                await connection.query('UPDATE balance_table SET balance = ? WHERE id =? AND order_detail_id = ?',[newBalance,object.id,object.order_detail_id]);
-            })
-        );  
+        await Promise.all(insertOrderQueries);  
 
        await connection.commit();
        res.status(200).json({message: 'Invoice Saved', invoiceNumber});
@@ -944,6 +918,8 @@ app.get('/api/commercialOrderBank',async (req,res)=>{
     const connection = await db.promise().getConnection();
     
     try{
+        await connection.beginTransaction();
+
         const [invoiceDetails] = await connection.query('SELECT * FROM commercial_invoice_table WHERE invoice_number =?',[invoice_number]);
         const [invoiceArticles] = await connection.query('SELECT * FROM commercial_invoice_article_table WHERE invoice_number =?',[invoice_number]);
         const [customerName] = await connection.query('SELECT name FROM customer_table WHERE id =?',[invoiceDetails[0].customer_id]);
@@ -973,7 +949,7 @@ app.get('/api/commercialOrderBank',async (req,res)=>{
             articles: invoiceArticles,
             name: customerName[0]
         })
-        connection.commit();
+        await connection.commit();
     }
     catch(err){
         await connection.rollback(); // Rollback if any error occurs
@@ -985,6 +961,162 @@ app.get('/api/commercialOrderBank',async (req,res)=>{
     }
     
 
+});
+
+app.get('/updateBalances',async (req,res)=>{
+    const data = req.session.shippingData;
+    const connection = await db.promise().getConnection();
+
+    try{    
+        await connection.beginTransaction();
+
+        const products = [];
+
+        //calculating total net and gross weights
+        data.products.forEach(product=>{
+            products.push({id:product.productID, orderId: product.orderId, amount: (product.cartons * product.cartonPacking), unitPrice: product.unitPrice, currency: product.currency, cartons: product.cartons, cartonPacking: product.cartonPacking, unit: product.cartonPackingUnit, net: product.cartonNetWeight, gross: product.cartonGrossWeight});
+        });
+
+        //selecting balances for orderIds
+        const balancequeries = await Promise.all(
+            products.map(async product=>{
+                const [rows] = await connection.query('SELECT balance_table.id, balance_table.order_detail_id,balance_table.article_id,balance_table.balance,balance_table.balance,order_table.id AS order_id FROM balance_table INNER JOIN orderDetail_table ON balance_table.order_detail_id = orderDetail_table.id INNER JOIN order_table ON order_table.id = orderDetail_table.order_id WHERE order_table.id = ? AND balance_table.article_id = ?',[product.orderId,product.id])  
+                return rows;
+            })
+        );
+        const balanceFlat = balancequeries.flat();
+        
+        balanceFlat.map((object,index)=>{
+            if(object.article_id == products[index].id && object.order_id == products[index].orderId){
+                object.amount = products[index].amount;
+            }
+        });
+
+        //updating balances
+        const balanceOrderQueries = await Promise.all(
+            balanceFlat.map(async object=>{
+                const newBalance = object.balance - object.amount;
+                if(newBalance<0){
+                    await connection.rollback();
+                    throw new Error(`Article amount exceeds balance in database!`);
+                }
+                await connection.query('UPDATE balance_table SET balance = ? WHERE id =? AND order_detail_id = ?',[newBalance,object.id,object.order_detail_id]);
+            })
+        );
+
+        await connection.commit();
+        res.status(200).json({message: 'balances updated successfully!'});
+    }
+    catch(err){
+        await connection.rollback();
+        console.error("Error updating invoice:", err);
+        res.status(500).json({ error: "article amount exceeds balance in database!" });
+    }
+    finally{
+        connection.release();
+    }
+});
+
+app.get('/api/editCommercialInvoice',async (req,res)=>{
+    const invoice_number = req.query.invoice_number;
+    console.log(invoice_number);
+    const connection = await db.promise().getConnection();
+    try {
+        connection.beginTransaction();
+        const [invoiceData] = await connection.query('SELECT commercial_invoice_table.*, customer_table.name FROM commercial_invoice_table INNER JOIN customer_table ON commercial_invoice_table.customer_id = customer_table.id WHERE commercial_invoice_table.invoice_number = ?',[invoice_number]);
+        
+        let [articleData] = await connection.query('SELECT * FROM commercial_invoice_article_table WHERE invoice_number = ?',[invoice_number]);
+        if(articleData.length>0) {
+            console.log(articleData);
+            const articleIds = articleData.map(article=>article.article_id);
+
+            const [articleInfoQueries] = await Promise.all(
+                articleIds.map(id=>
+                    connection.query('SELECT customer_article.id,customer_article.article_number,product_table.description,product_table.category FROM customer_article INNER JOIN product_table ON customer_article.product_id = product_table.id WHERE customer_article.id = ?',[id])
+                )
+            );
+        
+            const articleInfo = articleInfoQueries[0];
+            articleData.forEach((article,index)=>{
+                if(article.article_id == articleInfo[index].id){
+                    article.category = articleInfo[index].category;
+                    article.description = articleInfo[index].description;
+                    article.article_number = articleInfo[index].article_number;
+                }
+            });
+        } 
+        else{
+            articleData = null;
+        }
+        
+        //console.log(articleInfo);
+        console.log(articleData);
+        await connection.commit();
+
+        res.status(200).json({
+            invoiceData: invoiceData,
+            articleData: articleData
+        });
+    }
+    catch(error){
+        await connection.rollback();
+        console.log(error);
+        res.status(500).json({error: 'cannot fetch invoice data'});
+    }
+    finally{
+        connection.release();
+    }
+});
+
+app.put('/updateCommercialInvoice',async (req,res)=>{
+    const invoiceData = req.body.invoiceData;
+    console.log(invoiceData);
+    const products = req.body.products;
+    const deletedArticles = req.body.deletedArticles;
+    const newProducts = products.filter(product=>!product.status);
+    console.log(newProducts);
+
+    const connection = await db.promise().getConnection();
+
+    try{
+        await connection.beginTransaction();
+        let newTotal = 0;
+        let NewTotalNet = 0;
+        let NewTotalGross = 0;
+        products.forEach(product=>{
+            newTotal+= product.unitPrice * (product.cartons * product.cartonPacking);
+            NewTotalNet += product.cartons * product.cartonNetWeight;
+            NewTotalGross += product.cartons * product.cartonGrossWeight;
+        });
+
+        // deleting articles
+        const deleteArticles = deletedArticles.map(async article=>{
+            await connection.query('DELETE FROM commercial_invoice_article_table WHERE id = ? ',[article]);
+        });
+        await Promise.all(deleteArticles);
+
+        //updating invoice table
+        const updateInvoiceTable = await connection.query('UPDATE commercial_invoice_table SET fiNo=?,blNo=?,fiNoDate=?,blNoDate=?,loadingPort=?,shippingPort=?,total=?,total_net_weight=?,total_gross_weight=?,shipment_terms=?,date=?,shipment_date=? WHERE invoice_number =?',[invoiceData.fiNo,invoiceData.blNo,invoiceData.fiNodate,invoiceData.blNoDate,invoiceData.loadingPort,invoiceData.shippingPort,newTotal,NewTotalNet,NewTotalGross,invoiceData.shipmentterms,invoiceData.invoiceDate,invoiceData.shipmentdate,invoiceData.invoiceNumber]);
+        
+        //inserting into article table
+        const updateArticleTable = newProducts.map(async product=>{
+            const amount = Number(product.cartons) * Number(product.cartonPacking);
+            await connection.query('INSERT INTO commercial_invoice_article_table(invoice_number, article_id, article_amount, cartons, unit_price, carton_gross_weight, carton_net_weight, currency, carton_packing, carton_packing_unit) VALUES (?,?,?,?,?,?,?,?,?,?)',[invoiceData.invoiceNumber, product.productID,amount,product.cartons,product.unitPrice,product.cartonNetWeight,product.cartonGrossWeight,product.currency,product.cartonPacking,product.cartonPackingUnit]);
+        });
+        await Promise.all(updateArticleTable);
+
+        await connection.commit();
+        res.status(200).json({message: 'INVOICE UPDATED!'});
+    }
+    catch(error){
+        await connection.rollback();
+        console.log(error);
+        res.status(500).json({error: 'error updating invoice'});
+    }
+    finally{
+        connection.release();
+    }
+    
 });
 
 app.listen(port,()=>{

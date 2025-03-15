@@ -161,22 +161,7 @@ function handleOrderNumberChange() {
                 cartonPackingInput.value = `${data[0].carton_packing}`;
                 unitPriceInput.value = `${data[0].unit_price}`;
                 currencyInput.value = `${data[0].currency}`;
-
-                switch(data[0].carton_packing_type){
-                    case 'pcs':
-                        cartonPackingUnit.innerHTML =`<option>${data[0].carton_packing_type}</option><option>prs</option><option>dzn</option>`;
-                        break;
-                    case 'prs':
-                        cartonPackingUnit.innerHTML =`<option>${data[0].carton_packing_type}</option><option>pcs</option><option>dzn</option>`;
-                        break;
-                    case 'dzn':
-                        cartonPackingUnit.innerHTML =`<option>${data[0].carton_packing_type}</option><option>pcs</option><option>prs</option>`;        
-                        break;
-                    default:
-                        cartonPackingUnit.innerHTML =`<option>pcs</option><option>prs</option><option>dzn</option>`;
-                        break;
-                }
-
+                cartonPackingUnit.innerHTML =`<option>${data[0].carton_packing_type}</option>`;
                 
                 cartonPackingLabel.hidden = false;
                 cartonPackingUnit.hidden = false;
@@ -213,7 +198,8 @@ document.querySelector('#addButton').addEventListener('click',()=>{
         <br>
         Net WT: ${mainDiv.querySelector('#cartonNetWeight').value} - Gross WT: ${mainDiv.querySelector('#cartonGrossWeight').value}
         <br>
-        Unit Price: ${mainDiv.querySelector('#unitPrice').value} ${mainDiv.querySelector('#currency').value}`;
+        Unit Price: ${mainDiv.querySelector('#unitPrice').value} ${mainDiv.querySelector('#currency').value}
+    `;
     
     const articleIdInput = document.createElement('input');
     articleIdInput.hidden = true;

@@ -155,6 +155,24 @@ document.querySelector('#saveButton').addEventListener('click', async () => {
     }
 });
 
+document.querySelector('#updateBalance').addEventListener('click',async function(){
+    try {
+        const response = await fetch('http://localhost:3000/updateBalances');
+        
+        if (!response.ok) { 
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'An error occurred while saving the invoice.');
+        }
+        
+        const data = await response.json();
+        alert(data.message); 
+    }
+    catch(error) {
+        console.error('Error:', error.message);
+        alert(error.error);
+    }
+});
+
 //pdf button function
 const { jsPDF } = window.jspdf;
 

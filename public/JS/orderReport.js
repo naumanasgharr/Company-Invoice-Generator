@@ -61,6 +61,7 @@ fetch("http://localhost:3000/api/orderList")
                         <th>UNIT PRICE</th>
                         <th>CURRENCY</th>
                         <th>TOTAL</th>
+                        <th>STATUS</th>
                     </thead>
                 `;
                 const orderTableBody = document.createElement('tbody');
@@ -73,7 +74,8 @@ fetch("http://localhost:3000/api/orderList")
                         <td id = "articleAmount">${article.article_amount}</td>
                         <td id = "articleUnitPrice">${article.unit_price}</td>
                         <td id = "articleCurrency">${article.currency}</td>
-                        <td id = "articleTotal">${(article.article_amount)*(article.unit_price)} ${article.currency}</td>
+                        <td id = "articleTotal">${((article.article_amount)*(article.unit_price)).toFixed(2)} ${article.currency}</td>
+                        <td id="status" style=" background-color: #DCD7C9;color: ${article.status === 'COMPLETED' ? '#1F7D53' : '#D84040'};font-weight: bold;">${article.status}</td>
                     `;
                     orderTableBody.appendChild(row);
                 });
