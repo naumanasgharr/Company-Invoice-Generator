@@ -86,7 +86,7 @@ document.addEventListener("DOMContentLoaded",()=>{
     });
     console.log("Collected Order Data:", formData);
     try{
-    const response = await fetch("/performaInvoice",{
+    const response = await fetch("http://localhost:3000/performaInvoice",{
       method: 'POST',
       headers: {
         "Content-Type": "application/json"

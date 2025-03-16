@@ -293,7 +293,7 @@ document.querySelector('#form').addEventListener('submit',async function (event)
     });
     console.log("Collected Order Data:", formData);
     try{
-    const response = await fetch("/shippingInvoice",{
+    const response = await fetch("http://localhost:3000/shippingInvoice",{
       method: 'POST',
       headers: {
         "Content-Type": "application/json"

@@ -145,7 +145,6 @@ app.post("/customerForm",(req,res)=>{
 
 app.get("/api/customerReport",(req,res)=>{
     const src = req.query.src;
-    console.log(src);
     if(src == 'editCustomer'){
         db.query('SELECT name,id FROM customer_table',(err,results)=>{
             if(err){

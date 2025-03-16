@@ -336,56 +336,6 @@ function updateRowIndices() {
     });
 }
 
-
-
-
-
-
-/*async function handleSubmit(event) {
-    event.preventDefault(); // Prevents page reload
-
-    const formData = new FormData(event.target);
-    let newData = {};
-
-    formData.forEach((value, key) => {
-        if (key.includes("[")) {
-            let baseKey = key.split("[")[0]; // Extract field name (e.g., "productNumber")
-            if (!newData[baseKey]) newData[baseKey] = []; // Initialize as array if not already
-            newData[baseKey].push(value);
-        } else {
-            newData[key] = value;
-        }
-    });
-
-    const payload = {
-        old: originalData,
-        new: newData,
-        deletedOrders: deletedOrders
-    };
-
-    // Send data to the server
-    try {
-        const response = await fetch("/editPerformaInvoice", {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(payload)
-        });
-
-        const result = await response.json();
-        if (!response.ok) {
-            alert("Error: " + result.error);
-        } else {
-            alert(result.message);
-            showViewButton();
-        }
-        console.log("Server Response:", result);
-    } catch (error) {
-        console.error("Error submitting form:", error);
-    }
-}*/
-
 function showViewButton(){
     const buttonDiv = document.querySelector('.submitButtonDiv');
     if (!buttonDiv) {
@@ -480,7 +430,7 @@ async function editFormSubmitHandler(event){
     });
     console.log(formData);
     try{
-        const response = await fetch("/editPerformaInvoice",{
+        const response = await fetch("http://localhost:3000/editPerformaInvoice",{
             method: 'PUT',
             headers: {
                 "Content-Type": "application/json"
@@ -533,7 +483,7 @@ async function viewButtonEventHandler(event){
     });
     console.log("Collected Order Data:", formData);
     try{
-    const response = await fetch("/performaInvoice",{
+    const response = await fetch("http://localhost:3000/performaInvoice",{
       method: 'POST',
       headers: {
         "Content-Type": "application/json"

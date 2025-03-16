@@ -40,7 +40,7 @@ fetch("http://localhost:3000/api/customerReport?src=editCustomer")
 const form = document.querySelector('#editCustomerForm');
 
 form.addEventListener('submit',async function(event){
-    //event.preventDefault();
+    event.preventDefault();
     const formData = {
         id: form.customerid.value,
         name: form.customerName.value,
@@ -55,7 +55,7 @@ form.addEventListener('submit',async function(event){
         shippingPort: form.shippingPort.value
     };
     try{
-        const response = await fetch("/editCustomer",{
+        const response = await fetch("http://localhost:3000/editCustomer",{
           method: 'PUT',
           headers: {
             "Content-Type": "application/json"
@@ -68,13 +68,14 @@ form.addEventListener('submit',async function(event){
             if(result.message)
             {
               alert('success!');
+              window.location.href = '../Forms/customerForm.html';
             }
             else{
               alert('failure');
             }
         }
     }
-    catch{
+    catch(error){
         console.error("Fetch Error:", error);
         alert("An error occurred while submitting the order.");
     }

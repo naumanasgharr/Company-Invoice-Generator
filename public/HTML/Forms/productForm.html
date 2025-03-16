@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://localhost:3000;">
+
     <title>Add Product</title>
     <style>
         body {
@@ -247,7 +249,7 @@
                 prodCategory: form.prodCategory.value
             };
             console.log(formData);
-            fetch('/productCategory',{
+            fetch('http://localhost:3000/productCategory',{
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -258,6 +260,7 @@
             .then(data=>{
                 console.log(data.message);
                 alert(data.message);
+                location.reload();
             })
             .catch(error=>{console.error('Error submitting the form:', error);alert('Could not link! ❌❌')});
 
@@ -288,7 +291,7 @@
                 productCode: productForm.productCode.value
             };
             console.log(formData);
-            fetch('/productForm',{
+            fetch('http://localhost:3000/productForm',{
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -299,6 +302,7 @@
             .then(data=>{
                 console.log(data.message);
                 alert(data.message);
+                location.reload();
             })
             .catch(error=>{console.error('Error submitting the form:', error);alert('Could not Add! ❌❌')});
 
