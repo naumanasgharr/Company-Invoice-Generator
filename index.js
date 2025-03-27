@@ -27,7 +27,6 @@ db.getConnection((err, connection) => {
 
 const app = express();
 const port = 3000;
-//app.use(methodOverride("_method"));
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.json());
 const __dir = dirname(fileURLToPath(import.meta.url));
@@ -39,19 +38,7 @@ app.use(session({
     cookie: { secure: false }
   }));
 
-function ensureArray(value) {
-    return Array.isArray(value) ? value : [value];
-}
-function flattenObject(obj) {
-    Object.keys(obj).forEach(key => {
-        if (Array.isArray(obj[key])) {
-            obj[key] = obj[key].flat(); // Flatten nested arrays
-        }
-    });
-    return obj;
-}
  //auth function
-
 function requireAuth(req, res, next) {
     if (!req.session.user) {
         return res.redirect("/");
@@ -60,9 +47,7 @@ function requireAuth(req, res, next) {
     next();
 } 
 
-
 // LOGIN PAGE
-
 app.get("/",(req,res)=>{
     //res.sendFile(__dir + "/public/HTML/main.html");
     res.sendFile(__dir + "/public/HTML/Forms/login.html");
@@ -76,6 +61,16 @@ app.get('/check-auth', (req, res) => {
     } else {
         res.json({ isAuthenticated: false });
     }
+});
+
+//error page
+app.use((req, res, next) => {
+    const publicRoutes = ["/", "/login", "/logout"]; // Add other public routes if needed
+
+    if (!req.session.user && !publicRoutes.includes(req.path)) {
+        return res.status(401).send("Unauthorized! Please log in.");
+    }
+    next();
 });
 
 // login page
@@ -118,14 +113,13 @@ app.get('/main',requireAuth,(req,res)=>{
 });
 
 // GENERATING PERFORMA INVOICE
-
 app.post("/performaInvoice",requireAuth,(req,res)=>{
     //console.log("Request received at performaInvoice",req.body);
     req.session.pData = req.body;
     res.json({ message: "Order processed successfully"});
 });
 
-// saving invoice to db
+// saving performa invoice to db
 app.post("/saveInvoice",requireAuth,async (req,res)=>{
     console.log(JSON.stringify(req.body,null,4));
     const {invoiceData, total} = req.body;
@@ -186,7 +180,6 @@ app.post("/saveInvoice",requireAuth,async (req,res)=>{
 });
 
 // ADDING CUSTOMER TO DB
-
 app.post("/customerForm",requireAuth,(req,res)=>{
     console.log(req.body);
     const {customerName, customerAddress, country, phoneNumber, officeNumber, email, VATnumber, PObox, website, shippingPort} = req.body;   
@@ -203,7 +196,6 @@ app.post("/customerForm",requireAuth,(req,res)=>{
 });
 
 // GENERATING CUSTOMER LIST
-
 app.get("/api/customerReport",requireAuth,(req,res)=>{
     const src = req.query.src;
     if(src == 'editCustomer'){
@@ -295,7 +287,6 @@ app.get("/api/productIdAndDesc",requireAuth,(req,res)=>{
 });
 
  // INSERTING PRODUCT DATA INTO DB
-
 app.post("/productForm",requireAuth,(req,res)=>{
     const {productName, productDesc, materialComposition, productWeight, weightUnit, weightPacking, productSize, productCode, cartonLength, cartonHeight, cartonWidth, unitPackingType, cartonPackingType, unitPacking, cartonPacking} = req.body;
     
@@ -311,7 +302,6 @@ app.post("/productForm",requireAuth,(req,res)=>{
 });
 
 // ADDING CUSTOMER ARTICLE NUMBERS INTO DB (customer_article TABLE)
-
 app.post("/articleLink",requireAuth,(req,res)=>{
     console.log(req.body);
     const {customerId, articleNumber, productNumber} = req.body;
@@ -328,7 +318,6 @@ app.post("/articleLink",requireAuth,(req,res)=>{
 });
 
 //sending article names and numbers to newOrder.html
-
 app.get('/api/articleNumbersAndNames',requireAuth,(req,res)=>{
     const customerID = req.query.customerID;
     const query = `SELECT customer_article.article_number, product_table.description FROM customer_article INNER JOIN product_table ON customer_article.product_id = product_table.id WHERE customer_article.customer_id = ?;`;
@@ -342,7 +331,6 @@ app.get('/api/articleNumbersAndNames',requireAuth,(req,res)=>{
 });
 
 //sending articleNumbers to shippingInvoice.html
-
 app.get('/api/articleNumbersAndNamesForShipmentInvoice',requireAuth,(req,res)=>{
     const customerID = req.query.customerId;
     console.log(customerID);
@@ -357,7 +345,6 @@ app.get('/api/articleNumbersAndNamesForShipmentInvoice',requireAuth,(req,res)=>{
 });
 
 //sending invoice and order numbers to shippingInvoice
-
 app.get('/api/invoiceAndOrderNumbers',requireAuth,(req,res)=>{
     const articleNumber = req.query.articleNumber;
     const query = 'SELECT * FROM invoice_table INNER JOIN order_table ON invoice_table.invoice_number = order_table.invoice_number  INNER JOIN orderDetail_table ON order_table.id = orderDetail_table.order_id INNER JOIN customer_article ON orderDetail_table.article_id = customer_article.id INNER JOIN product_table ON customer_article.product_id = product_table.id INNER JOIN balance_table ON orderDetail_table.id = balance_table.order_detail_id WHERE customer_article.id = ? AND balance_table.balance > 0 ORDER BY invoice_table.timestamp_column ASC';
@@ -371,7 +358,6 @@ app.get('/api/invoiceAndOrderNumbers',requireAuth,(req,res)=>{
 });
 
 //sending orderDetails to shippingInvoice
-
 app.get('/api/orderDetailsShippingInvoiceDisplay',requireAuth,(req,res)=>{
     const orderId = req.query.order_id;
     const articleId = req.query.article_id;
@@ -387,14 +373,13 @@ app.get('/api/orderDetailsShippingInvoiceDisplay',requireAuth,(req,res)=>{
 });
 
 // SENDING DATA TO performa1.HTML
-
 app.get("/api/performa",requireAuth,(req,res)=>{
     // form data error check
     const performaData = req.session.pData;
     if(!performaData){
         res.status(404).json({error: 'no data available!'});
     }
-    //flattenObject(performaData);
+
     // extracting customer_id and article_number from form data
     const{customerID,orders} = performaData;
     /////////
@@ -665,7 +650,6 @@ app.get("/api/invoiceDetails",requireAuth,async (req,res)=>{
 });
 
 // storing new invoice details from edit invoice page
-
 app.put("/EditPerformaInvoice",requireAuth,async (req,res)=>{
     const connection = await db.promise().getConnection();
     console.log("request recieved at editinvoice");
@@ -822,6 +806,7 @@ app.put("/EditPerformaInvoice",requireAuth,async (req,res)=>{
     
 });
 
+//adding product category into db
 app.post("/productCategory",requireAuth,(req,res)=>{
     const {prodCategory} = req.body;
     db.query('INSERT INTO productCategory_table(product_category) VALUES (?);',[prodCategory],(err,result)=>{
@@ -833,6 +818,8 @@ app.post("/productCategory",requireAuth,(req,res)=>{
         res.status(200).json({message: "Category Added!"});
     });
 });
+
+//sending product categories to product form
 app.get("/api/productCategoryGet",requireAuth,(req,res)=>{
     db.query('SELECT product_category FROM productCategory_table;',(err,result)=>{
         if(err){
@@ -967,6 +954,7 @@ app.get('/SaveCommercialInvoice',requireAuth,async (req,res)=>{
 
 });
 
+//sending commercial invoice numbers to forms
 app.get('/api/commercialInvoiceNumbers',(req,res)=>{
     db.query('SELECT commercial_invoice_table.invoice_number,commercial_invoice_table.customer_id,customer_table.name FROM commercial_invoice_table INNER JOIN customer_table ON commercial_invoice_table.customer_id = customer_table.id',(err,results)=>{
         if(err){
@@ -980,6 +968,7 @@ app.get('/api/commercialInvoiceNumbers',(req,res)=>{
     });
 });
 
+//sending commercial invoice data tp order bank
 app.get('/api/commercialOrderBank',requireAuth,async (req,res)=>{
     const invoice_number = req.query.invoice_number;
     const connection = await db.promise().getConnection();
@@ -1030,6 +1019,7 @@ app.get('/api/commercialOrderBank',requireAuth,async (req,res)=>{
 
 });
 
+//updating balances of invoices
 app.get('/updateBalances',requireAuth,async (req,res)=>{
     const data = req.session.shippingData;
     const connection = await db.promise().getConnection();
@@ -1084,6 +1074,7 @@ app.get('/updateBalances',requireAuth,async (req,res)=>{
     }
 });
 
+//sending data to edit commercial invoice form
 app.get('/api/editCommercialInvoice',requireAuth,async (req,res)=>{
     const invoice_number = req.query.invoice_number;
     console.log(invoice_number);
@@ -1135,6 +1126,7 @@ app.get('/api/editCommercialInvoice',requireAuth,async (req,res)=>{
     }
 });
 
+//updating commercial invoice
 app.put('/updateCommercialInvoice',requireAuth,async (req,res)=>{
     const invoiceData = req.body.invoiceData;
     console.log(invoiceData);

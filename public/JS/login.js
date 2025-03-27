@@ -16,7 +16,7 @@ form.addEventListener('submit',async function (event){
             credentials: 'include'
         });
         if(!response.ok) {
-            console.log(response);
+            //console.log(response);
             alert('INVALID USERNAME OR PASSWORD');
         }
         else{
