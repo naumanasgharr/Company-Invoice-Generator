@@ -483,28 +483,62 @@ app.get('/api/productList',requireAuth,(req,res)=>{
 
 // sending data for performa order bank
 app.get('/api/orderList',requireAuth, async (req,res)=>{
-    
+    const invoice_number = req.query.invoice_number;
+    console.log(invoice_number);
     try {
         const connection = await db.promise().getConnection();
 
         // ✅ 1. Fetch Invoice Data with Customer Names
         const [invoiceData] = await connection.query(
-            `SELECT invoice_table.invoice_number, invoice_table.customer_id, 
-                    invoice_table.order_date, invoice_table.shipping_date, 
-                    invoice_table.loading_port, invoice_table.shipping_port, 
-                    invoice_table.total, customer_table.name AS customer_name
-            FROM invoice_table
-            INNER JOIN customer_table ON invoice_table.customer_id = customer_table.id`
+            `SELECT invoice_table.customer_id, invoice_table.order_date, invoice_table.shipping_date, 
+            invoice_table.loading_port, invoice_table.shipping_port, invoice_table.total,
+            customer_table.name AS customer_name FROM invoice_table INNER JOIN 
+            customer_table ON invoice_table.customer_id = customer_table.id
+            WHERE invoice_table.invoice_number = ?`,[invoice_number]
         );
 
         // ✅ 2. Fetch Orders for Each Invoice
         const [orderData] = await connection.query(
-            `SELECT order_table.id AS order_id, order_table.invoice_number, order_table.order_number
-            FROM order_table`
+            `SELECT order_table.id AS order_id, order_table.order_number
+            FROM order_table WHERE order_table.invoice_number = ?`,[invoice_number]
         );
+        console.log('invoiceData',invoiceData);
+        console.log('orderData',orderData);
 
+
+        const orderDetailsData = await Promise.all(
+            orderData.map(async (order) => {
+                const [rows] = await connection.query(
+                    `SELECT orderDetail_table.id,orderDetail_table.order_id, orderDetail_table.article_id, orderDetail_table.article_amount,
+                    orderDetail_table.unit_price, orderDetail_table.currency, orderDetail_table.status, 
+                    customer_article.article_number, customer_article.product_id, product_table.description, product_table.hs_code, product_table.size,
+                    product_table.category FROM orderDetail_table
+                    INNER JOIN customer_article ON orderDetail_table.article_id = customer_article.id
+                    INNER JOIN product_table ON customer_article.product_id = product_table.id 
+                    WHERE orderDetail_table.order_id = ?`,
+                    [order.order_id]
+                );
+                return rows; // 👈 Ensure only `rows` are returned
+            })
+        );
+        const orderDetailsDataFlat = orderDetailsData.flat();
+        console.log('orderDetailsData:',orderDetailsDataFlat);
+
+        connection.release();
+
+        orderData.map(data=>data.details = []);
+        console.log(orderData);
+        
+        orderData.map(order => {
+            order.details = orderDetailsDataFlat.filter(detail => detail.order_id === order.order_id);
+        });
+        console.log(JSON.stringify(orderData,null,4));
+        res.json({
+            invoice: invoiceData[0],
+            orders: orderData
+        });
         // ✅ 3. Fetch Order Details (Products in Each Order)
-        const [orderDetailData] = await connection.query(
+        /*const [orderDetailData] = await connection.query(
             `SELECT orderDetail_table.order_id, orderDetail_table.article_id, orderDetail_table.article_amount,
                     orderDetail_table.unit_price, orderDetail_table.currency, orderDetail_table.status,orderDetail_table.status, 
                     customer_article.article_number, customer_article.product_id
@@ -513,6 +547,7 @@ app.get('/api/orderList',requireAuth, async (req,res)=>{
         );
 
         // ✅ 4. Fetch Product Data (Description, HS Code, etc.)
+
         const [productData] = await connection.query(`SELECT product_table.id AS product_id, product_table.description, product_table.hs_code, product_table.size, product_table.category FROM product_table`);
 
         connection.release();
@@ -574,7 +609,7 @@ app.get('/api/orderList',requireAuth, async (req,res)=>{
 
         // ✅ 7. Convert to Array and Send Response
         const invoicesArray = Object.values(invoicesMap);
-        res.json(invoicesArray);
+        res.json(invoicesArray);*/
 
     } catch (error) {
         console.error("Error fetching order list:", error);
