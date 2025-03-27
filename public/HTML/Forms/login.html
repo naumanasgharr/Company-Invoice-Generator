@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LOGIN</title>
+</head>
+<body>
+    <h2>LOGIN TO YOUR ACCOUNT</h2>
+    <div id="form">
+        <form id="loginForm">
+            <label for="username">USERNAME: <input name="username" id="username" type="text" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
+            <label for="password">PASSWORD: <input name="password" id="password" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" ></label>
+            <button type="button" onclick="togglePassword()">👁</button>
+            <button id="submit" type="submit">LOGIN</button>
+        </form>
+    </div>
+
+
+    <script src="../../JS/login.js"></script>
+    <script>
+        function togglePassword() {
+            const passwordInput = document.getElementById("password");
+            passwordInput.type = passwordInput.type === "password" ? "text" : "password";
+        }
+</script>
+    </script>
+</body>
+</html>

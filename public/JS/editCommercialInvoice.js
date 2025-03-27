@@ -1,6 +1,18 @@
+fetch('http://localhost:3000/check-auth', { credentials: 'include' })
+.then(response => response.json())
+.then(data => {
+    if (!data.isAuthenticated) {
+        window.location.href = '/';  // Redirect to login if session is gone
+    }
+})
+.catch(error => console.error('Error checking session:', error));
+
 const deletedArticles= [];
 let invoice_number = null;
-fetch('http://localhost:3000/api/commercialInvoiceNumbers')
+fetch('http://localhost:3000/api/commercialInvoiceNumbers',{
+    method: 'GET',
+    credentials: 'include'
+})
 .then(response=>response.json())
 .then(data=>{
     const select = document.querySelector('#invoiceNumber');
@@ -16,7 +28,15 @@ fetch('http://localhost:3000/api/commercialInvoiceNumbers')
         if(select.value != '--SELECT--'){
             mainDiv.hidden = false;
             invoice_number = select.value;
-            fetch(`http://localhost:3000/api/editCommercialInvoice?invoice_number=${select.value}`)
+            document.querySelector('#customerName').innerHTML = `<option>--SELECT--</option>`;
+            //document.querySelector('#articleNumbers').innerHTML = `<option>--SELECT--</option>`;
+            //document.querySelector('#order-invoiceNumbers').innerHTML = `<option>--SELECT--</option>`;
+            document.querySelector('#articleNumbers').hidden = true;
+            document.querySelector('#order-invoiceNumbers').hidden = true;
+            fetch(`http://localhost:3000/api/editCommercialInvoice?invoice_number=${select.value}`,{
+                method: 'GET',
+                credentials: 'include'
+            })
             .then(response=>response.json())
             .then(data=>{
                 const invoiceData = data.invoiceData[0];
@@ -53,6 +73,10 @@ fetch('http://localhost:3000/api/commercialInvoiceNumbers')
                             <br>
                             Unit Price: ${article.unit_price} ${article.currency}
                         `;
+                        const orderIdInput = document.createElement('input');
+                        orderIdInput.hidden = true;
+                        orderIdInput.value = Number(article.order_id);
+                        orderIdInput.name = 'orderId';
 
                         const articleIdInput = document.createElement('input');
                         articleIdInput.hidden = true;
@@ -102,16 +126,20 @@ fetch('http://localhost:3000/api/commercialInvoiceNumbers')
                             productDiv.remove();
                             console.log(deletedArticles);
                         });
-                        productDiv.append(header,articleIdInput,unitPriceInput,currencyInput,cartons,cartonPacking,cartonPackingUnit,cartonNetWeight,cartonGrossWeight);
+                        productDiv.append(header,articleIdInput,unitPriceInput,currencyInput,cartons,cartonPacking,cartonPackingUnit,cartonNetWeight,cartonGrossWeight,orderIdInput);
                         productDiv.appendChild(removeButton);
                         subDiv.appendChild(productDiv);
                     });
                 }
 
-                fetch('http://localhost:3000/api/customerNames')
+                fetch('http://localhost:3000/api/customerNames',{
+                    method: 'GET',
+                    credentials: 'include'
+                })
                 .then(response=>response.json())
                 .then(data=>{
                     const customerNameSelect = document.querySelector('#customerName');
+                    customerNameSelect.innerHTML = `<option>--SELECT--</option>`
                     data.forEach(name=>{
                         const customerNameOption = document.createElement('option');
                         customerNameOption.value = name.id;
@@ -141,15 +169,19 @@ fetch('http://localhost:3000/api/commercialInvoiceNumbers')
                         netWeightLabel.querySelector('input').value = '';
                         grossWeightLabel.querySelector('input').value = '';
                         cartonsValueLabel.querySelector('input').value = '';
-                        articleNumberSelect.innerHTML = '';
+                        articleNumberSelect.innerHTML = ``;
                         articleNumberSelect.hidden = true;
 
                         if(customerNameSelect.value !== '--SELECT--'){
-                            orderNumberSelect.innerHTML = '';
+                            orderNumberSelect.innerHTML = ``;
                             articleNumberSelect.hidden = false;
-                            fetch(`http://localhost:3000/api/articleNumbersAndNamesForShipmentInvoice?customerId=${customerNameSelect.value}`)
+                            fetch(`http://localhost:3000/api/articleNumbersAndNamesForShipmentInvoice?customerId=${customerNameSelect.value}`,{
+                                method: 'GET',
+                                credentials: 'include'
+                            })
                             .then(response=>response.json())
                             .then(data=>{
+                                articleNumberSelect.innerHTML = ``;
                                 const selectOption = document.createElement('option');
                                 selectOption.innerText = '--SELECT--';
                                 articleNumberSelect.appendChild(selectOption);
@@ -183,14 +215,17 @@ fetch('http://localhost:3000/api/commercialInvoiceNumbers')
                                     orderNumberSelect.hidden = true;
                                     const displayDiv = document.querySelector('#display');
                                     displayDiv.innerHTML = '';
-                                    orderNumberSelect.innerHTML = '';
+                                    orderNumberSelect.innerHTML = ``;
 
                                     if(articleNumberSelect.value !='--SELECT--'){
                                         orderNumberSelect.hidden = false;
-                                        orderNumberSelect.innerHTML = '';
-                                        fetch(`http://localhost:3000/api/invoiceAndOrderNumbers?articleNumber=${articleNumberSelect.value}`)
+                                        fetch(`http://localhost:3000/api/invoiceAndOrderNumbers?articleNumber=${articleNumberSelect.value}`,{
+                                            method: 'GET',
+                                            credentials: 'include'
+                                        })
                                         .then(response => response.json())
                                         .then(data=>{
+                                            orderNumberSelect.innerHTML = ``;
                                             const selectOption = document.createElement('option');
                                             selectOption.innerText = '--SELECT--';
                                             orderNumberSelect.appendChild(selectOption);
@@ -202,11 +237,11 @@ fetch('http://localhost:3000/api/commercialInvoiceNumbers')
                                             });
                                             orderNumberSelect.replaceWith(orderNumberSelect.cloneNode(true));
                                             document.querySelector('#order-invoiceNumbers').addEventListener('change', handleOrderNumberChange);  
-                                            
-                                        })  
+
+                                        })
                                         .catch(error=>console.log(error));
                                     }
-                                    
+
                                 });
                             })
                             .catch(error=>console.log(error));
@@ -285,13 +320,17 @@ function handleOrderNumberChange() {
     cartonsValueLabel.querySelector('input').value = '';
 
 
-    displayDiv.innerHTML = ''; 
+    displayDiv.innerHTML = ``; 
 
     if (orderNumberSelect.value != '--SELECT--') {
-        fetch(`http://localhost:3000/api/orderDetailsShippingInvoiceDisplay?order_id=${orderNumberSelect.value}&article_id=${articleNumberSelect.value}`)
+        fetch(`http://localhost:3000/api/orderDetailsShippingInvoiceDisplay?order_id=${orderNumberSelect.value}&article_id=${articleNumberSelect.value}`,{
+            method: 'GET',
+            credentials: 'include'
+        })
             .then(response => response.json())
             .then(data => {
                 console.log(data);
+                displayDiv.innerHTML = ``;
                 const articleAmountLabel = document.createElement('label');
                 articleAmountLabel.htmlFor = 'articleAmount';
                 articleAmountLabel.innerText = `ARTICLE AMOUNT FOR ${data[0].article_number}:`;
@@ -407,14 +446,13 @@ document.querySelector('#addButton').addEventListener('click',()=>{
     subDiv.appendChild(productDiv);
 });
 
-
-document.querySelector('#form').addEventListener('submit',async function (event){
+async function editFormSubmitHandler(event){
     event.preventDefault();
     const formData = {
       invoiceData:{
         invoiceNumber: invoice_number,
         invoiceDate: form.invoiceDate.value,
-        //customerID: form.customerID.value,
+        customerID: form.customerID.value,
         fiNo: form.fiNo.value,
         blNo: form.blNo.value,
         fiNoDate: form.fiNoDate.value,
@@ -432,7 +470,7 @@ document.querySelector('#form').addEventListener('submit',async function (event)
         const product = {
           status: 'update',  
           productID: row.querySelector('[name="articleId"]').value,
-          //orderId: row.querySelector('[name="orderId"]').value,
+          orderId: row.querySelector('[name="orderId"]').value,
           unitPrice: row.querySelector('[name="unitPrice"]').value,
           currency: row.querySelector('[name="currency"]').value,
           cartons: row.querySelector('[name="cartons"]').value,
@@ -463,12 +501,13 @@ document.querySelector('#form').addEventListener('submit',async function (event)
     });
     console.log("Collected Order Data:", formData);
     try{
-    const response = await fetch("/updateCommercialInvoice",{
+    const response = await fetch("http://localhost:3000/updateCommercialInvoice",{
       method: 'PUT',
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify(formData)
+      body: JSON.stringify(formData),
+      credentials: 'include'
     });
     if (response.ok) {
       const result = await response.json();
@@ -476,7 +515,130 @@ document.querySelector('#form').addEventListener('submit',async function (event)
       if(result.message)
       {
         alert(result.message);
-        //window.location.href = "../Invoices/commercial.html";
+        showViewButton();
+      }
+      else{
+        alert('failure');
+      }
+    }
+    }catch (error) {
+      console.error("Fetch Error:", error);
+      alert("An error occurred while submitting the order.");
+    }         
+};
+
+
+function showViewButton(){
+    const buttonDiv = document.querySelector('.submitButtonDiv');
+    if (!buttonDiv) {
+        buttonDiv = document.createElement('div');
+        buttonDiv.className = 'submitButtonDiv';
+        document.querySelector('#editForm').appendChild(buttonDiv);
+    }
+
+    const existingButton = document.querySelector('#viewInvoice');
+    if(existingButton){
+        existingButton.remove();
+        
+    }
+    const viewButton = document.createElement('button');
+    viewButton.innerText = 'View Invoice';
+    viewButton.id = 'viewInvoice';
+    viewButton.type = 'button';
+    viewButton.className = 'button';
+    buttonDiv.appendChild(viewButton);
+
+    viewButton.addEventListener('click', ()=>{
+        viewButton.addEventListener("click",viewButtonEventHandler);
+    });
+
+    //hideViewButtonOnChange();
+}
+
+function hideViewButtonOnChange() {
+    const inputs = document.querySelectorAll("#editForm input, #editForm select, #editForm textarea");
+
+    inputs.forEach(input => {
+        input.addEventListener("input", () => {
+            const viewButton = document.getElementById("viewInvoice");
+            if (viewButton) {
+                viewButton.remove(); // Remove the button when user changes anything
+            }
+        });
+    });
+}
+
+async function viewButtonEventHandler(event){
+    event.preventDefault();
+    const form = document.querySelector('#form');
+    const formData = {
+        invoiceData:{
+          src: 'edit',
+          invoiceNumber: invoice_number,  
+          invoiceDate: form.invoiceDate.value,
+          customerID: form.customerID.value,
+          fiNo: form.fiNo.value,
+          blNo: form.blNo.value,
+          fiNoDate: form.fiNoDate.value,
+          blNoDate: form.blNoDate.value,
+          shipmentTerms: form.shipmentTerms.value,
+          loadingPort: form.loadingPort.value,
+          shippingPort: form.shippingPort.value,
+          shipmentDate: form.shipmentDate.value,
+        },
+        products: []
+    };
+    document.querySelector('#subDiv').querySelectorAll('.productDiv').forEach(row=>{
+      
+        const product = {
+          productID: row.querySelector('[name="articleId"]').value,
+          orderId: row.querySelector('[name="orderId"]').value,
+          unitPrice: row.querySelector('[name="unitPrice"]').value,
+          currency: row.querySelector('[name="currency"]').value,
+          cartons: row.querySelector('[name="cartons"]').value,
+          cartonPacking: row.querySelector('[name="cartonPacking"]').value,
+          cartonPackingUnit: row.querySelector('[name="cartonPackingUnit"]').value,
+          cartonNetWeight: row.querySelector('[name="cartonNetWeight"]').value,
+          cartonGrossWeight: row.querySelector('[name="cartonGrossWeight"]').value,
+        };
+        formData.products.push(product);
+
+    });
+    const subdiv2rows = document.querySelector('#subDiv2').querySelectorAll('.productDiv');
+    if(subdiv2rows.length > 0){
+        document.querySelector('#subDiv2').querySelectorAll('.productDiv').forEach(row=>{
+      
+            const product = {
+              productID: row.querySelector('[name="articleId"]').value,
+              orderId: row.querySelector('[name="orderId"]').value,
+              unitPrice: row.querySelector('[name="unitPrice"]').value,
+              currency: row.querySelector('[name="currency"]').value,
+              cartons: row.querySelector('[name="cartons"]').value,
+              cartonPacking: row.querySelector('[name="cartonPacking"]').value,
+              cartonPackingUnit: row.querySelector('[name="cartonPackingUnit"]').value,
+              cartonNetWeight: row.querySelector('[name="cartonNetWeight"]').value,
+              cartonGrossWeight: row.querySelector('[name="cartonGrossWeight"]').value,
+            };
+            formData.products.push(product);   
+        });
+    }
+    console.log("Collected Order Data at view invoice:", formData);
+    try{
+    const response = await fetch("http://localhost:3000/shippingInvoice",{
+      method: 'POST',
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(formData),
+      credentials: 'include'
+    });
+    if (response.ok) {
+      const result = await response.json();
+      console.log("Response:", result);
+      if(result.message)
+      {
+        //alert('success!');
+        window.location.href = "../Invoices/commercial.html";
       }
       else{
         alert('failure');
@@ -487,5 +649,12 @@ document.querySelector('#form').addEventListener('submit',async function (event)
     }catch (error) {
       console.error("Fetch Error:", error);
       alert("An error occurred while submitting the order.");
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const editForm = document.getElementById("form");
+    if (editForm) {
+        editForm.addEventListener("submit", editFormSubmitHandler);
     }
 });

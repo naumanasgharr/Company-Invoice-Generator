@@ -1,3 +1,14 @@
+fetch('http://localhost:3000/check-auth', { credentials: 'include' })
+.then(response => response.json())
+.then(data => {
+    if (!data.isAuthenticated) {
+        window.location.href = '/';  // Redirect to login if session is gone
+    }
+})
+.catch(error => console.error('Error checking session:', error));
+
+
+
 document.addEventListener("DOMContentLoaded", () => {
     hideViewButtonOnChange();
 });
@@ -9,7 +20,10 @@ editForm.name = 'editForm';
 editForm.id = 'editForm';
 editForm.action = '#';
 editForm.method = 'POST';
-fetch("http://localhost:3000/api/selectInvoice")
+fetch("http://localhost:3000/api/selectInvoice",{
+    method: 'GET',
+    credentials: 'include'
+})
     .then(response=>response.json())
     .then(data=>{
         const select = document.getElementById('selectInvoiceNumber');
@@ -29,7 +43,10 @@ fetch("http://localhost:3000/api/selectInvoice")
             if(selectedInvoice != 'select'){
                 editForm.innerHTML = ''; // Also clear the form before adding new data
                 mainDiv.appendChild(editForm);
-                fetch(`http://localhost:3000/api/invoiceDetails?invoice_number=${selectedInvoice}`)
+                fetch(`http://localhost:3000/api/invoiceDetails?invoice_number=${selectedInvoice}`,{
+                    method: 'GET',
+                    credentials: 'include'
+                })
                     .then(response=>response.json())
                     .then(data=>{
                         originalData = JSON.parse(JSON.stringify(data));
@@ -435,7 +452,8 @@ async function editFormSubmitHandler(event){
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify(formData)
+            body: JSON.stringify(formData),
+            credentials: 'include'
         });
         const result = await response.json();
         if (!response.ok) {
@@ -488,7 +506,8 @@ async function viewButtonEventHandler(event){
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify(formData)
+      body: JSON.stringify(formData),
+      credentials: 'include'
     });
     if (response.ok) {
       const result = await response.json();

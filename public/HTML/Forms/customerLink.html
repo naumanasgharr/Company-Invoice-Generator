@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://localhost:3000;">
 
-    <title>Document</title>
+    <title>LINK ARTICLE</title>
 
     <style>
         body {
@@ -27,6 +26,7 @@
             letter-spacing: 1px;
             border-bottom: 2px solid #283593;
             display: inline-block;
+            font-weight: bold;
         }
 
         .main {
@@ -89,6 +89,7 @@
     </style>
 </head>
 <body>
+    <h2>LINK ARTICLES</h2>
     <form id= 'linkForm' name="linkForm">
         <div class="main">
             <div>
@@ -121,12 +122,13 @@
             };
             console.log(formData);
             
-            fetch('http://localhost/articleLink',{
+            fetch('http://localhost:3000/articleLink',{
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(formData)
+                body: JSON.stringify(formData),
+                credentials: 'include'
             })
             .then(response => response.json())
             .then(data=>{
@@ -140,7 +142,10 @@
             });
        });
        
-       fetch("http://localhost:3000/api/customerNames")
+       fetch("http://localhost:3000/api/customerNames",{
+                method: 'GET',
+                credentials: 'include'
+            })
        .then(response=>response.json())
        .then(data=>{
             data.forEach(object=>{
@@ -152,7 +157,10 @@
             });
        }).catch(error=>console.log('error fetching customer names',error));
        
-       fetch("http://localhost:3000/api/productIdAndDesc")
+       fetch("http://localhost:3000/api/productIdAndDesc",{
+        method: 'GET',
+        credentials: 'include' 
+       })
        .then(response=>response.json())
        .then(data=>{
             data.forEach(obj=>{

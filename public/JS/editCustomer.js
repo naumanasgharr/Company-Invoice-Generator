@@ -1,4 +1,16 @@
-fetch("http://localhost:3000/api/customerReport?src=editCustomer")
+fetch('http://localhost:3000/check-auth', { credentials: 'include' })
+.then(response => response.json())
+.then(data => {
+    if (!data.isAuthenticated) {
+        window.location.href = '/';  // Redirect to login if session is gone
+    }
+})
+.catch(error => console.error('Error checking session:', error));
+
+fetch("http://localhost:3000/api/customerReport?src=editCustomer",{
+    method: 'GET',
+    credentials: 'include'
+})
 .then(response=>response.json())
 .then(data=>{
 
@@ -14,7 +26,10 @@ fetch("http://localhost:3000/api/customerReport?src=editCustomer")
         const inputs = document.querySelectorAll('input');
         inputs.forEach(input=>{input.value = '';});
         if(select.value != '--SELECT--'){
-            fetch(`http://localhost:3000/api/editCustomerData?id=${select.value}`)
+            fetch(`http://localhost:3000/api/editCustomerData?id=${select.value}`,{
+                method: 'GET',
+                credentials: 'include'
+            })
             .then(response=>response.json())
             .then(data=>{
                 console.log(data);
@@ -60,7 +75,8 @@ form.addEventListener('submit',async function(event){
           headers: {
             "Content-Type": "application/json"
           },
-          body: JSON.stringify(formData)
+          body: JSON.stringify(formData),
+          credentials: 'include'
         });
         if (response.ok) {
             const result = await response.json();

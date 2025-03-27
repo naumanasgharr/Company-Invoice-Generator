@@ -3,40 +3,188 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://localhost:3000;">
 
     <title>Edit Invoice</title>
-    
+     
     <style>
-        div{
-            margin:  5px;
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f9f9f9;
+            color: black;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            color: #283593;
+            font-size: 24px;
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 1px;
+            border-bottom: 2px solid #283593;
+            display: inline-block !important;
+        }
+        button {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+            background-color: #1a237e;
+            color: white;
+            text-transform: uppercase;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+        }
+        .productDiv {
+            background: #F2F9FF;
             padding: 5px;
+            border-radius: 5px;
+            box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.1);
+            width: 20%;
+        }
+        label {
+            font-size: 12px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        /* Inputs and select elements - Smaller size */
+        input, select {
+            padding: 6px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 100px; /* Smaller width */
+            font-size: 14px;
+        }
+        #headDiv{
+            background: #fff;
+            padding: 5px;
+            border-radius: 5px;
+            box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            margin: 5px;
+        }
+        #detailDiv{
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            justify-content: left;
+            background: #fff;
+            padding: 5px;
+            width: 100%;
+        }
+        #detailDiv2{
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            justify-content: left;
+            background: #fff;
+            padding: 5px;
+            width: 100%;
+        }
+
+        #detailDiv2 input{
+            width: 80px;
+        }
+        #detailDiv2 select{
+            width: 60px;
+        }
+        #invoiceNumber{
+            width: 250px !important;
+            text-align: center; 
+        }
+        #invoiceNumberLabel{
+            font-size: 15px;
+        }
+        #detailDiv select{
+            width: 200px !important;
+        }
+        #display{
+            margin: auto;
+            width: 50%;
+            align-content: center;
+            padding: 5px;
+            border-radius: 5px;
+            box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.1);
+            background-color: #F2F9FF;
+        }
+        #display input{
+            margin: 2px;
+        }
+        #formDiv{
+            margin: 5px;
+            padding: 2px;
+        }
+        #subDiv{
+            width: 100%;
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 5px;
+            overflow-x: auto;
+            margin: 10px;
+        }
+        #subDiv div {
+            white-space: nowrap;
+        }
+        #subDiv2 {
+            width: 100%;
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 5px;
+            overflow-x: auto;
+            margin: 10px;
+        }
+        #subDiv2 div {
+            white-space: nowrap;
+        }
+        #headingDiv{
+            text-align:left;
+        }
+        #invoiceNumberLabel {
+            text-align: left;
+            display: block;
+        }
+        #invoiceNumber {
+            width: 100%; 
+            text-align: left;
         }
     </style>
 </head>
 <body>
-    <div>
-        <label for="invoiceNumber">Invoice Number: <select name="invoiceNumber" id="invoiceNumber"><option>--SELECT--</option></select></label>
+    <div id="headingDiv"><h2><strong>EDIT COMMERCIAL INVOICE</strong></h2></div>
+    
+    <div id="invoiceNumberDiv">
+        <label id="invoiceNumberLabel" for="invoiceNumber">Invoice Number: <select name="invoiceNumber" id="invoiceNumber"><option>--SELECT--</option></select></label>
     </div>
     <div hidden id="mainDiv">
         <div id="headDiv">
-            <div>
+
+            <div id="detailDiv">
                 <select id="customerName"><option>--SELECT--</option></select>
+                <select hidden id="articleNumbers"><option>--SELECT--</option></select>
+                <select hidden id="order-invoiceNumbers"></select>
             </div>
-            <select hidden id="articleNumbers"><option>--SELECT--</option></select>
-            <select hidden id="order-invoiceNumbers"></select>
-            <label hidden for="cartonsValueInput" id="cartonsValueLabel">cartons: <input required name="cartonsValueInput" type="text" id="cartonsValueInput"></label>        
-            <label hidden id="cartonPackingLabel" for="cartonPacking">Carton Packing:<input required name="cartonPacking" type="text" id="cartonPackingInput"></label>
-            <select hidden disabled id="cartonPackingUnits">
-                <option>pcs</option>
-                <option>prs</option>
-                <option>dzn</option>
-            </select>
-            <label hidden id="cartonNetWeightLabel" for="cartonNetWeight">Carton Net WT: <input  name="cartonNetWeight" id="cartonNetWeight" type="number" min="0" step="0.001"></label>
-            <label hidden id="cartonGrossWeightLabel" for="cartonGrossWeight">Carton Gross WT: <input name="cartonGrossWeight" id="cartonGrossWeight" type="number" min="0" step="0.001"></label>
-            <label hidden id='unitPriceLabel' for="unitPrice">Unit Price: <input id="unitPrice" name="unitPrice" type="number" min="0" step="0.01"></label>
-            <label hidden id='currencyLabel' for="currency">Currency: <input id="currency" name="currency" type="text"></label>
-            <button hidden id="addButton" type="button">Add</button>
+            <div id="detailDiv2">
+                <label hidden for="cartonsValueInput" id="cartonsValueLabel">cartons: <input required name="cartonsValueInput" type="text" id="cartonsValueInput"></label>        
+                <label hidden id="cartonPackingLabel" for="cartonPacking">Carton Packing:<input required name="cartonPacking" type="text" id="cartonPackingInput"></label>
+                <select hidden disabled id="cartonPackingUnits">
+                    <option>pcs</option>
+                    <option>prs</option>
+                    <option>dzn</option>
+                </select>
+                <label hidden id="cartonNetWeightLabel" for="cartonNetWeight">Carton Net WT: <input  name="cartonNetWeight" id="cartonNetWeight" type="number" min="0" step="0.001"></label>
+                <label hidden id="cartonGrossWeightLabel" for="cartonGrossWeight">Carton Gross WT: <input name="cartonGrossWeight" id="cartonGrossWeight" type="number" min="0" step="0.001"></label>
+                <label hidden id='unitPriceLabel' for="unitPrice">Unit Price: <input id="unitPrice" name="unitPrice" type="number" min="0" step="0.01"></label>
+                <label hidden id='currencyLabel' for="currency">Currency: <input id="currency" name="currency" type="text"></label>
+                <button hidden id="addButton" type="button">Add</button>
+            </div>
         </div>
     
         <div id="display"></div>
@@ -55,7 +203,9 @@
                 <label for="shipmentDate">Shipment Date: <input name="shipmentDate" id="shipmentDate" type="date"></label>
                 <div id="subDiv"></div>
                 <div id="subDiv2"></div>
-                <button id="submitButton" type="submit">Submit</button>
+                <div class="button">
+                    <button id="submitButton" type="submit">Submit</button>
+                </div>
             </form>
         </div>
     </div>

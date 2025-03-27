@@ -1,4 +1,16 @@
-fetch('http://localhost:3000/api/commercialInvoiceNumbers')
+fetch('http://localhost:3000/check-auth', { credentials: 'include' })
+.then(response => response.json())
+.then(data => {
+    if (!data.isAuthenticated) {
+        window.location.href = '/';  // Redirect to login if session is gone
+    }
+})
+.catch(error => console.error('Error checking session:', error));
+
+fetch('http://localhost:3000/api/commercialInvoiceNumbers',{
+    method: 'GET',
+    credentials: 'include'
+})
 .then(response=>response.json())
 .then(data=>{
     const select = document.querySelector('#invoiceNum');
@@ -13,7 +25,10 @@ fetch('http://localhost:3000/api/commercialInvoiceNumbers')
         const mainDiv = document.querySelector('#mainDiv');
         mainDiv.innerHTML = '';
         if(select.value != '--SELECT--'){
-            fetch(`http://localhost:3000/api/commercialOrderBank?invoice_number=${select.value}`)
+            fetch(`http://localhost:3000/api/commercialOrderBank?invoice_number=${select.value}`,{
+                method: 'GET',
+                credentials: 'include'
+            })
             .then(response=>response.json())
             .then(data=>{
                 const invoiceDetails = data.invoiceDetails;

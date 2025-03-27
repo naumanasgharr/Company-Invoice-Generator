@@ -1,4 +1,14 @@
 //new order page
+fetch('http://localhost:3000/check-auth', { credentials: 'include' })
+.then(response => response.json())
+.then(data => {
+    if (!data.isAuthenticated) {
+        window.location.href = '/';  // Redirect to login if session is gone
+    }
+})
+.catch(error => console.error('Error checking session:', error));
+
+
 document.getElementById("newOrder").addEventListener("click",function (event){
     event.preventDefault();
     window.location.href="../HTML/Forms/newOrder.html";
@@ -38,4 +48,23 @@ document.getElementById('edit-invoice').addEventListener('click', function (even
 document.getElementById('shippingInvoice').addEventListener('click', function (event){
     event.preventDefault();
     window.location.href = "../HTML/Forms/shippingInvoice.html"; 
+});
+
+document.querySelector('#logout').addEventListener('click',async function(){
+
+    try {
+        const response = await fetch('http://localhost:3000/logout',{
+            method: 'GET',
+            credentials: 'include'
+        });
+        if(!response.ok){
+            alert('LOGOUT FAILED');
+        }
+        alert('LOGOUT SUCCESSFUL');
+        window.location.href = "/";
+    }
+    catch(error) {
+        console.log(error);
+        alert(error);
+    }
 });

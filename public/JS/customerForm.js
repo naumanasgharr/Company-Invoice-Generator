@@ -1,5 +1,19 @@
+fetch('http://localhost:3000/check-auth', { credentials: 'include' })
+.then(response => response.json())
+.then(data => {
+    if (!data.isAuthenticated) {
+        window.location.href = '/';  // Redirect to login if session is gone
+    }
+})
+.catch(error => console.error('Error checking session:', error));
+
+
+
 const tBody = document.querySelector("#customerTableBody");
-fetch('http://localhost:3000/api/customerReport')
+fetch('http://localhost:3000/api/customerReport',{
+    method: 'GET',
+    credentials: 'include'
+})
     .then(response => response.json())
     .then(data=>{
         data.forEach(customer => {

@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://localhost:3000;">
 
     <title>Main Page</title>
     <style>
@@ -72,9 +71,16 @@
         .container {
             animation: fadeIn 0.8s ease-in-out;
         }
+
+        #logoutButtonDiv {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
     </style>
 </head>
 <body>
+    <div id="logoutButtonDiv"><button id="logout" type="button">LOGOUT</button></div>
     <div class="container">
         <h1>DashBoard</h1>
         <div class="buttons-wrapper1">

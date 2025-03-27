@@ -1,5 +1,18 @@
+fetch('http://localhost:3000/check-auth', { credentials: 'include' })
+.then(response => response.json())
+.then(data => {
+    if (!data.isAuthenticated) {
+        window.location.href = '/';  // Redirect to login if session is gone
+    }
+})
+.catch(error => console.error('Error checking session:', error));
+
+
 const tbody = document.getElementById('productTableBody');
-fetch("http://localhost:3000/api/productCategoryGet")
+fetch("http://localhost:3000/api/productCategoryGet",{
+    method: 'GET',
+    credentials: 'include'
+})
     .then(response=>response.json())
     .then(data=>{
         data.forEach(category=>{
@@ -9,7 +22,10 @@ fetch("http://localhost:3000/api/productCategoryGet")
             option.innerText = category.product_category;
             select.appendChild(option);
         });
-        fetch("http://localhost:3000/api/productList")
+        fetch("http://localhost:3000/api/productList",{
+            method: 'GET',
+            credentials: 'include'
+        })
         .then(response=>response.json())
         .then(data=>{
             data.forEach(product => {

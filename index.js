@@ -8,6 +8,7 @@ import session from "express-session";
 import { group } from "console";
 import dotenv from "dotenv";
 import { connect } from "http2";
+import bcrypt from "bcryptjs";
 dotenv.config();
 const db = mysql2.createPool({
     host: process.env.DB_HOST,
@@ -34,7 +35,8 @@ app.use(express.static(__dir + "/public"));
 app.use(session({
     secret: 'naumanasgharr', 
     resave: false,
-    saveUninitialized: true
+    saveUninitialized: true,
+    cookie: { secure: false }
   }));
 
 function ensureArray(value) {
@@ -48,24 +50,83 @@ function flattenObject(obj) {
     });
     return obj;
 }
+ //auth function
 
-// MAIN PAGE
+function requireAuth(req, res, next) {
+    if (!req.session.user) {
+        return res.redirect("/");
+    }
+    console.log('session exists');
+    next();
+} 
+
+
+// LOGIN PAGE
 
 app.get("/",(req,res)=>{
-    res.sendFile(__dir + "/public/HTML/main.html");
+    //res.sendFile(__dir + "/public/HTML/main.html");
+    res.sendFile(__dir + "/public/HTML/Forms/login.html");
     console.log("sent");
+});
+
+// client side redirection auth check
+app.get('/check-auth', (req, res) => {
+    if (req.session.user) {
+        res.json({ isAuthenticated: true });
+    } else {
+        res.json({ isAuthenticated: false });
+    }
+});
+
+// login page
+app.post('/login',async (req,res)=>{
+    const {username,password} = req.body;
+    console.log(username, password);
+    try{
+        const [rows] = await db.promise().query('SELECT * FROM users WHERE username = ?',[username]);
+        console.log(rows)
+        if(rows.length == 0 || !rows || rows == null) {
+            return res.status(401).send('USERNAME OR PASSWORD IS INCORRECT');
+        }
+        const user = rows[0];
+        const passwordMatch = await bcrypt.compare(password,user.password);
+        if(!passwordMatch) {
+            return res.status(401).send('USERNAME OR PASSWORD IS INCORRECT');
+        }
+        req.session.user = {id: user.id, username: user.username};
+        console.log('success');
+        res.status(200).send('success');
+    }
+    catch (error){
+        console.error(error);
+        res.status(500).send("Server error");
+    }
+});
+
+//logout
+app.get("/logout", (req, res) => {
+    req.session.destroy((err) => {
+        if (err) return res.status(500).send("Logout failed");
+        console.log('session ended');
+        res.status(200).send('success');
+    });
+});
+
+// MAIN PAGE
+app.get('/main',requireAuth,(req,res)=>{
+    res.sendFile(__dir + "/public/HTML/main.html");
 });
 
 // GENERATING PERFORMA INVOICE
 
-app.post("/performaInvoice",(req,res)=>{
+app.post("/performaInvoice",requireAuth,(req,res)=>{
     //console.log("Request received at performaInvoice",req.body);
     req.session.pData = req.body;
     res.json({ message: "Order processed successfully"});
 });
 
 // saving invoice to db
-app.post("/saveInvoice",async (req,res)=>{
+app.post("/saveInvoice",requireAuth,async (req,res)=>{
     console.log(JSON.stringify(req.body,null,4));
     const {invoiceData, total} = req.body;
     //const invoiceNumber = invoiceData.invoiceNum;
@@ -126,7 +187,7 @@ app.post("/saveInvoice",async (req,res)=>{
 
 // ADDING CUSTOMER TO DB
 
-app.post("/customerForm",(req,res)=>{
+app.post("/customerForm",requireAuth,(req,res)=>{
     console.log(req.body);
     const {customerName, customerAddress, country, phoneNumber, officeNumber, email, VATnumber, PObox, website, shippingPort} = req.body;   
     const query = 'INSERT INTO customer_table (name, phone_number, email, address, country, VAT_number, office_number, website, PO_box, shipping_port) VALUES (?,?,?,?,?,?,?,?,?,?)';
@@ -143,7 +204,7 @@ app.post("/customerForm",(req,res)=>{
 
 // GENERATING CUSTOMER LIST
 
-app.get("/api/customerReport",(req,res)=>{
+app.get("/api/customerReport",requireAuth,(req,res)=>{
     const src = req.query.src;
     if(src == 'editCustomer'){
         db.query('SELECT name,id FROM customer_table',(err,results)=>{
@@ -166,7 +227,7 @@ app.get("/api/customerReport",(req,res)=>{
 });
 
 // sending customer data to edit customer
-app.get('/api/editCustomerData',(req,res)=>{
+app.get('/api/editCustomerData',requireAuth,(req,res)=>{
     const id = req.query.id;
     db.query('SELECT * FROM customer_table WHERE id = ?',[id],(err,results)=>{
         if(err){
@@ -178,7 +239,7 @@ app.get('/api/editCustomerData',(req,res)=>{
 });
 
 // saving edited customer details
-app.put('/editCustomer',async (req,res)=>{
+app.put('/editCustomer',requireAuth,async (req,res)=>{
     console.log(req.body);
     const data = req.body;
     const connection = await db.promise().getConnection();
@@ -200,7 +261,7 @@ app.put('/editCustomer',async (req,res)=>{
 });
 
 // SENDING CUSTOMER NAMES AND IDs TO FORMS
-app.get("/api/customerNames",(req,res)=>{
+app.get("/api/customerNames",requireAuth,(req,res)=>{
     db.query('SELECT id,name FROM customer_table',(err,names)=>{
         if(err){
             res.status(500).send({error: 'error fetching data'});
@@ -211,7 +272,7 @@ app.get("/api/customerNames",(req,res)=>{
 });
 
 // SENDING CUSTOMER SHIPPING PORT TO NEWORDER
-app.get('/api/customerShippingPort',(req,res)=>{
+app.get('/api/customerShippingPort',requireAuth,(req,res)=>{
     const customerID = req.query.customerID;
     db.query('SELECT shipping_port FROM customer_table WHERE id = ?;',[customerID],(err,result)=>{
         if(err){
@@ -223,7 +284,7 @@ app.get('/api/customerShippingPort',(req,res)=>{
 });
 
 // SENDING PRODUCT ID AND DESC TO ARTICLE LINK FORM
-app.get("/api/productIdAndDesc",(req,res)=>{
+app.get("/api/productIdAndDesc",requireAuth,(req,res)=>{
     db.query('SELECT id, description FROM product_table',(err,results)=>{
         if(err){
             res.status(500).send({error: 'error fetching data'});
@@ -235,7 +296,7 @@ app.get("/api/productIdAndDesc",(req,res)=>{
 
  // INSERTING PRODUCT DATA INTO DB
 
-app.post("/productForm",(req,res)=>{
+app.post("/productForm",requireAuth,(req,res)=>{
     const {productName, productDesc, materialComposition, productWeight, weightUnit, weightPacking, productSize, productCode, cartonLength, cartonHeight, cartonWidth, unitPackingType, cartonPackingType, unitPacking, cartonPacking} = req.body;
     
     const query = 'INSERT INTO product_table (category, description, hs_code, size, carton_length, carton_width, carton_height, weight, material_composition, weight_units, unit_packing_type, carton_packing_type, weight_packing_type, unit_packing, carton_packing) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)';
@@ -251,7 +312,7 @@ app.post("/productForm",(req,res)=>{
 
 // ADDING CUSTOMER ARTICLE NUMBERS INTO DB (customer_article TABLE)
 
-app.post("/articleLink",(req,res)=>{
+app.post("/articleLink",requireAuth,(req,res)=>{
     console.log(req.body);
     const {customerId, articleNumber, productNumber} = req.body;
     const query = 'INSERT INTO customer_article(customer_id,product_id,article_number) VALUES (?,?,?)';
@@ -268,7 +329,7 @@ app.post("/articleLink",(req,res)=>{
 
 //sending article names and numbers to newOrder.html
 
-app.get('/api/articleNumbersAndNames',(req,res)=>{
+app.get('/api/articleNumbersAndNames',requireAuth,(req,res)=>{
     const customerID = req.query.customerID;
     const query = `SELECT customer_article.article_number, product_table.description FROM customer_article INNER JOIN product_table ON customer_article.product_id = product_table.id WHERE customer_article.customer_id = ?;`;
     db.query(query,[customerID],(err,result)=>{
@@ -282,7 +343,7 @@ app.get('/api/articleNumbersAndNames',(req,res)=>{
 
 //sending articleNumbers to shippingInvoice.html
 
-app.get('/api/articleNumbersAndNamesForShipmentInvoice',(req,res)=>{
+app.get('/api/articleNumbersAndNamesForShipmentInvoice',requireAuth,(req,res)=>{
     const customerID = req.query.customerId;
     console.log(customerID);
     const query = `SELECT customer_article.id AS customer_article_id, customer_article.*, product_table.id AS product_id, product_table.* FROM customer_article INNER JOIN product_table ON customer_article.product_id = product_table.id WHERE customer_article.customer_id = ?`;
@@ -297,7 +358,7 @@ app.get('/api/articleNumbersAndNamesForShipmentInvoice',(req,res)=>{
 
 //sending invoice and order numbers to shippingInvoice
 
-app.get('/api/invoiceAndOrderNumbers',(req,res)=>{
+app.get('/api/invoiceAndOrderNumbers',requireAuth,(req,res)=>{
     const articleNumber = req.query.articleNumber;
     const query = 'SELECT * FROM invoice_table INNER JOIN order_table ON invoice_table.invoice_number = order_table.invoice_number  INNER JOIN orderDetail_table ON order_table.id = orderDetail_table.order_id INNER JOIN customer_article ON orderDetail_table.article_id = customer_article.id INNER JOIN product_table ON customer_article.product_id = product_table.id INNER JOIN balance_table ON orderDetail_table.id = balance_table.order_detail_id WHERE customer_article.id = ? AND balance_table.balance > 0 ORDER BY invoice_table.timestamp_column ASC';
     db.query(query,[articleNumber],(err,results)=>{
@@ -311,7 +372,7 @@ app.get('/api/invoiceAndOrderNumbers',(req,res)=>{
 
 //sending orderDetails to shippingInvoice
 
-app.get('/api/orderDetailsShippingInvoiceDisplay',(req,res)=>{
+app.get('/api/orderDetailsShippingInvoiceDisplay',requireAuth,(req,res)=>{
     const orderId = req.query.order_id;
     const articleId = req.query.article_id;
     console.log(orderId,articleId);
@@ -327,7 +388,7 @@ app.get('/api/orderDetailsShippingInvoiceDisplay',(req,res)=>{
 
 // SENDING DATA TO performa1.HTML
 
-app.get("/api/performa",(req,res)=>{
+app.get("/api/performa",requireAuth,(req,res)=>{
     // form data error check
     const performaData = req.session.pData;
     if(!performaData){
@@ -425,7 +486,7 @@ app.get("/api/performa",(req,res)=>{
 });
 
 // sending data to productList
-app.get('/api/productList',(req,res)=>{
+app.get('/api/productList',requireAuth,(req,res)=>{
     db.query('SELECT * FROM product_table',(err,results)=>{
         if(err){
             res.status(500).send({error: 'error fetching data'});
@@ -436,7 +497,7 @@ app.get('/api/productList',(req,res)=>{
 });
 
 // sending data for performa order bank
-app.get('/api/orderList', async (req,res)=>{
+app.get('/api/orderList',requireAuth, async (req,res)=>{
     
     try {
         const connection = await db.promise().getConnection();
@@ -537,7 +598,7 @@ app.get('/api/orderList', async (req,res)=>{
 });
 
 // select invoice number for edit invoice page
-app.get("/api/selectInvoice",(req,res)=>{
+app.get("/api/selectInvoice",requireAuth,(req,res)=>{
     const query = 'SELECT invoice_table.invoice_number,customer_table.name FROM invoice_table INNER JOIN customer_table ON invoice_table.customer_id = customer_table.id';
     db.query(query,(err,invoiceNumbers)=>{
         if(err){
@@ -548,7 +609,7 @@ app.get("/api/selectInvoice",(req,res)=>{
 });
 
 // send selected invoice data to edit invoice page
-app.get("/api/invoiceDetails",async (req,res)=>{
+app.get("/api/invoiceDetails",requireAuth,async (req,res)=>{
     const invoiceNumber = req.query.invoice_number;
     
     try{
@@ -605,7 +666,7 @@ app.get("/api/invoiceDetails",async (req,res)=>{
 
 // storing new invoice details from edit invoice page
 
-app.put("/EditPerformaInvoice",async (req,res)=>{
+app.put("/EditPerformaInvoice",requireAuth,async (req,res)=>{
     const connection = await db.promise().getConnection();
     console.log("request recieved at editinvoice");
 
@@ -689,7 +750,7 @@ app.put("/EditPerformaInvoice",async (req,res)=>{
             );
             const articleIdMap = Object.fromEntries(articleRows.map(article => [article.article_number, article.id]));
             const insertNewOrderDetails = newOrderDetails.map(detail=>
-                connection.query('INSERT INTO orderDetail_table(order_id,article_id,article_amount,unit_price,currency,status) VALUES (?,?,?,?,?)',[detail.orderid,articleIdMap[detail.productNumber],detail.productAmount,detail.unitPrice,detail.currency,'PENDING'])
+                connection.query('INSERT INTO orderDetail_table(order_id,article_id,article_amount,unit_price,currency,status) VALUES (?,?,?,?,?,?)',[detail.orderid,articleIdMap[detail.productNumber],detail.productAmount,detail.unitPrice,detail.currency,'PENDING'])
             );
             const results = await Promise.all(insertNewOrderDetails);
             const orderDetailIds = results.map(([result]) => result.insertId);
@@ -761,7 +822,7 @@ app.put("/EditPerformaInvoice",async (req,res)=>{
     
 });
 
-app.post("/productCategory",(req,res)=>{
+app.post("/productCategory",requireAuth,(req,res)=>{
     const {prodCategory} = req.body;
     db.query('INSERT INTO productCategory_table(product_category) VALUES (?);',[prodCategory],(err,result)=>{
         if(err){
@@ -772,7 +833,7 @@ app.post("/productCategory",(req,res)=>{
         res.status(200).json({message: "Category Added!"});
     });
 });
-app.get("/api/productCategoryGet",(req,res)=>{
+app.get("/api/productCategoryGet",requireAuth,(req,res)=>{
     db.query('SELECT product_category FROM productCategory_table;',(err,result)=>{
         if(err){
             console.error('Error inserting data:', err);
@@ -786,9 +847,8 @@ app.get("/api/productCategoryGet",(req,res)=>{
 
 
 // recieving data from shipping invoice and redirecting to commercial.html (client-side)
-app.post('/shippingInvoice', (req,res)=>{
+app.post('/shippingInvoice',requireAuth, (req,res)=>{
     req.session.shippingData = req.body;
-    //console.log(req.session.shippingData);
     if(!req.body){
         res.status(500).json({message: 'failed to receive data!'});
     }
@@ -796,21 +856,29 @@ app.post('/shippingInvoice', (req,res)=>{
 });
 
 //sending data for display on commercial.html
-app.get('/api/commercialInvoice',async (req,res)=>{
+app.get('/api/commercialInvoice',requireAuth,async (req,res)=>{
     const data = req.session.shippingData;
     console.log(data);
     const invoiceData = data.invoiceData;
     const products = data.products;
     const connection = await db.promise().getConnection();
     try{
-        const [r] = await connection.query('SELECT name,address,country,PO_box FROM customer_table WHERE id = ?',[invoiceData.customerID]);
-        const customerDetails = r[0];
-        const [rows] = await connection.query('SELECT invoice_number FROM commercial_invoice_table ORDER BY invoice_number DESC LIMIT 1');
-        if(rows.length>0){
-            var invoiceNumber = rows[0]?.invoice_number + 1;
+        if(invoiceData.src){
+            const [r] = await connection.query('SELECT address,country,PO_box FROM customer_table WHERE name = ?',[invoiceData.customerID]);
+            var customerDetails = r[0];
+            customerDetails.name = invoiceData.customerID;
+            var invoiceNumber = invoiceData.invoiceNumber;
         }else{
+            const [r] = await connection.query('SELECT name,address,country,PO_box FROM customer_table WHERE id = ?',[invoiceData.customerID]);
+            var customerDetails = r[0];
+            const [rows] = await connection.query('SELECT invoice_number FROM commercial_invoice_table ORDER BY invoice_number DESC LIMIT 1');
+            if(rows.length>0){
+                var invoiceNumber = rows[0]?.invoice_number + 1;
+            }else{
             var invoiceNumber = 222222;
         }
+        }
+        
         
         const productDetails = await Promise.all(
             data.products.map(async product=>{ 
@@ -850,7 +918,7 @@ app.get('/api/commercialInvoice',async (req,res)=>{
 });
 
 // saving commercial invoice
-app.get('/SaveCommercialInvoice',async (req,res)=>{
+app.get('/SaveCommercialInvoice',requireAuth,async (req,res)=>{
     const data = req.session.shippingData;
     const invoiceData = data.invoiceData;
     
@@ -881,7 +949,7 @@ app.get('/SaveCommercialInvoice',async (req,res)=>{
         
         //insert into commercial_invoice_table
         const insertOrderQueries = products.map(async product=>
-            await connection.query('INSERT INTO commercial_invoice_article_table(invoice_number,article_id,article_amount,cartons,unit_price,carton_gross_weight,carton_net_weight,currency,carton_packing,carton_packing_unit) VALUES (?,?,?,?,?,?,?,?,?,?)',[invoiceNumber, product.id, product.amount, product.cartons, product.unitPrice, product.gross, product.net, product.currency, product.cartonPacking, product.unit])
+            await connection.query('INSERT INTO commercial_invoice_article_table(invoice_number,order_id,article_id,article_amount,cartons,unit_price,carton_gross_weight,carton_net_weight,currency,carton_packing,carton_packing_unit) VALUES (?,?,?,?,?,?,?,?,?,?,?)',[invoiceNumber, product.orderId, product.id, product.amount, product.cartons, product.unitPrice, product.gross, product.net, product.currency, product.cartonPacking, product.unit])
         );
         await Promise.all(insertOrderQueries);  
 
@@ -912,7 +980,7 @@ app.get('/api/commercialInvoiceNumbers',(req,res)=>{
     });
 });
 
-app.get('/api/commercialOrderBank',async (req,res)=>{
+app.get('/api/commercialOrderBank',requireAuth,async (req,res)=>{
     const invoice_number = req.query.invoice_number;
     const connection = await db.promise().getConnection();
     
@@ -962,7 +1030,7 @@ app.get('/api/commercialOrderBank',async (req,res)=>{
 
 });
 
-app.get('/updateBalances',async (req,res)=>{
+app.get('/updateBalances',requireAuth,async (req,res)=>{
     const data = req.session.shippingData;
     const connection = await db.promise().getConnection();
 
@@ -1016,7 +1084,7 @@ app.get('/updateBalances',async (req,res)=>{
     }
 });
 
-app.get('/api/editCommercialInvoice',async (req,res)=>{
+app.get('/api/editCommercialInvoice',requireAuth,async (req,res)=>{
     const invoice_number = req.query.invoice_number;
     console.log(invoice_number);
     const connection = await db.promise().getConnection();
@@ -1067,7 +1135,7 @@ app.get('/api/editCommercialInvoice',async (req,res)=>{
     }
 });
 
-app.put('/updateCommercialInvoice',async (req,res)=>{
+app.put('/updateCommercialInvoice',requireAuth,async (req,res)=>{
     const invoiceData = req.body.invoiceData;
     console.log(invoiceData);
     const products = req.body.products;
@@ -1116,6 +1184,54 @@ app.put('/updateCommercialInvoice',async (req,res)=>{
         connection.release();
     }
     
+});
+
+//SENDING PRODUCT IDS TO EDIT PRODUCT FORM SELECT
+app.get('/api/productIds',requireAuth,(req,res)=>{
+    db.query('SELECT id,description FROM product_table',(err,results)=>{
+        if(err){
+            res.status(500).json({message: 'ERROR LOADING PRODUCTS'});
+        }
+        res.status(200).json(results);
+    });
+});
+
+// SENDING FETCHED PRODUCT DETAILS TO EDIT PRODUCT FORM
+app.get('/api/productDetails',requireAuth,(req,res)=>{
+    const id = req.query.id;
+    db.query('SELECT * FROM product_table WHERE id = ?',[id],(err,result)=>{
+        if(err){
+            res.status(500).json({message: 'ERROR FETCHING PRODUCT DETAILS'})
+        }
+        res.status(200).json(result);
+    });
+});
+
+// SAVING EDITED PRODUCT
+app.put('/saveEditProduct',requireAuth,async (req,res)=>{
+    req.session.editProductdata = req.body;
+    const data = req.session.editProductdata;
+    if(!data || data == null){
+        console.log('no/null data recieved');
+        res.status(500).json({message: 'NO DATA RECIEVED!'});
+    }
+    console.log(data);
+    const connection = await db.promise().getConnection();
+    try{
+        connection.beginTransaction();
+        const query = 'UPDATE product_table SET description = ?, hs_code = ?, size = ?, carton_length = ?, carton_width = ?, carton_height = ?, weight = ?, unit_packing = ?, carton_packing = ?, category = ?, material_composition = ?, weight_packing_type = ?, unit_packing_type = ?, carton_packing_type = ?, weight_units = ? WHERE id = ?';
+        await connection.query(query,[data.desc, data.code, data.size, data.cartonLength, data.cartonWidth, data.cartonHeight, data.weight, data.unitPacking, data.cartonPacking, data.category, data.materialComp, data.weightPackingType, data.unitPackingType, data.cartonPackingType, data.weightUnit, data.productID]);
+        await connection.commit();
+        res.status(200).json({message: 'ARTICLE UPDATED SUCCESSFULLY!'})
+    }
+    catch(error){
+        await connection.rollback();
+        console.log(error);
+        res.send(500).json({message: 'CANNOT EDIT ARTICLE!'});
+    }
+    finally{
+        connection.release();
+    }
 });
 
 app.listen(port,()=>{

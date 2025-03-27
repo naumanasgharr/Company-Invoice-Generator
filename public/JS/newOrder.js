@@ -1,3 +1,14 @@
+fetch('http://localhost:3000/check-auth', { credentials: 'include' })
+.then(response => response.json())
+.then(data => {
+    if (!data.isAuthenticated) {
+        window.location.href = '/';  // Redirect to login if session is gone
+    }
+})
+.catch(error => console.error('Error checking session:', error));
+
+
+
 document.addEventListener("DOMContentLoaded",()=>{
   const form = document.getElementById('mainForm');
   document.querySelector('#addOrderButton').addEventListener('click',()=>{
@@ -91,7 +102,8 @@ document.addEventListener("DOMContentLoaded",()=>{
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify(formData)
+      body: JSON.stringify(formData),
+      credentials: 'include'
     });
     if (response.ok) {
       const result = await response.json();

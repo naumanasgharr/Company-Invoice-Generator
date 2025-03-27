@@ -1,4 +1,16 @@
-fetch('http://localhost:3000/api/customerNames')
+fetch('http://localhost:3000/check-auth', { credentials: 'include' })
+.then(response => response.json())
+.then(data => {
+    if (!data.isAuthenticated) {
+        window.location.href = '/';  // Redirect to login if session is gone
+    }
+})
+.catch(error => console.error('Error checking session:', error));
+
+fetch('http://localhost:3000/api/customerNames',{
+  method: 'GET',
+  credentials: 'include'
+})
 .then(response=>response.json())
 .then(data=>{
     const customerNameSelect = document.querySelector('#customerName');
@@ -37,7 +49,10 @@ fetch('http://localhost:3000/api/customerNames')
         if(customerNameSelect.value !== '--SELECT--'){
             orderNumberSelect.innerHTML = '';
             articleNumberSelect.hidden = false;
-            fetch(`http://localhost:3000/api/articleNumbersAndNamesForShipmentInvoice?customerId=${customerNameSelect.value}`)
+            fetch(`http://localhost:3000/api/articleNumbersAndNamesForShipmentInvoice?customerId=${customerNameSelect.value}`,{
+              method: 'GET',
+              credentials: 'include'
+            })
             .then(response=>response.json())
             .then(data=>{
                 const selectOption = document.createElement('option');
@@ -78,7 +93,10 @@ fetch('http://localhost:3000/api/customerNames')
                     if(articleNumberSelect.value !='--SELECT--'){
                         orderNumberSelect.hidden = false;
                         orderNumberSelect.innerHTML = '';
-                        fetch(`http://localhost:3000/api/invoiceAndOrderNumbers?articleNumber=${articleNumberSelect.value}`)
+                        fetch(`http://localhost:3000/api/invoiceAndOrderNumbers?articleNumber=${articleNumberSelect.value}`,{
+                          method: 'GET',
+                          credentials: 'include'
+                        })
                         .then(response => response.json())
                         .then(data=>{
                             const selectOption = document.createElement('option');
@@ -139,7 +157,10 @@ function handleOrderNumberChange() {
     displayDiv.innerHTML = ''; 
 
     if (orderNumberSelect.value != '--SELECT--') {
-        fetch(`http://localhost:3000/api/orderDetailsShippingInvoiceDisplay?order_id=${orderNumberSelect.value}&article_id=${articleNumberSelect.value}`)
+        fetch(`http://localhost:3000/api/orderDetailsShippingInvoiceDisplay?order_id=${orderNumberSelect.value}&article_id=${articleNumberSelect.value}`,{
+          method: 'GET',
+          credentials: 'include'
+        })
             .then(response => response.json())
             .then(data => {
                 console.log(data);
@@ -298,7 +319,8 @@ document.querySelector('#form').addEventListener('submit',async function (event)
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify(formData)
+      body: JSON.stringify(formData),
+      credentials: 'include'
     });
     if (response.ok) {
       const result = await response.json();

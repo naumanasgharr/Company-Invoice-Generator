@@ -1,4 +1,18 @@
-fetch("http://localhost:3000/api/orderList")
+fetch('http://localhost:3000/check-auth', { credentials: 'include' })
+.then(response => response.json())
+.then(data => {
+    if (!data.isAuthenticated) {
+        window.location.href = '/';  // Redirect to login if session is gone
+    }
+})
+.catch(error => console.error('Error checking session:', error));
+
+
+
+fetch("http://localhost:3000/api/orderList",{
+    method: 'GET',
+    credentials: 'include'
+})
     .then(response=>response.json())
     .then(data=>{
         console.log(data);

@@ -1,6 +1,19 @@
+fetch('http://localhost:3000/check-auth', { credentials: 'include' })
+.then(response => response.json())
+.then(data => {
+    if (!data.isAuthenticated) {
+        window.location.href = '/';  // Redirect to login if session is gone
+    }
+})
+.catch(error => console.error('Error checking session:', error));
+
+
 let total;
 let invoiceData;
-fetch('http://localhost:3000/api/performa')
+fetch('http://localhost:3000/api/performa',{
+    method: 'GET',
+    credentials: 'include'
+})
     .then(async response =>{
         if (!response.ok) {
             const errorData = await response.json(); // Ensure we read the JSON error
@@ -116,7 +129,8 @@ document.addEventListener("DOMContentLoaded",()=>{
                 body: JSON.stringify({
                     invoiceData: invoiceData.performa,
                     total: total
-                })
+                }),
+                credentials: 'include'
             });
             const result = await response.json();
             if (response.ok) {

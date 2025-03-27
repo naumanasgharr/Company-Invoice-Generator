@@ -1,7 +1,25 @@
-fetch('http://localhost:3000/api/commercialInvoice')
+fetch('http://localhost:3000/check-auth', { credentials: 'include' })
+    .then(response => response.json())
+    .then(data => {
+        if (!data.isAuthenticated) {
+            window.location.href = '/';  // Redirect to login if session is gone
+        }
+    })
+    .catch(error => console.error('Error checking session:', error));
+
+fetch('http://localhost:3000/api/commercialInvoice',{
+    method: 'GET',
+    credentials: 'include'
+})
 .then(response=>response.json())
 .then(data=>{
-    console.log(data);
+    if(data.invoiceData.src)
+    {
+        document.querySelector('#saveButton').hidden = true;
+    }
+    else{
+        document.querySelector('#saveButton').hidden = false;
+    }
 
     //invoice Details
     document.querySelector('#invoiceNumber').textContent = data.invoiceData.invoiceNumber;
@@ -51,7 +69,7 @@ fetch('http://localhost:3000/api/commercialInvoice')
                     <td>${price} ${product.currency}</td>
                 `;
                 cartonNumber += Number(product.cartons) ;
-                console.log(cartonNumber);
+                //console.log(cartonNumber);
                 total += (amount*product.unitPrice);
                 table.appendChild(row);
             } 
@@ -113,7 +131,7 @@ fetch('http://localhost:3000/api/commercialInvoice')
                     <td>${product.cartonGrossWeight*product.cartons}</td>
                 `;
                 cartonNumber2 += Number(product.cartons);
-                console.log(cartonNumber2);
+                //console.log(cartonNumber2);
                 totalNetWeight += product.cartons * product.cartonNetWeight;
                 totalGrossWeight += product.cartons * product.cartonGrossWeight; 
                 table.appendChild(row);
@@ -140,7 +158,10 @@ fetch('http://localhost:3000/api/commercialInvoice')
 
 document.querySelector('#saveButton').addEventListener('click', async () => {
     try {
-        const response = await fetch('http://localhost:3000/SaveCommercialInvoice');
+        const response = await fetch('http://localhost:3000/SaveCommercialInvoice',{
+            method: 'GET',
+            credentials: 'include'
+        });
         
         if (!response.ok) { 
             const errorData = await response.json();
@@ -157,19 +178,22 @@ document.querySelector('#saveButton').addEventListener('click', async () => {
 
 document.querySelector('#updateBalance').addEventListener('click',async function(){
     try {
-        const response = await fetch('http://localhost:3000/updateBalances');
-        
-        if (!response.ok) { 
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'An error occurred while saving the invoice.');
-        }
+        const response = await fetch('http://localhost:3000/updateBalances',{
+            method: 'GET',
+            credentials: 'include'
+        });
         
         const data = await response.json();
+        
+        if (!response.ok) { 
+            throw new Error(data.error || 'An error occurred while saving the invoice.');
+        }
+        
         alert(data.message); 
     }
     catch(error) {
         console.error('Error:', error.message);
-        alert(error.error);
+        alert(error.message);
     }
 });
 

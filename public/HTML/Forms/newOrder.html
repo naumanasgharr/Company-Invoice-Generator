@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://localhost:3000;">
 
     <title>Inventory manager</title>
     <style>
@@ -16,22 +15,20 @@
             text-align: center;
         }
 
-        h1 {
-            color: #283593;
-            font-size: 28px;
-            text-transform: uppercase;
-            margin-bottom: 10px;
-        }
-
         h2 {
+            text-align: left;
+            margin-bottom: 20px;
+            padding: 10px;
             color: #283593;
             font-size: 24px;
             text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 1px;
             border-bottom: 2px solid #283593;
             display: inline-block;
+            margin-left: 0;
             padding-bottom: 5px;
-            margin-bottom: 20px;
-        }
+        }   
 
         .invoiceDetails {
             display: grid;
@@ -240,7 +237,7 @@
     </style>
 </head>
 <body>
-    <h2><strong>INVOICE DETAILS</strong></h2>
+    <h2><strong>NEW INVOICE</strong></h2>
     <div class = "form">
         <form id = 'mainForm' action="/performaInvoice" method="post">     
             <div class="invoiceDetails">
@@ -285,7 +282,10 @@
 
     <script src="../../JS/newOrder.js"></script>
     <script>
-        fetch("http://localhost:3000/api/customerNames")
+        fetch("http://localhost:3000/api/customerNames",{
+            method: 'GET',
+            credentials: 'include'
+        })
         .then(response=>response.json())
         .then(data=>{ 
             data.forEach(object => {
@@ -304,7 +304,10 @@
             shippingPortInput.value = '';
             div.innerHTML = '';
             if(customerId != '--SELECT--'){
-                fetch(`http://localhost:3000/api/articleNumbersAndNames?customerID=${customerId}`)
+                fetch(`http://localhost:3000/api/articleNumbersAndNames?customerID=${customerId}`,{
+                    method: 'GET',
+                    credentials: 'include'
+                })
                 .then(response => response.json())
                 .then(data => {
                     const divHeading = document.createElement('h5');
@@ -320,7 +323,10 @@
                 })
                 .catch(error => console.log('Error fetching article numbers:', error));
 
-                fetch(`http://localhost:3000/api/customerShippingPort?customerID=${customerId}`)
+                fetch(`http://localhost:3000/api/customerShippingPort?customerID=${customerId}`,{
+                    method: 'GET',
+                    credentials: 'include'
+                })
                 .then(response=>response.json())
                 .then(data=>{
                     shippingPortInput.value = data[0].shipping_port;
