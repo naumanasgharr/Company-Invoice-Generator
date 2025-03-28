@@ -529,10 +529,10 @@ async function editFormSubmitHandler(event){
 
 
 function showViewButton(){
-    const buttonDiv = document.querySelector('.submitButtonDiv');
+    const buttonDiv = document.querySelector('.button');
     if (!buttonDiv) {
-        buttonDiv = document.createElement('div');
-        buttonDiv.className = 'submitButtonDiv';
+        const buttonDiv = document.createElement('div');
+        buttonDiv.className = 'button';
         document.querySelector('#editForm').appendChild(buttonDiv);
     }
 
@@ -545,7 +545,7 @@ function showViewButton(){
     viewButton.innerText = 'View Invoice';
     viewButton.id = 'viewInvoice';
     viewButton.type = 'button';
-    viewButton.className = 'button';
+    viewButton.className = 'viewButton';
     buttonDiv.appendChild(viewButton);
 
     viewButton.addEventListener('click', ()=>{
