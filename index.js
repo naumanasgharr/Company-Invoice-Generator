@@ -65,7 +65,7 @@ app.get('/check-auth', (req, res) => {
 
 //error page
 app.use((req, res, next) => {
-    const publicRoutes = ["/", "/login", "/logout"]; // Add other public routes if needed
+    const publicRoutes = ["/", "/login", "/logout"];
 
     if (!req.session.user && !publicRoutes.includes(req.path)) {
         return res.status(401).send("Unauthorized! Please log in.");
@@ -397,7 +397,7 @@ app.get("/api/performa",requireAuth,(req,res)=>{
             res.status(500).json({error: 'error fetching data'});
         }
         
-            console.log(invoiceNum);           
+        console.log(invoiceNum);           
         
         // SQL query for retrieving customer data related to customerid recieved from form data/ used nested queries (3)
         const query1 = 'SELECT * FROM customer_table WHERE id = ?'; 
@@ -458,7 +458,7 @@ app.get("/api/performa",requireAuth,(req,res)=>{
                                     performa: performaData,
                                     customer: customerResult[0],
                                     products: products,
-                                    invoiceNumber: 1500
+                                    invoiceNumber: 222222
                                 });
                             }
                         }
@@ -844,7 +844,7 @@ app.put("/EditPerformaInvoice",requireAuth,async (req,res)=>{
 //adding product category into db
 app.post("/productCategory",requireAuth,(req,res)=>{
     const {prodCategory} = req.body;
-    db.query('INSERT INTO productCategory_table(product_category) VALUES (?);',[prodCategory],(err,result)=>{
+    db.query('INSERT INTO productcategory_table(product_category) VALUES (?);',[prodCategory],(err,result)=>{
         if(err){
             console.error('Error inserting data:', err);
             res.status(500).send('Failed to insert data');
@@ -856,7 +856,7 @@ app.post("/productCategory",requireAuth,(req,res)=>{
 
 //sending product categories to product form
 app.get("/api/productCategoryGet",requireAuth,(req,res)=>{
-    db.query('SELECT product_category FROM productCategory_table;',(err,result)=>{
+    db.query('SELECT product_category FROM productcategory_table;',(err,result)=>{
         if(err){
             console.error('Error inserting data:', err);
             res.status(500).send('Failed to insert data');

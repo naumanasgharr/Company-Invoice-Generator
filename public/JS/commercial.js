@@ -305,82 +305,62 @@ function isCanvasBlank(canvas) {
 
 //excel button
 function exportToExcel() {
-    // Get the header table and main table
-    const headerTable = document.querySelector('.header-table1');
-    const mainTable = document.querySelector('.mainTable1');
+    const headerTable1 = document.querySelector('.header-table1');
+    const mainTable1 = document.querySelector('.mainTable1');
+    const headerTable2 = document.querySelector('.header-table2');
+    const mainTable2 = document.querySelector('.mainTable2');
 
-    // Convert tables to worksheets
-    const headerSheet = XLSX.utils.table_to_sheet(headerTable);
-    const mainSheet = XLSX.utils.table_to_sheet(mainTable);
+    // Convert each table to sheet
+    const sheet1_header = XLSX.utils.table_to_sheet(headerTable1);
+    const sheet1_main = XLSX.utils.table_to_sheet(mainTable1);
+    const sheet2_header = XLSX.utils.table_to_sheet(headerTable2);
+    const sheet2_main = XLSX.utils.table_to_sheet(mainTable2);
 
-    // Merge the two worksheets into one
-    const combinedSheet = { ...headerSheet };
-    let rowOffset = XLSX.utils.decode_range(headerSheet['!ref']).e.r + 1;
+    // Helper function to merge two tables into one sheet
+    function mergeSheets(sheetA, sheetB) {
+        const mergedSheet = { ...sheetA };
+        mergedSheet['!ref'] = sheetA['!ref'];
 
-    Object.keys(mainSheet).forEach((key) => {
-        if (key.startsWith('!')) {
-            if (key === '!ref') {
-                const mainRange = XLSX.utils.decode_range(mainSheet['!ref']);
-                const combinedRange = {
-                    s: { r: 0, c: 0 },
-                    e: {
-                        r: mainRange.e.r + rowOffset,
-                        c: Math.max(mainRange.e.c, XLSX.utils.decode_range(headerSheet['!ref']).e.c),
-                    },
-                };
-                combinedSheet['!ref'] = XLSX.utils.encode_range(combinedRange);
+        const offset = XLSX.utils.decode_range(sheetA['!ref']).e.r + 2;
+        const rangeB = XLSX.utils.decode_range(sheetB['!ref']);
+
+        Object.keys(sheetB).forEach(key => {
+            if (!key.startsWith('!')) {
+                const cell = XLSX.utils.decode_cell(key);
+                const newAddress = XLSX.utils.encode_cell({ r: cell.r + offset, c: cell.c });
+                mergedSheet[newAddress] = sheetB[key];
             }
-        } else {
-            const cell = XLSX.utils.decode_cell(key);
-            cell.r += rowOffset;
-            const newKey = XLSX.utils.encode_cell(cell);
-            combinedSheet[newKey] = mainSheet[key];
-        }
-    });
+        });
 
-    // Set column widths
-    combinedSheet['!cols'] = [
-        { wch: 20 }, // Set width for column 1
-        { wch: 40 }, // Set width for column 2
-        { wch: 15 }, // Set width for column 3
-        { wch: 20 }  // Set width for column 4
-    ];
-
-    // Apply styles manually
-    const range = XLSX.utils.decode_range(combinedSheet['!ref']);
-    for (let row = range.s.r; row <= range.e.r; row++) {
-        for (let col = range.s.c; col <= range.e.c; col++) {
-            const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
-            const cell = combinedSheet[cellAddress];
-            if (cell) {
-                cell.s = {
-                    font: {
-                        name: 'Times New Roman', // Font name
-                        sz: 12,        // Font size
-                        bold: row === 0, // Bold header row
-                    },
-                    alignment: {
-                        horizontal: 'center', // Center alignment
-                        vertical: 'center',   // Vertical alignment
-                    },
-                    border: {
-                        top: { style: 'thin', color: { rgb: '000000' } },
-                        bottom: { style: 'thin', color: { rgb: '000000' } },
-                        left: { style: 'thin', color: { rgb: '000000' } },
-                        right: { style: 'thin', color: { rgb: '000000' } },
-                    },
-                };
+        const rangeA = XLSX.utils.decode_range(sheetA['!ref']);
+        mergedSheet['!ref'] = XLSX.utils.encode_range({
+            s: { r: 0, c: 0 },
+            e: {
+                r: offset + rangeB.e.r,
+                c: Math.max(rangeA.e.c, rangeB.e.c)
             }
-        }
+        });
+
+        return mergedSheet;
     }
 
-    // Create workbook and append combined sheet
+    // Merge for each sheet
+    const commercialSheet = mergeSheets(sheet1_header, sheet1_main);
+    const packingSheet = mergeSheets(sheet2_header, sheet2_main);
+
+    // Optionally define column widths
+    commercialSheet['!cols'] = [
+        { wch: 20 }, { wch: 40 }, { wch: 15 }, { wch: 20 }, { wch: 20 }
+    ];
+    packingSheet['!cols'] = [
+        { wch: 20 }, { wch: 40 }, { wch: 15 }, { wch: 15 }
+    ];
+
+    // Create workbook and append both sheets
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, combinedSheet, 'Sheet1');
+    XLSX.utils.book_append_sheet(workbook, commercialSheet, 'Commercial Invoice');
+    XLSX.utils.book_append_sheet(workbook, packingSheet, 'Packing List');
 
-    // Export the workbook
-    XLSX.writeFile(workbook, 'StyledTable.xlsx');
+    // Save
+    XLSX.writeFile(workbook, 'Commercial_and_Packing_List.xlsx');
 }
-
-
-

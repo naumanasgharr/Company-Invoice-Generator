@@ -105,7 +105,6 @@ fetch('http://localhost:3000/api/performa',{
             <td><strong>SHIPMENT DATE:</strong> ${form.shipmentDate}</td>
             <td></td>
             <td></td>
-            <td></td>
         `;  
         
         document.getElementById('totalValue').innerHTML=`Total: <strong>${total} ${currencyArray[0]}<strong>`;
@@ -181,30 +180,73 @@ function exportToExcel() {
         }
     });
 
+    // 📌 Insert 2 blank rows after row 12
+    const insertAfterRow = 11;
+    const numBlankRows = 2;
+    const newSheet = {};
+
+    Object.keys(combinedSheet).forEach((key) => {
+        if (key.startsWith('!')) return;
+
+        const cell = XLSX.utils.decode_cell(key);
+        const newCell = { ...cell };
+
+        if (cell.r > insertAfterRow) {
+            newCell.r += numBlankRows;
+        }
+
+        const newKey = XLSX.utils.encode_cell(newCell);
+        newSheet[newKey] = combinedSheet[key];
+    });
+
+    // Copy meta properties
+    Object.keys(combinedSheet).forEach((key) => {
+        if (key.startsWith('!')) {
+            newSheet[key] = combinedSheet[key];
+        }
+    });
+
+    // Update !ref range to reflect new rows
+    const oldRange = XLSX.utils.decode_range(combinedSheet['!ref']);
+    const newRange = {
+        s: oldRange.s,
+        e: {
+            r: oldRange.e.r + numBlankRows,
+            c: oldRange.e.c,
+        },
+    };
+    newSheet['!ref'] = XLSX.utils.encode_range(newRange);
+
     // Set column widths
-    combinedSheet['!cols'] = [
-        { wch: 20 }, // Set width for column 1
-        { wch: 40 }, // Set width for column 2
-        { wch: 15 }, // Set width for column 3
-        { wch: 20 }  // Set width for column 4
+    newSheet['!cols'] = [
+        { wch: 20 },
+        { wch: 40 },
+        { wch: 15 },
+        { wch: 20 }
     ];
 
-    // Apply styles manually
-    const range = XLSX.utils.decode_range(combinedSheet['!ref']);
+    newSheet['!rows'] = [];
+    newSheet['!rows'][0] = { hpt: 40 };
+    newSheet['!rows'][1] = { hpt: 40 };
+    newSheet['!rows'][14] = { hpt: 30 };
+    newSheet['!rows'][6] = { hpt: 30 }; 
+
+    // Apply styles
+    const range = XLSX.utils.decode_range(newSheet['!ref']);
     for (let row = range.s.r; row <= range.e.r; row++) {
         for (let col = range.s.c; col <= range.e.c; col++) {
             const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
-            const cell = combinedSheet[cellAddress];
+            const cell = newSheet[cellAddress];
             if (cell) {
                 cell.s = {
                     font: {
-                        name: 'Times New Roman', // Font name
-                        sz: 12,        // Font size
-                        bold: row === 0, // Bold header row
+                        name: 'Times New Roman',
+                        sz: 12,
+                        bold: row === 0,
                     },
                     alignment: {
-                        horizontal: 'center', // Center alignment
-                        vertical: 'center',   // Vertical alignment
+                        horizontal: 'center',
+                        vertical: 'center',
                     },
                     border: {
                         top: { style: 'thin', color: { rgb: '000000' } },
@@ -217,12 +259,18 @@ function exportToExcel() {
         }
     }
 
-    // Create workbook and append combined sheet
+    // Create and export workbook
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, combinedSheet, 'Sheet1');
-
-    // Export the workbook
-    XLSX.writeFile(workbook, 'StyledTable.xlsx');
+    newSheet["B1"].s = {
+        font: {
+            name: "Times New Roman",
+            sz: 25,
+            bold: true,
+            color: { rgb: "000000" } // Blue
+        }
+    };
+    XLSX.utils.book_append_sheet(workbook, newSheet, 'Sheet1');
+    XLSX.writeFile(workbook, 'performa.xlsx');
 }
 
 
