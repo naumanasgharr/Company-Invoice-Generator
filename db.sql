@@ -1,8 +1,8 @@
--- MySQL dump 10.13  Distrib 8.0.40, for Win64 (x86_64)
+-- MySQL dump 10.13  Distrib 8.0.41, for Linux (x86_64)
 --
--- Host: localhost    Database: database1
+-- Host: localhost    Database: customer_manager_db
 -- ------------------------------------------------------
--- Server version	8.0.40
+-- Server version	8.0.41-0ubuntu0.24.04.1
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -34,18 +34,31 @@ CREATE TABLE `balance_table` (
   KEY `article_id` (`article_id`),
   CONSTRAINT `balance_table_ibfk_1` FOREIGN KEY (`order_detail_id`) REFERENCES `orderdetail_table` (`id`) ON DELETE CASCADE,
   CONSTRAINT `balance_table_ibfk_2` FOREIGN KEY (`article_id`) REFERENCES `customer_article` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `balance_table`
+--
+
+LOCK TABLES `balance_table` WRITE;
+/*!40000 ALTER TABLE `balance_table` DISABLE KEYS */;
+/*!40000 ALTER TABLE `balance_table` ENABLE KEYS */;
+UNLOCK TABLES;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
 /*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = cp850 */ ;
-/*!50003 SET character_set_results = cp850 */ ;
-/*!50003 SET collation_connection  = cp850_general_ci */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `update_order_status` AFTER UPDATE ON `balance_table` FOR EACH ROW BEGIN IF NEW.balance = 0 THEN UPDATE orderDetail_table SET status = 'COMPLETED' WHERE id = NEW.order_detail_id; END IF; END */;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `update_order_status` AFTER UPDATE ON `balance_table` FOR EACH ROW BEGIN
+  IF NEW.balance = 0 THEN
+    UPDATE orderdetail_table SET status = 'COMPLETED' WHERE id = NEW.order_detail_id;
+  END IF;
+END */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
@@ -77,8 +90,17 @@ CREATE TABLE `commercial_invoice_article_table` (
   KEY `article_id` (`article_id`),
   CONSTRAINT `commercial_invoice_article_table_ibfk_1` FOREIGN KEY (`invoice_number`) REFERENCES `commercial_invoice_table` (`invoice_number`) ON DELETE CASCADE,
   CONSTRAINT `commercial_invoice_article_table_ibfk_2` FOREIGN KEY (`article_id`) REFERENCES `customer_article` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `commercial_invoice_article_table`
+--
+
+LOCK TABLES `commercial_invoice_article_table` WRITE;
+/*!40000 ALTER TABLE `commercial_invoice_article_table` DISABLE KEYS */;
+/*!40000 ALTER TABLE `commercial_invoice_article_table` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `commercial_invoice_table`
@@ -105,8 +127,17 @@ CREATE TABLE `commercial_invoice_table` (
   PRIMARY KEY (`invoice_number`),
   KEY `customer_id` (`customer_id`),
   CONSTRAINT `commercial_invoice_table_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `customer_table` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=222222 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `commercial_invoice_table`
+--
+
+LOCK TABLES `commercial_invoice_table` WRITE;
+/*!40000 ALTER TABLE `commercial_invoice_table` DISABLE KEYS */;
+/*!40000 ALTER TABLE `commercial_invoice_table` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `customer_article`
@@ -120,13 +151,31 @@ CREATE TABLE `customer_article` (
   `customer_id` int DEFAULT NULL,
   `product_id` int DEFAULT NULL,
   `article_number` varchar(255) DEFAULT NULL,
+  `unit_packing` int DEFAULT NULL,
+  `carton_packing` int DEFAULT NULL,
+  `carton_length` varchar(50) DEFAULT NULL,
+  `carton_width` varchar(50) DEFAULT NULL,
+  `carton_height` varchar(50) DEFAULT NULL,
+  `carton_packing_type` varchar(10) DEFAULT NULL,
+  `unit_packing_type` varchar(10) DEFAULT NULL,
+  `hs_code` varchar(100) DEFAULT NULL,
+  `description` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `customer_id` (`customer_id`),
   KEY `product_id` (`product_id`),
   CONSTRAINT `customer_article_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `customer_table` (`id`),
-  CONSTRAINT `customer_article_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `product_table` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  CONSTRAINT `customer_article_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `product_table` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `customer_article`
+--
+
+LOCK TABLES `customer_article` WRITE;
+/*!40000 ALTER TABLE `customer_article` DISABLE KEYS */;
+/*!40000 ALTER TABLE `customer_article` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `customer_table`
@@ -149,8 +198,18 @@ CREATE TABLE `customer_table` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `shipping_port` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1000011 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=100003 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `customer_table`
+--
+
+LOCK TABLES `customer_table` WRITE;
+/*!40000 ALTER TABLE `customer_table` DISABLE KEYS */;
+INSERT INTO `customer_table` VALUES (100001,'Fitzner Global','0049-0-574293903','info@fitzner.de','Schillerstrabe 53 32361 Per oldendorf ','Germany','DE125748681','','www.fitzner.de','','2025-04-18 21:55:08','Hamburg');
+/*!40000 ALTER TABLE `customer_table` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `invoice_table`
@@ -172,8 +231,18 @@ CREATE TABLE `invoice_table` (
   UNIQUE KEY `invoice_number` (`invoice_number`),
   KEY `customer_id` (`customer_id`),
   CONSTRAINT `invoice_table_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `customer_table` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=222223 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `invoice_table`
+--
+
+LOCK TABLES `invoice_table` WRITE;
+/*!40000 ALTER TABLE `invoice_table` DISABLE KEYS */;
+INSERT INTO `invoice_table` VALUES (222222,100001,'2025-05-01','','','1200.00','Hamburg','2025-04-23 16:53:37');
+/*!40000 ALTER TABLE `invoice_table` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `order_table`
@@ -189,8 +258,18 @@ CREATE TABLE `order_table` (
   PRIMARY KEY (`id`),
   KEY `invoice_number` (`invoice_number`),
   CONSTRAINT `order_table_ibfk_1` FOREIGN KEY (`invoice_number`) REFERENCES `invoice_table` (`invoice_number`)
-) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `order_table`
+--
+
+LOCK TABLES `order_table` WRITE;
+/*!40000 ALTER TABLE `order_table` DISABLE KEYS */;
+INSERT INTO `order_table` VALUES (1,222222,'5');
+/*!40000 ALTER TABLE `order_table` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `orderdetail_table`
@@ -210,10 +289,19 @@ CREATE TABLE `orderdetail_table` (
   PRIMARY KEY (`id`),
   KEY `article_id` (`article_id`),
   KEY `order_id` (`order_id`),
-  CONSTRAINT `orderdetail_table_ibfk_2` FOREIGN KEY (`article_id`) REFERENCES `customer_article` (`id`),
+  CONSTRAINT `orderdetail_table_ibfk_2` FOREIGN KEY (`article_id`) REFERENCES `customer_article` (`id`) ON DELETE CASCADE,
   CONSTRAINT `orderdetail_table_ibfk_3` FOREIGN KEY (`order_id`) REFERENCES `order_table` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=28 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `orderdetail_table`
+--
+
+LOCK TABLES `orderdetail_table` WRITE;
+/*!40000 ALTER TABLE `orderdetail_table` DISABLE KEYS */;
+/*!40000 ALTER TABLE `orderdetail_table` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `product_table`
@@ -243,8 +331,17 @@ CREATE TABLE `product_table` (
   PRIMARY KEY (`id`),
   KEY `fk_category` (`category`),
   CONSTRAINT `fk_category` FOREIGN KEY (`category`) REFERENCES `productcategory_table` (`product_category`)
-) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `product_table`
+--
+
+LOCK TABLES `product_table` WRITE;
+/*!40000 ALTER TABLE `product_table` DISABLE KEYS */;
+/*!40000 ALTER TABLE `product_table` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `productcategory_table`
@@ -258,6 +355,16 @@ CREATE TABLE `productcategory_table` (
   UNIQUE KEY `fk_category` (`product_category`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `productcategory_table`
+--
+
+LOCK TABLES `productcategory_table` WRITE;
+/*!40000 ALTER TABLE `productcategory_table` DISABLE KEYS */;
+INSERT INTO `productcategory_table` VALUES ('Tri Cot Gloves');
+/*!40000 ALTER TABLE `productcategory_table` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `users`
@@ -274,6 +381,16 @@ CREATE TABLE `users` (
   UNIQUE KEY `username` (`username`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `users`
+--
+
+LOCK TABLES `users` WRITE;
+/*!40000 ALTER TABLE `users` DISABLE KEYS */;
+INSERT INTO `users` VALUES (1,'waheed_azam','$2b$10$RJ0lbcqQNbrAiY9YwSAvl.QXsmNDQ43eWNOduTZGKUiVAoqTTHzbu'),(2,'ghulam_mustafa','$2b$10$6.9kUkMPIkzS0LmkrSuqwuQPB/VnvZifc./H45MOewT/OJ6.z1FF2'),(3,'haseeb_','$2b$10$pfhx17hyM0bXkZeujrvOSO1rlrkbla2tLdprxfIPVZlvKoPtzdtUm');
+/*!40000 ALTER TABLE `users` ENABLE KEYS */;
+UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -284,4 +401,4 @@ CREATE TABLE `users` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-03-28  9:37:49
+-- Dump completed on 2025-05-05 19:47:43
