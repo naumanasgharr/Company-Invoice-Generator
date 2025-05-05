@@ -158,6 +158,7 @@
     </style>
 </head>
 <body>
+    <div><button style="margin: 4px; padding:12px 20px; display: flex;" id="homeButton" onclick="window.location.href='../main.html'">HOME</button></div>
     <div id="headingDiv"><h2><strong>EDIT COMMERCIAL INVOICE</strong></h2></div>
     
     <div id="invoiceNumberDiv">
@@ -175,9 +176,9 @@
                 <label hidden for="cartonsValueInput" id="cartonsValueLabel">cartons: <input required name="cartonsValueInput" type="text" id="cartonsValueInput"></label>        
                 <label hidden id="cartonPackingLabel" for="cartonPacking">Carton Packing:<input required name="cartonPacking" type="text" id="cartonPackingInput"></label>
                 <select hidden disabled id="cartonPackingUnits">
-                    <option>pcs</option>
-                    <option>prs</option>
-                    <option>dzn</option>
+                    <option>Pcs</option>
+                    <option>Prs</option>
+                    <option>Dzn</option>
                 </select>
                 <label hidden id="cartonNetWeightLabel" for="cartonNetWeight">Carton Net WT: <input  name="cartonNetWeight" id="cartonNetWeight" type="number" min="0" step="0.001"></label>
                 <label hidden id="cartonGrossWeightLabel" for="cartonGrossWeight">Carton Gross WT: <input name="cartonGrossWeight" id="cartonGrossWeight" type="number" min="0" step="0.001"></label>

@@ -63,7 +63,7 @@ fetch('http://localhost:3000/api/commercialInvoiceNumbers',{
                         const header = document.createElement('p');
                         header.innerHTML = `
                             <br>
-                            <strong>${article.category} - ${article.description}</strong>
+                            <strong>${article.description}</strong>
                             <br>
                             Cartons: ${article.cartons}
                             <br>

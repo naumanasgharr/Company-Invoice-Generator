@@ -86,14 +86,21 @@ fetch('http://localhost:3000/api/performa',{
                     const currency =  currencyArray[index];
                     const cartons = Math.ceil(productAmount / product.carton_packing);
                     total += (unitPrice*productAmount);
-                    const newRow = document.createElement('tr');
-                    newRow.innerHTML = `
-                        <td>  <strong>${articleNumber}</strong><br>1 - ${cartons}<br>${product.carton_packing} ${product.carton_packing_type}</td>
-                        <td><strong>${product.description}</strong><br>${cartons} CARTONS --- ${productAmount} ${product.carton_packing_type}</td>
+                    const newRow1 = document.createElement('tr');
+                    const newRow2 = document.createElement('tr');
+                    newRow1.innerHTML = `
+                        <td><strong>${articleNumber}</strong></td>
+                        <td><strong>${product.description}</strong></td>
                         <td>${unitPrice}${currency}</td>
                         <td>${(unitPrice*productAmount).toFixed(2)}${currency}</td>
+                    `;
+                    newRow2.innerHTML = `
+                        <td>1 - ${cartons} <br> ${product.carton_packing} ${product.carton_packing_type}</td>
+                        <td>${cartons} CARTONS --- ${productAmount} ${product.carton_packing_type}</td>
+                        <td></td>
+                        <td></td>
                     `;   
-                    mainTable.appendChild(newRow);
+                    mainTable.append(newRow1,newRow2);
                 }
             });
         });
@@ -105,8 +112,8 @@ fetch('http://localhost:3000/api/performa',{
             <td><strong>SHIPMENT DATE:</strong> ${form.shipmentDate}</td>
             <td></td>
             <td></td>
-        `;  
-        
+        `;
+
         document.getElementById('totalValue').innerHTML=`Total: <strong>${total} ${currencyArray[0]}<strong>`;
         table.appendChild(shipmentRow);     
     }).catch(error =>{
@@ -142,10 +149,9 @@ document.addEventListener("DOMContentLoaded",()=>{
         }
     });
 });
-    
+
 
 //excel file button
-
 function exportToExcel() {
     // Get the header table and main table
     const headerTable = document.querySelector('.header-table');
@@ -180,7 +186,7 @@ function exportToExcel() {
         }
     });
 
-    // 📌 Insert 2 blank rows after row 12
+    // ��� Insert 2 blank rows after row 12
     const insertAfterRow = 11;
     const numBlankRows = 2;
     const newSheet = {};
@@ -229,7 +235,7 @@ function exportToExcel() {
     newSheet['!rows'][0] = { hpt: 40 };
     newSheet['!rows'][1] = { hpt: 40 };
     newSheet['!rows'][14] = { hpt: 30 };
-    newSheet['!rows'][6] = { hpt: 30 }; 
+    newSheet['!rows'][6] = { hpt: 30 };
 
     // Apply styles
     const range = XLSX.utils.decode_range(newSheet['!ref']);
@@ -272,7 +278,6 @@ function exportToExcel() {
     XLSX.utils.book_append_sheet(workbook, newSheet, 'Sheet1');
     XLSX.writeFile(workbook, 'performa.xlsx');
 }
-
 
 //pdf file button
 const { jsPDF } = window.jspdf;
@@ -338,7 +343,7 @@ function downloadPDF() {
             pdfY += segmentHeight;
         }
 
-        pdf.save('commercial_invoice.pdf');
+        pdf.save('performa_invoice.pdf');
     }).catch(error => console.error("Error capturing HTML to canvas:", error));
 }
 

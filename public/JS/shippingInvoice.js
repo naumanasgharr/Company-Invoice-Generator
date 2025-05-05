@@ -21,6 +21,8 @@ fetch('http://localhost:3000/api/customerNames',{
         customerNameSelect.appendChild(customerNameOption);
     });
     document.querySelector('#customerName').addEventListener('change',()=>{
+        const customerIdInput = document.querySelector('#customerID');
+        customerIdInput.value = customerNameSelect.value;
         const orderNumberSelect = document.querySelector('#order-invoiceNumbers');
         const cartonPackingLabel = document.querySelector('#cartonPackingLabel');
         const cartonPackingUnit = document.querySelector('#cartonPackingUnits');
@@ -55,6 +57,7 @@ fetch('http://localhost:3000/api/customerNames',{
             })
             .then(response=>response.json())
             .then(data=>{
+              console.log(data);
                 const selectOption = document.createElement('option');
                 selectOption.innerText = '--SELECT--';
                 articleNumberSelect.appendChild(selectOption);

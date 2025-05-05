@@ -52,48 +52,44 @@ fetch('http://localhost:3000/api/commercialInvoice',{
             <td style='text-align:center; text-decoration: underline;'><strong>${category}</strong></td>
             <td></td>
             <td></td>
-            <td></td>
         `;
         table.appendChild(categoryRow);
 
         data.products.forEach(product=>{
             if(product.category == category){
-                const row = document.createElement('tr');
+                const row1 = document.createElement('tr');
+                const row2 = document.createElement('tr');
                 const amount = product.cartons*product.cartonPacking;
                 const price = (amount*product.unitPrice).toFixed(2);
-                row.innerHTML = `
-                    <td>${cartonNumber} - ${(Number(product.cartons) + (cartonNumber - 1))}</td>
-                    <td>${product.cartons} CTN ${amount} ${product.cartonPackingUnit} ${product.description} --<strong>${product.article_number}</strong></td>
-                    <td>${amount}</td>
+                row1.innerHTML = `
+                    <td><strong>${product.article_number}</strong></td>
+                    <td>${product.cartons} CTN ${amount} ${product.cartonPackingUnit}</td>
                     <td>${product.unitPrice} ${product.currency}</td>
                     <td>${price} ${product.currency}</td>
                 `;
+                row2.innerHTML = `
+                    <td>${cartonNumber} - ${(Number(product.cartons) + (cartonNumber - 1))}<br>${product.cartonPacking}${product.cartonPackingUnit}</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                `;
+
                 cartonNumber += Number(product.cartons) ;
                 //console.log(cartonNumber);
                 total += (amount*product.unitPrice);
-                table.appendChild(row);
+                table.append(row1,row2);
             } 
         });
 
     });
     total = total.toFixed(2);
-    const table = document.querySelector('#totalValuetBody');
-    const shipmentRow = document.createElement('tr');
-    shipmentRow.innerHTML = `
-        <td></td>
-        <td><strong>SHIPMENT DATE:</strong> ${data.invoiceData.shipmentDate}</td>
-        <td></td>
-        <td></td>
-        <td></td>
-    `;  
     document.querySelector('#totalValue').innerHTML = `<strong>TOTAL:</strong> ${total} ${data.products[0].currency}`;
-    table.appendChild(shipmentRow);
 
 
 
 
 
-    // PACKING LIST
+    // PACKING LIST AND WEIGHT INVOICE
     document.querySelector('#invoiceNumberP').textContent = data.invoiceData.invoiceNumber;
     document.querySelector('#dateP').textContent = data.invoiceData.invoiceDate;
     document.querySelector('#customerNameP').textContent = data.customer.name;
@@ -105,6 +101,19 @@ fetch('http://localhost:3000/api/commercialInvoice',{
     document.querySelector('#blNoDateP').textContent = data.invoiceData.blNoDate;
     document.querySelector('#shipmentFromP').textContent = data.invoiceData.loadingPort;
     document.querySelector('#shipmentDestinationP').textContent = data.invoiceData.shippingPort;
+
+    //WEIGHT INVOICE DETAILS
+    document.querySelector('#invoiceNumberPI').textContent = data.invoiceData.invoiceNumber;
+    document.querySelector('#datePI').textContent = data.invoiceData.invoiceDate;
+    document.querySelector('#customerNamePI').textContent = data.customer.name;
+    document.querySelector('#customerAddressPI').textContent = `${data.customer.address},PO- ${data.customer.address},${data.customer.country} `;
+    document.querySelector('#fiNoPI').innerHTML =`<strong>FI NO:</strong> ${data.invoiceData.fiNo}`;
+    document.querySelector('#shipmentTermsPI').innerHTML = `<strong>Shipment Terms: ${data.invoiceData.shipmentTerms}</strong>`;
+    document.querySelector('#fiNoDatePI').textContent = data.invoiceData.fiNoDate;
+    document.querySelector('#blNoPI').innerHTML = `<strong>BL NO:</strong> ${data.invoiceData.blNo}`;
+    document.querySelector('#blNoDatePI').textContent = data.invoiceData.blNoDate;
+    document.querySelector('#shipmentFromPI').textContent = data.invoiceData.loadingPort;
+    document.querySelector('#shipmentDestinationPI').textContent = data.invoiceData.shippingPort;
 
     let cartonNumber2 = 1;
     let totalNetWeight = 0;
@@ -122,40 +131,104 @@ fetch('http://localhost:3000/api/commercialInvoice',{
 
         data.products.forEach(product=>{
             if(product.category == category){
-                const row = document.createElement('tr');
+                const row1 = document.createElement('tr');
+                const row2 = document.createElement('tr');
                 const amount = product.cartons*product.cartonPacking;
-                row.innerHTML = `
-                    <td>${cartonNumber2} - ${(Number(product.cartons) + (cartonNumber2 - 1))}</td>
-                    <td>${product.cartons} CTN ${amount} ${product.cartonPackingUnit} ${product.description} --<strong>${product.article_number}</strong></td>
-                    <td>${product.cartonNetWeight*product.cartons}</td>
-                    <td>${product.cartonGrossWeight*product.cartons}</td>
+                row1.innerHTML = `
+                    <td><strong>${product.article_number}</strong></td>
+                    <td>${product.cartons} CTN ${amount} ${product.cartonPackingUnit}</td>
+                    <td>${product.cartonPackingUnit}</td>
+                    <td>${amount}</td>
+                `;
+                row2.innerHTML = `
+                    <td>${cartonNumber2} - ${(Number(product.cartons) + (cartonNumber2 - 1))}<br>${product.cartonPacking}${product.cartonPackingUnit}</td>
+                    <td>NET WT: ${product.cartonNetWeight*product.cartons} - GROSS WT: ${product.cartonGrossWeight*product.cartons}</td>
+                    <td></td>
+                    <td></td>
                 `;
                 cartonNumber2 += Number(product.cartons);
                 //console.log(cartonNumber2);
                 totalNetWeight += product.cartons * product.cartonNetWeight;
                 totalGrossWeight += product.cartons * product.cartonGrossWeight; 
-                table.appendChild(row);
+                table.append(row1,row2);
             } 
         });
 
     });
-    const table2 = document.querySelector('#totalWeighttBody');
-    const shipmentRow2 = document.createElement('tr');
-    shipmentRow2.innerHTML = `
+    const row3 = document.createElement('tr');
+    row3.innerHTML = `
         <td></td>
-        <td><strong>SHIPMENT DATE:</strong> ${data.invoiceData.shipmentDate}</td>
+        <td><strong>TOTAL NET WT: ${totalNetWeight} - TOTAL GROSS WT: ${totalGrossWeight}</strong></td>
         <td></td>
         <td></td>
-    `;  
-    document.querySelector('#totalGrossWeight').innerHTML = `<strong>TOTAL:</strong>${totalGrossWeight} `;
-    document.querySelector('#totalNetWeight').innerHTML = `<strong>TOTAL:</strong>${totalNetWeight} `;
-    table2.appendChild(shipmentRow2);
+    `;
+    document.querySelector('.dynamicTableBody2').appendChild(row3);
 
+    let totalCartons = 0;
+    data.products.forEach(product=>{
+        const table = document.querySelector('.dynamicTableBody3');  //weight invoice table
+        totalCartons += Number(product.cartons);
+        const row = document.createElement('tr');  //weight invoice row
+        row.innerHTML =    `
+            <td colspan="1"><strong>${product.article_number}</strong></td>
+            <td colspan="1">${product.carton_length}</td>
+            <td colspan="1">${product.carton_width}</td>
+            <td colspan="1">${product.carton_height}</td>
+            <td colspan="1">${product.cartons}</td>
+            <td colspan="1">${product.cartonPacking}${product.cartonPackingUnit}</td>
+            <td colspan="1">${product.cartonGrossWeight}</td>
+            <td colspan="1">${(product.cartonGrossWeight*product.cartons)}</td>
+        `;
+        table.appendChild(row);
+    });
+    const footerWeightTable = document.createElement('tr');
+    footerWeightTable.innerHTML = `
+        <td colspan ="1"></td>
+        <td colspan ="4" style="text-align:center;"><strong>FOR F.M TEXTILE(PVT) LTD</strong></td>
+        <td colspan ="1"></td>
+        <td colspan ="1"></td>
+        <td colspan ="1"><strong>${totalGrossWeight}<strong></td>
+    `;
+    document.querySelector('.dynamicTableBody3').append(footerWeightTable);
+
+    //BL PRINTING
+    productCategory.forEach(category=>{
+        let categoryCartons = 0;
+        let hs_code = '';
+        let grossWeight = 0;
+        data.products.forEach(product=>{
+            if(product.category == category){
+                hs_code = product.hs_code;
+                categoryCartons += Number(product.cartons);
+                grossWeight += Number((product.cartonGrossWeight*product.cartons)); 
+            }
+        });
+        const row1 = document.createElement('tr');
+        row1.innerHTML = `
+            <td colspan ="2">${category}</td>
+            <td colspan ="1">${hs_code}</td>
+            <td colspan ="1">${categoryCartons}</td>
+            <td colspan ="1">${grossWeight}</td>
+        `;
+        
+        document.querySelector('.dynamicTableBody4').append(row1);
+
+    });
+    const row2 = document.createElement('tr');
+    row2.innerHTML = `
+        <td colspan='2'></td>
+        <td colspan='1'></td>
+        <td colspan='1'><strong>TOTAL: ${totalCartons}</strong></td>
+        <td colspan='1'>${totalGrossWeight}</td>
+    `;
+    document.querySelector('.dynamicTableBody4').append(row2);
 
 })
 .catch(error=>console.log(error));
 
 
+
+//SAVE BUTTON 
 document.querySelector('#saveButton').addEventListener('click', async () => {
     try {
         const response = await fetch('http://localhost:3000/SaveCommercialInvoice',{
@@ -176,6 +249,8 @@ document.querySelector('#saveButton').addEventListener('click', async () => {
     }
 });
 
+
+//UPDATE BALANCES
 document.querySelector('#updateBalance').addEventListener('click',async function(){
     try {
         const response = await fetch('http://localhost:3000/updateBalances',{
@@ -200,7 +275,7 @@ document.querySelector('#updateBalance').addEventListener('click',async function
 //pdf button function
 const { jsPDF } = window.jspdf;
 
-function downloadPDF() {
+function downloadPDF(contentid,filename) {
     const pdf = new jsPDF('p', 'mm', 'a4');
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = pdf.internal.pageSize.getHeight();
@@ -208,7 +283,7 @@ function downloadPDF() {
 
     // Function to render a section to the PDF
     function renderSection(element, pageNumber = 0) {
-        return html2canvas(element, { scale: 4 }).then(canvas => {
+        return html2canvas(element, { scale: 3 }).then(canvas => {
             const canvasWidth = canvas.width;
             const canvasHeight = canvas.height;
             const pageHeight = Math.floor(canvasWidth * (pdfHeight / pdfWidth));
@@ -237,21 +312,28 @@ function downloadPDF() {
         });
     }
 
-    const contentToConvert1 = document.querySelector("#contentToConvert1");
-    const contentToConvert2 = document.querySelector("#contentToConvert2");
+    const contentToConvert = document.querySelector(contentid);
+    
 
-    renderSection(contentToConvert1)
-        .then(() => renderSection(contentToConvert2, 1))
-        .then(() => pdf.save('commercial_invoice_and_packing_list.pdf'))
-        .catch(error => console.error("Error capturing HTML to canvas:", error));
+    renderSection(contentToConvert)
+    .then(() => pdf.save(filename))
+    .catch(error => console.error("Error capturing HTML to canvas:", error));
 }
+
+
+document.querySelector('#PDFButton').addEventListener('click',()=>{
+    downloadPDF('#contentToConvert1','commercial_invoice.pdf');
+    downloadPDF('#contentToConvert2','packing_list.pdf');
+    downloadPDF('#contentToConvert3','weight_list.pdf');
+    downloadPDF('#contentToConvert4','BLA_printing.pdf');
+});
 
 // Function to find the end of a row to avoid splitting
 function findRowEnd(canvas, startY, segmentHeight) {
     const context = canvas.getContext('2d');
     const imageData = context.getImageData(0, startY, canvas.width, segmentHeight).data;
-    const rowHeightThreshold = 30; // Minimum height considered as a row
-    const whiteThreshold = 250; // Pixel value threshold to detect white background
+    const rowHeightThreshold = 150; // Minimum height considered as a row
+    const whiteThreshold = 245; // Pixel value threshold to detect white background
     let lastRowEnd = startY;
     let isRow = false;
 
@@ -281,7 +363,7 @@ function findRowEnd(canvas, startY, segmentHeight) {
     return lastRowEnd + 1;
 }
 
-// Improved function to check if a canvas is blank
+//function to check if a canvas is blank
 function isCanvasBlank(canvas) {
     const context = canvas.getContext('2d');
     const imageData = context.getImageData(0, 0, canvas.width, canvas.height).data;
@@ -361,6 +443,5 @@ function exportToExcel() {
     XLSX.utils.book_append_sheet(workbook, commercialSheet, 'Commercial Invoice');
     XLSX.utils.book_append_sheet(workbook, packingSheet, 'Packing List');
 
-    // Save
     XLSX.writeFile(workbook, 'Commercial_and_Packing_List.xlsx');
 }

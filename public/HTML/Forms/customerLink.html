@@ -85,10 +85,40 @@
             border: 1px solid #ccc;
             border-radius: 5px;
         }
+        #details {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .field-group {
+            display: flex;
+            flex-direction: column;
+            font-size: 14px;
+            min-width: 22%;
+            flex: 1;
+            max-width: 24%;
+        }
+
+        .field-group input,
+        .field-group select {
+            font-size: 12px;
+            padding: 4px;
+            margin-top: 2px;
+            width: 80%;
+            box-sizing: border-box;
+        }
 
     </style>
 </head>
 <body>
+    <div><button style="margin: 4px;" id="homeButton" onclick="window.location.href='../main.html'">HOME</button></div>
     <h2>LINK ARTICLES</h2>
     <form id= 'linkForm' name="linkForm">
         <div class="main">
@@ -98,18 +128,63 @@
 
                 </select>
                 <label for="articleNumber">Customer Article Number: </label>
-                <input name="articleNumber" id="articleNumber" type="text">
+                <input name="articleNumber" id="articleNumber" type="text" required>
                 <label for="productNumber">Product number: </label>
                 <select name="productNumber" id="productNumber">
-
+                    <option>--SELECT--</option>
                 </select>
             </div>
+            <div hidden id="details" style="background-color: #ccc; border-radius: 5px; margin: 2px; padding: 10px;">
+                <div class="form-row">
+                  <div class="field-group">
+                    <label for="hs_code">HS Code:</label>
+                    <input id="hs_code" name="hs_code" type="text">
+                  </div>
+              
+                  <div class="field-group">
+                    <label for="unit_packing">Unit Packing:</label>
+                    <input name="unit_packing" id="unit_packing" type="number">
+                    <select id="unit_packing_type"></select>
+                  </div>
+              
+                  <div class="field-group">
+                    <label for="carton_packing">Carton Packing:</label>
+                    <input name="carton_packing" id="carton_packing" type="number">
+                    <select id="carton_packing_type"></select>
+                  </div>
+              
+                  <div class="field-group">
+                    <label for="carton_length">Carton Length (inches):</label>
+                    <input name="carton_length" id="carton_length" type="text">
+                  </div>
+                </div>
+              
+                <div class="form-row">
+                  <div class="field-group">
+                    <label for="carton_width">Carton Width (inches):</label>
+                    <input name="carton_width" id="carton_width" type="text">
+                  </div>
+              
+                  <div class="field-group">
+                    <label for="carton_height">Carton Height:</label>
+                    <input name="carton_height" id="carton_height" type="text">
+                  </div>
+              
+                  <div class="field-group">
+                    <label for="description">Description:</label>
+                    <input name="description" id="description" type="text">
+                  </div>
+                </div>
+            </div>  
         </div>
         <div class="button">
             <button id="save" type="submit">SAVE</button>
         </div>
     </form>
 
+
+
+    <script src="../../JS/customerLink.js"></script>
     <script>
        const form = document.getElementById('linkForm');
        const inputs = document.querySelectorAll('input');
@@ -118,7 +193,16 @@
             const formData = {
                 customerId: form.customerId.value,
                 articleNumber: form.articleNumber.value,
-                productNumber: form.productNumber.value
+                productNumber: form.productNumber.value,
+                cartonPacking: form.carton_packing.value,
+                cartonPackingType: form.carton_packing_type.value,
+                unitPacking: form.unit_packing.value,
+                unitPackingType: form.unit_packing_type.value,
+                hsCode: form.hs_code.value,
+                cartonLength: form.carton_length.value,
+                cartonWidth: form.carton_width.value,
+                cartonHeight: form.carton_height.value,
+                description: form.description.value
             };
             console.log(formData);
             

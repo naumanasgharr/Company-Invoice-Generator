@@ -158,6 +158,7 @@
     </style>
 </head>
 <body>
+    <div><button style="margin: 4px; padding:12px 20px; display: flex;" id="homeButton" onclick="window.location.href='../main.html'">HOME</button></div>
     <div id="headingDiv"><h2><strong>COMMERCIAL INVOICE</strong></h2></div>
     <div id="mainDiv">
         <div id="detailDiv">
@@ -169,9 +170,9 @@
             <label hidden for="cartonsValueInput" id="cartonsValueLabel">cartons: <input required name="cartonsValueInput" type="text" id="cartonsValueInput"></label>        
             <label hidden id="cartonPackingLabel" for="cartonPacking">Carton Packing:<input required name="cartonPacking" type="text" id="cartonPackingInput"></label>
             <select hidden id="cartonPackingUnits">
-                <option>pcs</option>
-                <option>prs</option>
-                <option>dzn</option>
+                <option>Pcs</option>
+                <option>Prs</option>
+                <option>Dzn</option>
             </select>
             <label hidden id="cartonNetWeightLabel" for="cartonNetWeight">Carton Net WT: <input  name="cartonNetWeight" id="cartonNetWeight" type="number" min="0" step="0.001"></label>
             <label hidden id="cartonGrossWeightLabel" for="cartonGrossWeight">Carton Gross WT: <input name="cartonGrossWeight" id="cartonGrossWeight" type="number" min="0" step="0.001"></label>
@@ -185,7 +186,7 @@
 
     <div id="formDiv">
         <form id="form" action="/shippingInvoice" method="post">
-            <label for="customerID">Customer Name: <select id="customerID" name="customerID"><option>--SELECT--</option></select></label>
+            <input hidden id="customerID" type="number">
             <label for="invoiceDate">Date: <input type="date" id="invoiceDate" name="invoiceDate"></label>
             <label for="fiNo">FI number: <input name="fiNo" id="fiNo" type="text"></label>
             <label for="fiNoDate">Date: <input name="fiNoDate" id="fiNoDate" type="date"></label>
@@ -219,9 +220,9 @@
                 select.appendChild(option);
             });
         }).catch(error=>console.log('error fetching customer data',error));
-        document.querySelector('#customerID').addEventListener('change',()=>{
-            if(document.querySelector('#customerID').value != '--SELECT--'){
-                fetch(`http://localhost:3000/api/customerShippingPort?customerID=${document.querySelector('#customerID').value}`,{
+        document.querySelector('#customerName').addEventListener('change',()=>{
+            if(document.querySelector('#customerName').value != '--SELECT--'){
+                fetch(`http://localhost:3000/api/customerShippingPort?customerID=${document.querySelector('#customerName').value}`,{
                     method: 'GET',
                     credentials: 'include'
                 })

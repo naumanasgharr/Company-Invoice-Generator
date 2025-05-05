@@ -30,10 +30,23 @@ fetch("http://localhost:3000/api/productCategoryGet",{
         .then(data=>{
             data.forEach(product => {
                 const row = document.createElement('tr');
-                ['id','category','description','material_composition','hs_code','size','unit_packing','unit_packing_type','carton_packing','carton_packing_type','carton_length','carton_width','carton_height', 'weight','weight_units','weight_packing_type',].forEach(key=>{
+                ['id','category','description','material_composition','hs_code','size','unit_packing','unit_packing_type','carton_packing','carton_packing_type','carton_length','carton_width','carton_height', 'weight','weight_units','weight_packing_type','delButton'].forEach(key=>{
                     const td = document.createElement('td');
-                    td.innerText = product[key];
-                    row.appendChild(td);
+                    if(key==='delButton') {
+                        td.innerHTML = `
+                            <div>
+                                <form action="/deleteProduct" method="post">
+                                    <input hidden  name='articleId' value ='${product.id}'>
+                                    <button type="submit" class="delButton">DELETE</button>
+                                </form>
+                            </div>
+                        `;
+                        row.appendChild(td);
+                    }
+                    else {
+                        td.innerText = product[key];
+                        row.appendChild(td);
+                    }
                 });
                 tbody.appendChild(row);
             });

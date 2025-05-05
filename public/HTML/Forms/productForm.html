@@ -113,10 +113,13 @@
             padding: 2px;
 
         }
+        .delButton {
+            padding: 10px 10px !important;
+            font-size: 10px;
+        }
     </style>
 </head>
 <body>
-
     <form id="categoryForm" action="/productCategory" method="post">
         <div>
         <label for="prodCategory">Add Product Category: </label>
@@ -127,6 +130,7 @@
     <div>
         <button onclick="window.location.href='../Forms/editProduct.html'">EDIT PRODUCT</button>
     </div>
+    <div><button style="margin: 4px;" id="homeButton" onclick="window.location.href='../main.html'">HOME</button></div>
     <h2><strong>PRODUCT DETAILS</strong></h2>
     <form id="productForm" action="/productForm" method="post">
         <div class="productDetails">
@@ -151,8 +155,8 @@
             <div>
                 <label for="productWeight">Weight: </label>
                 <input type="number" name="productWeight" id="productWeight">
-                <select name="weightUnit"><option>g</option><option>kg</option></select>
-                <select name="weightPacking"><option>pcs</option><option>dzn</option><option>prs</option></select>
+                <select name="weightUnit"><option>gram</option><option>kilogram</option></select>
+                <select name="weightPacking"><option>Pcs</option><option>Dzn</option><option>Prs</option></select>
             </div>
             
             <div>
@@ -163,13 +167,13 @@
             <div>
                 <label for="unitPacking">Unit packing: </label>
                 <input type="text" name="unitPacking" id="unitPacking">
-                <select name="unitPackingType"><option>pcs</option><option>dzn</option><option>prs</option></select>
+                <select name="unitPackingType"><option>Pcs</option><option>Dzn</option><option>Prs</option></select>
             </div>
             
             <div>
                 <label for="cartonPacking">Carton Packing: </label>
                 <input type="text" name="cartonPacking" id="cartonPacking">
-                <select name="cartonPackingType"><option>pcs</option><option>dzn</option><option>prs</option></select>
+                <select name="cartonPackingType"><option>Pcs</option><option>Dzn</option><option>Prs</option></select>
             </div>
             
             <div>

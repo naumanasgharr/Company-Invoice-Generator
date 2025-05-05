@@ -46,85 +46,85 @@ fetch('http://localhost:3000/api/productIds',{
 
 
                 switch(data[0].carton_packing_type){
-                    case 'dzn':    
-                        document.querySelector('#cartonPackingType"]').innerHTML = `
-                        <option>dzn</option><option>prs</option><option>pcs</option>
+                    case 'Dzn':    
+                        document.querySelector('#cartonPackingType').innerHTML = `
+                        <option>Dzn</option><option>Prs</option><option>Pcs</option>
                         `;
                         break;
-                    case 'prs':
+                    case 'Prs':
                         document.querySelector('#cartonPackingType').innerHTML = `
-                        <option>prs</option><option>dzn</option><option>pcs</option>
+                        <option>Prs</option><option>Dzn</option><option>Pcs</option>
                         `;
                         break;
-                    case 'pcs':
+                    case 'Pcs':
                         document.querySelector('#cartonPackingType').innerHTML = `
-                        <option>pcs</option><option>dzn</option><option>prs</option>
+                        <option>Pcs</option><option>Dzn</option><option>Prs</option>
                         `;
                         break;
                     default:
                         document.querySelector('#cartonPackingType').innerHTML = `
-                        <option>dzn</option><option>prs</option><option>pcs</option>
+                        <option>Dzn</option><option>Prs</option><option>Pcs</option>
                         `;
                         break;
                 }
                 switch(data[0].unit_packing_type){
-                    case 'dzn':    
-                        document.querySelector('#unitPackingType"]').innerHTML = `
-                        <option>dzn</option><option>prs</option><option>pcs</option>
+                    case 'Dzn':    
+                        document.querySelector('#unitPackingType').innerHTML = `
+                        <option>Dzn</option><option>Prs</option><option>Pcs</option>
                         `;
                         break;
-                    case 'prs':
+                    case 'Prs':
                         document.querySelector('#unitPackingType').innerHTML = `
-                        <option>prs</option><option>dzn</option><option>pcs</option>
+                        <option>Prs</option><option>Dzn</option><option>Pcs</option>
                         `;
                         break;
-                    case 'pcs':
+                    case 'Pcs':
                         document.querySelector('#unitPackingType').innerHTML = `
-                        <option>pcs</option><option>dzn</option><option>prs</option>
+                        <option>Pcs</option><option>Dzn</option><option>Prs</option>
                         `;
                         break;
                     default:
                         document.querySelector('#unitPackingType').innerHTML = `
-                        <option>dzn</option><option>prs</option><option>pcs</option>
+                        <option>Dzn</option><option>Prs</option><option>Pcs</option>
                         `;
                         break;
                 }    
                 switch(data[0].weight_packing_type){
-                    case 'dzn':    
-                        document.querySelector('#weightPackingType"]').innerHTML = `
-                        <option>dzn</option><option>prs</option><option>pcs</option>
+                    case 'Dzn':    
+                        document.querySelector('#weightPackingType').innerHTML = `
+                        <option>Dzn</option><option>Prs</option><option>Pcs</option>
                         `;
                         break;
-                    case 'prs':
+                    case 'Prs':
                         document.querySelector('#weightPackingType').innerHTML = `
-                        <option>prs</option><option>dzn</option><option>pcs</option>
+                        <option>Prs</option><option>Dzn</option><option>Pcs</option>
                         `;
                         break;
-                    case 'pcs':
+                    case 'Pcs':
                         document.querySelector('#weightPackingType').innerHTML = `
-                        <option>pcs</option><option>dzn</option><option>prs</option>
+                        <option>Pcs</option><option>Dzn</option><option>Prs</option>
                         `;
                         break;
                     default:
                         document.querySelector('#weightPackingType').innerHTML = `
-                        <option>dzn</option><option>prs</option><option>pcs</option>
+                        <option>Dzn</option><option>Prs</option><option>Pcs</option>
                         `;
                         break;
                 }
-                switch(data[0].weight_packing_type){
-                    case 'g':    
-                        document.querySelector('#weightPackingType"]').innerHTML = `
-                        <option>g</option><option>kg</option>
+                switch(data[0].weight_units){
+                    case 'gram':    
+                        document.querySelector('#weightUnit').innerHTML = `
+                        <option>gram</option><option>kilogram</option>
                         `;
                         break;
-                    case 'kg':
-                        document.querySelector('#weightPackingType').innerHTML = `
-                        <option>kg</option><option>g</option>
+                    case 'kilogram':
+                        document.querySelector('#weightUnit').innerHTML = `
+                        <option>kilogram</option><option>gram</option>
                         `;
                         break;
                     default:
                         document.querySelector('#weightUnit').innerHTML = `
-                        <option>g</option><option>kg</option>
+                        <option>gram</option><option>kilogram</option>
                         `;
                         break;
                 }

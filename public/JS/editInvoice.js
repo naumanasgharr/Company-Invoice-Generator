@@ -24,153 +24,153 @@ fetch("http://localhost:3000/api/selectInvoice",{
     method: 'GET',
     credentials: 'include'
 })
-    .then(response=>response.json())
-    .then(data=>{
-        const select = document.getElementById('selectInvoiceNumber');
-        data.forEach(element => {
-            const option = document.createElement('option');
-            option.className = 'invoiceNumber';
-            option.value = element.invoice_number;
-            option.innerText = element.invoice_number;
-            select.appendChild(option);
-        });
-        select.addEventListener("change",function (){
-            let index = 0;
-            let index2 = 0;
-            const selectedInvoice = this.value;
-            const mainDiv = document.querySelector('.form');
-            mainDiv.innerHTML = '';
-            if(selectedInvoice != 'select'){
-                editForm.innerHTML = ''; // Also clear the form before adding new data
-                mainDiv.appendChild(editForm);
-                fetch(`http://localhost:3000/api/invoiceDetails?invoice_number=${selectedInvoice}`,{
-                    method: 'GET',
-                    credentials: 'include'
-                })
-                    .then(response=>response.json())
-                    .then(data=>{
-                        originalData = JSON.parse(JSON.stringify(data));
-                        console.log(data);
-                        const invoiceData = data.invoiceData;
-                        const orderData = data.orders;
-                        const invoiceDiv = document.createElement('div');
-                        invoiceDiv.className = 'invoiceDetails';
-                        const productDiv = document.createElement('div');
-                        productDiv.className = 'productContainer';
+.then(response=>response.json())
+.then(data=>{
+    const select = document.getElementById('selectInvoiceNumber');
+    data.forEach(element => {
+        const option = document.createElement('option');
+        option.className = 'invoiceNumber';
+        option.value = element.invoice_number;
+        option.innerText = element.invoice_number;
+        select.appendChild(option);
+    });
+    select.addEventListener("change",function (){
+        let index = 0;
+        let index2 = 0;
+        const selectedInvoice = this.value;
+        const mainDiv = document.querySelector('.form');
+        mainDiv.innerHTML = '';
+        if(selectedInvoice != 'select'){
+            editForm.innerHTML = ''; // Also clear the form before adding new data
+            mainDiv.appendChild(editForm);
+            fetch(`http://localhost:3000/api/invoiceDetails?invoice_number=${selectedInvoice}`,{
+                method: 'GET',
+                credentials: 'include'
+            })
+            .then(response=>response.json())
+            .then(data=>{
+                originalData = JSON.parse(JSON.stringify(data));
+                console.log(data);
+                const invoiceData = data.invoiceData;
+                const orderData = data.orders;
+                const invoiceDiv = document.createElement('div');
+                invoiceDiv.className = 'invoiceDetails';
+                const productDiv = document.createElement('div');
+                productDiv.className = 'productContainer';
 
-                        // generating order date input
-                        const orderDateLabel = document.createElement('label');
-                        orderDateLabel.htmlFor = 'orderDate';
-                        orderDateLabel.innerText = 'Order Date: ';
-                        const orderDateInput = document.createElement('input');
-                        orderDateInput.name = 'orderDate';
-                        orderDateInput.id = 'orderDate';
-                        orderDateInput.type = 'date';
-                        orderDateInput.value = `${invoiceData.order_date}`;
+                // generating order date input
+                const orderDateLabel = document.createElement('label');
+                orderDateLabel.htmlFor = 'orderDate';
+                orderDateLabel.innerText = 'Order Date: ';
+                const orderDateInput = document.createElement('input');
+                orderDateInput.name = 'orderDate';
+                orderDateInput.id = 'orderDate';
+                orderDateInput.type = 'date';
+                orderDateInput.value = `${invoiceData.order_date}`;
 
-                        //generating invoice number input 
-                        const invoiceNumberLabel = document.createElement('label');
-                        invoiceNumberLabel.htmlFor = 'invoiceNum';
-                        invoiceNumberLabel.innerText = 'Invoice Number: ';
-                        const invoiceNumberInput = document.createElement('input');
-                        invoiceNumberInput.name = 'invoiceNum';
-                        invoiceNumberInput.id = 'invoiceNum';
-                        invoiceNumberInput.type = 'text';
-                        invoiceNumberInput.value = `${invoiceData.invoice_number}`;
-                        invoiceNumberInput.disabled = true;
+                //generating invoice number input 
+                const invoiceNumberLabel = document.createElement('label');
+                invoiceNumberLabel.htmlFor = 'invoiceNum';
+                invoiceNumberLabel.innerText = 'Invoice Number: ';
+                const invoiceNumberInput = document.createElement('input');
+                invoiceNumberInput.name = 'invoiceNum';
+                invoiceNumberInput.id = 'invoiceNum';
+                invoiceNumberInput.type = 'text';
+                invoiceNumberInput.value = `${invoiceData.invoice_number}`;
+                invoiceNumberInput.disabled = true;
 
-                        //generating customer ID input
-                        const customerIDLabel = document.createElement('label');
-                        customerIDLabel.htmlFor = 'customerID';
-                        customerIDLabel.innerText = 'Customer ID: ';
-                        const customerIDInput = document.createElement('input');
-                        customerIDInput.name = 'customerID';
-                        customerIDInput.id = 'customerID';
-                        customerIDInput.type = 'text';
-                        customerIDInput.value = `${invoiceData.customer_id}`;
+                //generating customer ID input
+                const customerIDLabel = document.createElement('label');
+                customerIDLabel.htmlFor = 'customerID';
+                customerIDLabel.innerText = 'Customer ID: ';
+                const customerIDInput = document.createElement('input');
+                customerIDInput.name = 'customerID';
+                customerIDInput.id = 'customerID';
+                customerIDInput.type = 'text';
+                customerIDInput.value = `${invoiceData.customer_id}`;
 
-                        //generating shipment date input
-                        const shipmentDateLabel = document.createElement('label');
-                        shipmentDateLabel.htmlFor = 'shippingDate';
-                        shipmentDateLabel.innerText = 'Shipping Date: ';
-                        const shipmentDateInput = document.createElement('input');
-                        shipmentDateInput.name = `shipmentDate`;
-                        shipmentDateInput.className = 'shipmentDate';
-                        shipmentDateInput.type = 'date';
-                        shipmentDateInput.value = `${invoiceData.shipping_date}`;
+                //generating shipment date input
+                const shipmentDateLabel = document.createElement('label');
+                shipmentDateLabel.htmlFor = 'shippingDate';
+                shipmentDateLabel.innerText = 'Shipping Date: ';
+                const shipmentDateInput = document.createElement('input');
+                shipmentDateInput.name = `shipmentDate`;
+                shipmentDateInput.className = 'shipmentDate';
+                shipmentDateInput.type = 'date';
+                shipmentDateInput.value = `${invoiceData.shipping_date}`;
 
-                        //generating shipment port input
-                        const shipmentPortLabel = document.createElement('label');
-                        shipmentPortLabel.htmlFor = 'shippingPort';
-                        shipmentPortLabel.innerText = 'Shipping Port: ';
-                        const shipmentPortInput = document.createElement('input');
-                        shipmentPortInput.name = `shippingPort`;
-                        shipmentPortInput.className = 'shippingPort';
-                        shipmentPortInput.type = 'text';
-                        shipmentPortInput.value = `${invoiceData.shipping_port}`;
+                //generating shipment port input
+                const shipmentPortLabel = document.createElement('label');
+                shipmentPortLabel.htmlFor = 'shippingPort';
+                shipmentPortLabel.innerText = 'Shipping Port: ';
+                const shipmentPortInput = document.createElement('input');
+                shipmentPortInput.name = `shippingPort`;
+                shipmentPortInput.className = 'shippingPort';
+                shipmentPortInput.type = 'text';
+                shipmentPortInput.value = `${invoiceData.shipping_port}`;
                         
-                        //generating loading port input
-                        const loadingPortLabel = document.createElement('label');
-                        loadingPortLabel.htmlFor = 'loadingPort';
-                        loadingPortLabel.innerText = 'Loading Port: ';
-                        const loadingPortInput = document.createElement('input');
-                        loadingPortInput.name = `loadingPort`;
-                        loadingPortInput.className = 'loadingPort';
-                        loadingPortInput.type = 'text';
-                        loadingPortInput.value = `${invoiceData.loading_port}`;
-                        //appending inputs to invoiceDiv and invoiceDiv to editForm
-                        invoiceDiv.append(orderDateLabel,orderDateInput,invoiceNumberLabel,invoiceNumberInput,customerIDLabel,customerIDInput,shipmentDateLabel,shipmentDateInput,loadingPortLabel,loadingPortInput,shipmentPortLabel,shipmentPortInput);
-                        mainDiv.appendChild(editForm);
-                        editForm.appendChild(invoiceDiv);
+                //generating loading port input
+                const loadingPortLabel = document.createElement('label');
+                loadingPortLabel.htmlFor = 'loadingPort';
+                loadingPortLabel.innerText = 'Loading Port: ';
+                const loadingPortInput = document.createElement('input');
+                loadingPortInput.name = `loadingPort`;
+                loadingPortInput.className = 'loadingPort';
+                loadingPortInput.type = 'text';
+                loadingPortInput.value = `${invoiceData.loading_port}`;
+                //appending inputs to invoiceDiv and invoiceDiv to editForm
+                invoiceDiv.append(orderDateLabel,orderDateInput,invoiceNumberLabel,invoiceNumberInput,customerIDLabel,customerIDInput,shipmentDateLabel,shipmentDateInput,loadingPortLabel,loadingPortInput,shipmentPortLabel,shipmentPortInput);
+                mainDiv.appendChild(editForm);
+                editForm.appendChild(invoiceDiv);
 
-                        //adding a new order
-                        const newOrderButton = document.createElement('button');
-                        newOrderButton.id = 'addNewOrder';
-                        newOrderButton.innerText = 'New Order';
-                        newOrderButton.type = 'button';
-                        newOrderButton.addEventListener('click',()=>{
-                            const orderSection = document.createElement('div');
-                            orderSection.className = 'orderSection';
-                            orderSection.innerHTML = `
-                            <label for = 'orderNumber'>PO Number:</label>
-                            <input type='text' name='orderNumber' class='orderNumber'>
-                            `;
-                            const removeOrderButton = document.createElement('button');
-                            removeOrderButton.innerText = 'Remove order';
-                            removeOrderButton.className = 'removeOrder';
-                            removeOrderButton.type = 'button';
-                            removeOrderButton.addEventListener('click',()=>{
-                            orderSection.remove();  
-                            });
-                            orderSection.appendChild(removeOrderButton);
-                            productDiv.appendChild(orderSection);
+                //adding a new order
+                const newOrderButton = document.createElement('button');
+                newOrderButton.id = 'addNewOrder';
+                newOrderButton.innerText = 'New Order';
+                newOrderButton.type = 'button';
+                newOrderButton.addEventListener('click',()=>{
+                const orderSection = document.createElement('div');
+                orderSection.className = 'orderSection';
+                orderSection.innerHTML = `
+                    <label for = 'orderNumber'>PO Number:</label>
+                    <input type='text' name='orderNumber' class='orderNumber'>
+                `;
+                const removeOrderButton = document.createElement('button');
+                removeOrderButton.innerText = 'Remove order';
+                removeOrderButton.className = 'removeOrder';
+                removeOrderButton.type = 'button';
+                removeOrderButton.addEventListener('click',()=>{
+                    orderSection.remove();  
+                });
+                orderSection.appendChild(removeOrderButton);
+                productDiv.appendChild(orderSection);
 
-                            const addProductButton = document.createElement('button');
-                            addProductButton.type = 'button';
-                            addProductButton.className = 'addProduct';
-                            addProductButton.innerText = 'add product';
-                            orderSection.appendChild(addProductButton);
-                            addProductButton.addEventListener('click',()=>{
-                            const productRow = document.createElement('div');
-                            productRow.className = 'productRow';
-                            productRow.innerHTML =`
-                                <label for="productNumber">Article ID: </label>
-                                <input class = "prodInput" type="text" id="productNumber" name = "productNumber">
-                                <label for="productAmount">Article Amount (pieces): </label>
-                                <input class = "prodInput" id ="productAmount" name ="productAmount" min="0" step="1" value="0" />               
-                                <label for="unitPrice">Unit Price: </label>
-                                <input class="unitPrice" type="number" name="unitPrice" min="0" step="0.01">
-                                <label for="currency">Currency: </label>
-                                <select name="currency" class="currency">
-                                <option>USD</option>
-                                <option>PKR</option>
-                                <option>SAUDI RIYAL</option>
-                                <option>UAE DHIRAM</option>
-                                </select>
-                            `;
-                            const removeProductButton = document.createElement('button');
-                            removeProductButton.className = 'removeProduct';
-                            removeProductButton.type = 'button';
+                const addProductButton = document.createElement('button');
+                addProductButton.type = 'button';
+                addProductButton.className = 'addProduct';
+                addProductButton.innerText = 'add product';
+                orderSection.appendChild(addProductButton);
+                addProductButton.addEventListener('click',()=>{
+                    const productRow = document.createElement('div');
+                        productRow.className = 'productRow';
+                        productRow.innerHTML =`
+                            <label for="productNumber">Article ID: </label>
+                            <input class = "prodInput" type="text" id="productNumber" name = "productNumber">
+                            <label for="productAmount">Article Amount (pieces): </label>
+                            <input class = "prodInput" id ="productAmount" name ="productAmount" min="0" step="1" value="0" />               
+                            <label for="unitPrice">Unit Price: </label>
+                            <input class="unitPrice" type="number" name="unitPrice" min="0" step="0.01">
+                            <label for="currency">Currency: </label>
+                            <select name="currency" class="currency">
+                            <option>USD</option>
+                            <option>PKR</option>
+                            <option>SAUDI RIYAL</option>
+                            <option>UAE DHIRAM</option>
+                            </select>
+                        `;
+                    const removeProductButton = document.createElement('button');
+                    removeProductButton.className = 'removeProduct';
+                    removeProductButton.type = 'button';
                             removeProductButton.innerText = 'Remove Product';
                             removeProductButton.addEventListener('click',()=>{
                                 productRow.remove();
