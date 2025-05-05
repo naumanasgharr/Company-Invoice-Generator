@@ -15,7 +15,7 @@ The application stores:
 - Article Data
 - Specific Customer Article Numbers (Company specific)
 - Order Data
-- **Customer Article Numbers are Customer-Specific. They are linked to Company Article IDs. These customer article numbers are used while creating invoices.**
+- **Customer Article Numbers are Customer-Specific. They are linked to Company Article IDs. These customer article numbers and the data associated with them are used while creating invoices.**
 - *To generate an invoice, the user should:*
 - Store Customer Data. (Add Customer)
 - Store Product Data. (Add Article)
@@ -24,7 +24,12 @@ The application stores:
 - **Make sure the Customer Article Numbers used have been stored for the same Customer. Invoice will not be generated if:**
 - *Customer ID is wrong*
 - *Customer Article Numbers are wrong*
+- **commercial invoice**
+- A commercial invoice can be created after a performa invoice. Commercial invoices can contain products from multiple performa invoices. If a single customer has multiple performa invoices, commercial invoices can be used to handle partial order shipments.
+- An **update balances** feature has been added which calculates order balances and marks orders as pending or complete.
+- **NOTE THAT THE ABOVE FEATURE CAN BE USED AFTER GENERATING A COMMERCIAL INVOICE AND WHILE EDITING A COMMERCIAL INVOICE. USERS SHOULD ONLY USE THIS FEATURE ONCE PER INVOICE (EITHER WHILE GENERATING OR WHILE EDITING) SO THE APP DOESN'T REPEAT ORDER DEDUCTIONS. THIS FEATURE WAS KEPT IN THE EDIT INVOICE SECTION SINCE A USER MIGHT WANT TO CHANGE AN INVOICE LATER.**
+- After updating balances, the backend deducts the order amounts in the commercial invoice from the amounts in the performa invoices for the respective order. A database trigger is used to mark the orders as **completed** when the balance = 0. This can be seen in the **View Invoices** section for performa invoices. Once an order balance reaches 0, that order will not be available in the commercial invoices select options.
 
 # Running the Application
-Clone the repo and make sure you have Node.js installed on your machine. Use *npm i* to install the necessary modules. Use *node index.js* to run the application on your localhost server.
+Clone the repo and make sure you have Node.js installed on your machine. Use *npm i* to install the necessary modules. Import the database schema in MySQL and connect it to the server using .env file. Use *node index.js* to run the application on your localhost server.
 
