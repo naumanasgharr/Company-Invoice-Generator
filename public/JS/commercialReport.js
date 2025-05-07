@@ -31,6 +31,7 @@ fetch('http://localhost:3000/api/commercialInvoiceNumbers',{
             })
             .then(response=>response.json())
             .then(data=>{
+                console.log(data);
                 const invoiceDetails = data.invoiceDetails;
                 const articles = data.articles;
                 const customerName = data.name;

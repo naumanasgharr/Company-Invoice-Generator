@@ -37,7 +37,7 @@ app.use(session({
     resave: false,
     saveUninitialized: true,
     cookie: {
-      secure: true,
+      secure: false,
       httpOnly: true,
       sameSite: 'lax'
     }
@@ -81,7 +81,6 @@ app.use((req, res, next) => {
 // login page
 app.post('/login',async (req,res)=>{
     const {username,password} = req.body;
-    console.log(username, password);
     try{
         const [rows] = await db.promise().query('SELECT * FROM users WHERE username = ?',[username]);
         console.log(rows)
@@ -550,79 +549,6 @@ app.get('/api/orderList',requireAuth, async (req,res)=>{
             invoice: invoiceData[0],
             orders: orderData
         });
-        // ✅ 3. Fetch Order Details (Products in Each Order)
-        /*const [orderDetailData] = await connection.query(
-            `SELECT orderDetail_table.order_id, orderDetail_table.article_id, orderDetail_table.article_amount,
-                    orderDetail_table.unit_price, orderDetail_table.currency, orderDetail_table.status,orderDetail_table.status, 
-                    customer_article.article_number, customer_article.product_id
-            FROM orderDetail_table
-            INNER JOIN customer_article ON orderDetail_table.article_id = customer_article.id`
-        );
-
-        // ✅ 4. Fetch Product Data (Description, HS Code, etc.)
-
-        const [productData] = await connection.query(`SELECT product_table.id AS product_id, product_table.description, product_table.hs_code, product_table.size, product_table.category FROM product_table`);
-
-        connection.release();
-
-        // ✅ 5. Construct the Response Object
-        const invoicesMap = {};
-
-        orderData.forEach(order => {
-            const invoice = invoiceData.find(inv => inv.invoice_number === order.invoice_number);
-            if (!invoice) return;
-
-            if (!invoicesMap[invoice.invoice_number]) {
-                invoicesMap[invoice.invoice_number] = {
-                    invoice_number: invoice.invoice_number,
-                    customer: {
-                        id: invoice.customer_id,
-                        name: invoice.customer_name
-                    },
-                    order_date: invoice.order_date,
-                    shipping_date: invoice.shipping_date,
-                    loading_port: invoice.loading_port,
-                    shipping_port: invoice.shipping_port,
-                    total: invoice.total,
-                    orders: []
-                };
-            }
-
-            let existingOrder = invoicesMap[invoice.invoice_number].orders.find(o => o.order_number === order.order_number);
-
-            if (!existingOrder) {
-                existingOrder = {
-                    order_number: order.order_number,
-                    articles: []
-                };
-                invoicesMap[invoice.invoice_number].orders.push(existingOrder);
-            }
-
-            // ✅ 6. Add Articles to the Order
-            const orderDetails = orderDetailData.filter(od => od.order_id === order.order_id);
-            orderDetails.forEach(detail => {
-                const product = productData.find(p => p.product_id === detail.product_id);
-                if (!product) return;
-
-                existingOrder.articles.push({
-                    article_number: detail.article_number,
-                    article_amount: detail.article_amount,
-                    unit_price: detail.unit_price,
-                    currency: detail.currency,
-                    status: detail.status,
-                    product: {
-                        description: product.description,
-                        hs_code: product.hs_code,
-                        size: product.size,
-                        category: product.category
-                    }
-                });
-            });
-        });
-
-        // ✅ 7. Convert to Array and Send Response
-        const invoicesArray = Object.values(invoicesMap);
-        res.json(invoicesArray);*/
 
     } catch (error) {
         console.error("Error fetching order list:", error);

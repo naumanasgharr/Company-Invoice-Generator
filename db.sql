@@ -78,7 +78,7 @@ CREATE TABLE `commercial_invoice_article_table` (
   `article_id` int DEFAULT NULL,
   `article_amount` varchar(50) DEFAULT NULL,
   `cartons` int DEFAULT NULL,
-  `unit_price` bigint DEFAULT NULL,
+  `unit_price` varchar(100) DEFAULT NULL,
   `carton_gross_weight` varchar(50) DEFAULT NULL,
   `carton_net_weight` varchar(50) DEFAULT NULL,
   `currency` varchar(20) DEFAULT NULL,
@@ -362,7 +362,6 @@ CREATE TABLE `productcategory_table` (
 
 LOCK TABLES `productcategory_table` WRITE;
 /*!40000 ALTER TABLE `productcategory_table` DISABLE KEYS */;
-INSERT INTO `productcategory_table` VALUES ('Tri Cot Gloves');
 /*!40000 ALTER TABLE `productcategory_table` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -388,7 +387,6 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'waheed_azam','$2b$10$RJ0lbcqQNbrAiY9YwSAvl.QXsmNDQ43eWNOduTZGKUiVAoqTTHzbu'),(2,'ghulam_mustafa','$2b$10$6.9kUkMPIkzS0LmkrSuqwuQPB/VnvZifc./H45MOewT/OJ6.z1FF2'),(3,'haseeb_','$2b$10$pfhx17hyM0bXkZeujrvOSO1rlrkbla2tLdprxfIPVZlvKoPtzdtUm');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
